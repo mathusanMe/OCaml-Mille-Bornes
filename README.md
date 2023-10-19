@@ -1,5 +1,12 @@
 # 1000 Bornes
 
+## Members
+| Name | Gaufre username |
+| :--------------- |:---------------:|
+| Thomas ARROUS | @arrous |
+| Gabin DUDILLIEU | @gdudilli |
+| Mathusan SELVAKUMAR | @selvakum |
+
 ## Development environment setup
 
 Install [Opam](https://opam.ocaml.org/doc/Install.html), the OCaml
