@@ -1,4 +1,4 @@
-# 1000 Bornes
+# Mille bornes
 
 ## Members
 
@@ -52,6 +52,30 @@ If need be, you can invoke Dune to re-format the whole codebase:
 
 ```
 $ dune fmt
+```
+
+## Building mille_bornes
+
+To build the project, type:
+
+```
+$ dune build
+```
+
+For continuous build, use
+
+```
+$ dune build --watch
+```
+
+instead.
+
+## Running mille_bornes
+
+To run the project, type:
+
+```
+$ dune exec mille_bornes
 ```
 
 ## Running the tests
