@@ -1,11 +1,12 @@
 # 1000 Bornes
 
 ## Members
-| Name | Gaufre username |
-| :--------------- |:---------------:|
-| Thomas ARROUS | @arrous |
-| Gabin DUDILLIEU | @gdudilli |
-| Mathusan SELVAKUMAR | @selvakum |
+
+| Name                | Gaufre username |
+| :------------------ | :-------------: |
+| Thomas ARROUS       |     @arrous     |
+| Gabin DUDILLIEU     |    @gdudilli    |
+| Mathusan SELVAKUMAR |    @selvakum    |
 
 ## Development environment setup
 
@@ -15,6 +16,7 @@ package manager, on your system.
 For convenience, we setup a [local](https://opam.ocaml.org/blog/opam-local-switches/) Opam distribution, using the following commands:
 
 ```
+$ opam init
 $ opam switch create . --deps-only --with-doc --with-test
 $ eval $(opam env)
 ```
@@ -34,7 +36,6 @@ Make sure that your text editor applies
 [OCamlformat](https://ocaml.org/p/ocamlformat/0.22.4/doc/editor_setup.html#editor-setup)
 each time a file is modified, this helps settle styling war and avoids
 line-noisy patches down the line.
-
 
 In Emacs, this amounts to adding the following lines to your `.emacs`
 configuration file:
