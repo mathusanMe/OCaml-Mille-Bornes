@@ -15,6 +15,10 @@ type card =
   | Safety of safety_card
   | Distance of distance_card
 
-type deck = card list
+type deck_of_card = card list
+(* A deck_of_card is used like a list *)
+
+type pile_of_card = card list
+(* A pile_of_card is used like a pile *)
 
 val card_to_string : card -> string
