@@ -15,7 +15,8 @@ type card =
   | Safety of safety_card
   | Distance of distance_card
 
-type deck = card list
+type deck_of_card = card list
+type pile_of_card = card list
 
 let remedy_to_string = function
   | Drive -> "Drive"
