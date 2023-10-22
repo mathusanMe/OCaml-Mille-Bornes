@@ -1,0 +1,4 @@
+(executable
+ (public_name mille_bornes)
+ (name main)
+ (libraries mille_bornes))
