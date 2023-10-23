@@ -22,3 +22,5 @@ type pile_of_card = card list
 (* A pile_of_card is used like a pile *)
 
 val card_to_string : card -> string
+val generate_initial_pile : unit -> pile_of_card
+(* Generate an entire mille bornes card pile *)

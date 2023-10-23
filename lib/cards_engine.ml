@@ -50,3 +50,27 @@ let card_to_string = function
   | Hazard h -> hazard_to_string h
   | Safety s -> safety_to_string s
   | Distance d -> distance_to_string d
+
+let init_card_from_int = function
+  | n when n <= 0 -> Safety Emergency_vehicle
+  | n when n <= 1 -> Safety Fuel_truck
+  | n when n <= 2 -> Safety Puncture_proof
+  | n when n <= 3 -> Safety Driving_ace
+  | n when n <= 8 -> Hazard Stop
+  | n when n <= 12 -> Hazard Speed_limit
+  | n when n <= 15 -> Hazard Out_of_gas
+  | n when n <= 18 -> Hazard Plat_tire
+  | n when n <= 21 -> Hazard Accident
+  | n when n <= 35 -> Remedy Drive
+  | n when n <= 41 -> Remedy End_of_speed_limit
+  | n when n <= 47 -> Remedy Gas
+  | n when n <= 53 -> Remedy Spare_tire
+  | n when n <= 59 -> Remedy Repairs
+  | n when n <= 69 -> Distance D25
+  | n when n <= 79 -> Distance D50
+  | n when n <= 89 -> Distance D75
+  | n when n <= 101 -> Distance D100
+  | _ -> Distance D200
+
+let generate_initial_pile : unit -> pile_of_card =
+ fun () -> List.init 106 init_card_from_int
