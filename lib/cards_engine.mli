@@ -1,12 +1,6 @@
-type remedy_card = Drive | End_of_speed_limit | Gas | Spare_tire | Repairs
-type hazard_card = Stop | Speed_limit | Out_of_gas | Plat_tire | Accident
-
-type safety_card =
-  | Emergency_vehicle
-  | Fuel_truck
-  | Puncture_proof
-  | Driving_ace
-
+type remedy_card = Drive | EndOfSpeedLimit | Gas | SpareTire | Repairs
+type hazard_card = Stop | SpeedLimit | OutOfGas | FlatTire | Accident
+type safety_card = EmergencyVehicle | FuelTruck | PunctureProof | DrivingAce
 type distance_card = D25 | D50 | D75 | D100 | D200
 
 type card =

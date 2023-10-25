@@ -1,12 +1,6 @@
-type remedy_card = Drive | End_of_speed_limit | Gas | Spare_tire | Repairs
-type hazard_card = Stop | Speed_limit | Out_of_gas | Plat_tire | Accident
-
-type safety_card =
-  | Emergency_vehicle
-  | Fuel_truck
-  | Puncture_proof
-  | Driving_ace
-
+type remedy_card = Drive | EndOfSpeedLimit | Gas | SpareTire | Repairs
+type hazard_card = Stop | SpeedLimit | OutOfGas | FlatTire | Accident
+type safety_card = EmergencyVehicle | FuelTruck | PunctureProof | DrivingAce
 type distance_card = D25 | D50 | D75 | D100 | D200
 
 type card =
@@ -20,23 +14,23 @@ type pile_of_card = card list
 
 let remedy_to_string = function
   | Drive -> "Drive"
-  | End_of_speed_limit -> "End of speed limit"
+  | EndOfSpeedLimit -> "End of speed limit"
   | Gas -> "Gas"
-  | Spare_tire -> "Spare tire"
+  | SpareTire -> "Spare tire"
   | Repairs -> "Repairs"
 
 let hazard_to_string = function
   | Stop -> "Stop"
-  | Speed_limit -> "Speed limit"
-  | Out_of_gas -> "Out of gas"
-  | Plat_tire -> "Plat tire"
+  | SpeedLimit -> "Speed limit"
+  | OutOfGas -> "Out of gas"
+  | FlatTire -> "Plat tire"
   | Accident -> "Accident"
 
 let safety_to_string = function
-  | Emergency_vehicle -> "Emergency vehicle"
-  | Fuel_truck -> "Fuel truck"
-  | Puncture_proof -> "Puncture proof"
-  | Driving_ace -> "Driving ace"
+  | EmergencyVehicle -> "Emergency vehicle"
+  | FuelTruck -> "Fuel truck"
+  | PunctureProof -> "Puncture proof"
+  | DrivingAce -> "Driving ace"
 
 let distance_to_string = function
   | D25 -> "25"
@@ -52,19 +46,19 @@ let card_to_string = function
   | Distance d -> distance_to_string d
 
 let init_card_from_int = function
-  | n when n <= 0 -> Safety Emergency_vehicle
-  | n when n <= 1 -> Safety Fuel_truck
-  | n when n <= 2 -> Safety Puncture_proof
-  | n when n <= 3 -> Safety Driving_ace
+  | n when n <= 0 -> Safety EmergencyVehicle
+  | n when n <= 1 -> Safety FuelTruck
+  | n when n <= 2 -> Safety PunctureProof
+  | n when n <= 3 -> Safety DrivingAce
   | n when n <= 8 -> Hazard Stop
-  | n when n <= 12 -> Hazard Speed_limit
-  | n when n <= 15 -> Hazard Out_of_gas
-  | n when n <= 18 -> Hazard Plat_tire
+  | n when n <= 12 -> Hazard SpeedLimit
+  | n when n <= 15 -> Hazard OutOfGas
+  | n when n <= 18 -> Hazard FlatTire
   | n when n <= 21 -> Hazard Accident
   | n when n <= 35 -> Remedy Drive
-  | n when n <= 41 -> Remedy End_of_speed_limit
+  | n when n <= 41 -> Remedy EndOfSpeedLimit
   | n when n <= 47 -> Remedy Gas
-  | n when n <= 53 -> Remedy Spare_tire
+  | n when n <= 53 -> Remedy SpareTire
   | n when n <= 59 -> Remedy Repairs
   | n when n <= 69 -> Distance D25
   | n when n <= 79 -> Distance D50
