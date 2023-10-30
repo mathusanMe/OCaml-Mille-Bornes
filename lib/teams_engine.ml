@@ -15,18 +15,62 @@ type driving_zone = {
 
 type team = {
   players : player list;
-  board : driving_zone;
+  shared_driving_zone : driving_zone;
   current_player_index : int;
 }
 
+let init_player_struct (entered_name : string) =
+  { name = entered_name; hand = [] }
+
+let init_human (entered_name : string) = Human (init_player_struct entered_name)
+let init_computer (name : string) = Computer (init_player_struct name)
+
+let init_driving_zone () =
+  {
+    speed_limit_pile = [];
+    drive_pile = [];
+    can_drive = false;
+    distance_cards = [];
+    score = 0;
+    safety_area = [];
+    coup_fouree_cards = [];
+  }
+
+let init_team_with_one_player (name : string) (is_computer : bool) =
+  let player = if is_computer then init_computer name else init_human name in
+  {
+    players = [ player ];
+    shared_driving_zone = init_driving_zone ();
+    current_player_index = 0;
+  }
+
+let init_team_with_two_players (name1 : string) (is_computer1 : bool)
+    (name2 : string) (is_computer2 : bool) =
+  let player1 =
+    if is_computer1 then init_computer name1 else init_human name1
+  in
+  let player2 =
+    if is_computer2 then init_computer name2 else init_human name2
+  in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = init_driving_zone ();
+    current_player_index = 0;
+  }
+
 let get_current_player_from (t : team) =
   List.nth t.players t.current_player_index
+
+let get_player_struct_from (p : player) =
+  match p with Human e -> e | Computer e -> e
 
 let set_next_player_from (t : team) =
   if List.length t.players = 2 then
     {
       players = t.players;
-      board = t.board;
+      shared_driving_zone = t.shared_driving_zone;
       current_player_index = 1 - t.current_player_index;
     }
   else t
+
+let isComputer = function Computer _ -> true | Human _ -> false

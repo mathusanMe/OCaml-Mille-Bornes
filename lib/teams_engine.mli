@@ -15,9 +15,13 @@ type driving_zone = {
 
 type team = {
   players : player list;
-  board : driving_zone;
+  shared_driving_zone : driving_zone;
   current_player_index : int;
 }
 
 val get_current_player_from : team -> player
+val get_player_struct_from : player -> player_struct
 val set_next_player_from : team -> team
+val isComputer : player -> bool
+val init_team_with_one_player : string -> bool -> team
+val init_team_with_two_players : string -> bool -> string -> bool -> team
