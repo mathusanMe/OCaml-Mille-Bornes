@@ -32,3 +32,5 @@ val pp_deck_of_card : string -> Format.formatter -> deck_of_card -> unit
 val pp_pile_of_card : string -> Format.formatter -> pile_of_card -> unit
 val generate_initial_pile : unit -> pile_of_card
 (* Generate an entire mille bornes card pile *)
+
+val get_hazard_corresponding_to_the_remedy : remedy_card -> hazard_card
