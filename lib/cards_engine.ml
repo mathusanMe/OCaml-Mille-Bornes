@@ -1,16 +1,23 @@
 type remedy_card = Drive | EndOfSpeedLimit | Gas | SpareTire | Repairs
+[@@deriving eq]
+
 type hazard_card = Stop | SpeedLimit | OutOfGas | FlatTire | Accident
+[@@deriving eq]
+
 type safety_card = EmergencyVehicle | FuelTruck | PunctureProof | DrivingAce
-type distance_card = D25 | D50 | D75 | D100 | D200
+[@@deriving eq]
+
+type distance_card = D25 | D50 | D75 | D100 | D200 [@@deriving eq]
 
 type card =
   | Remedy of remedy_card
   | Hazard of hazard_card
   | Safety of safety_card
   | Distance of distance_card
+[@@deriving eq]
 
-type deck_of_card = card list
-type pile_of_card = card list
+type deck_of_card = card list [@@deriving eq]
+type pile_of_card = card list [@@deriving eq]
 
 let remedy_to_string = function
   | Drive -> "Drive"
@@ -39,11 +46,36 @@ let distance_to_string = function
   | D100 -> "100"
   | D200 -> "200"
 
-let card_to_string = function
-  | Remedy r -> remedy_to_string r
-  | Hazard h -> hazard_to_string h
-  | Safety s -> safety_to_string s
-  | Distance d -> distance_to_string d
+let pp_remedy fmt r = Format.fprintf fmt "%s" (remedy_to_string r)
+let pp_hazard fmt h = Format.fprintf fmt "%s" (hazard_to_string h)
+let pp_safety fmt s = Format.fprintf fmt "%s" (safety_to_string s)
+let pp_distance fmt d = Format.fprintf fmt "%s" (distance_to_string d)
+
+let pp_card fmt = function
+  | Remedy r -> pp_remedy fmt r
+  | Hazard h -> pp_hazard fmt h
+  | Safety s -> pp_safety fmt s
+  | Distance d -> pp_distance fmt d
+
+let pp_list_of_card with_index fmt l =
+  if with_index then
+    l
+    |> List.iteri (fun i e ->
+           Format.fprintf fmt "%d. %a" i pp_card e;
+           Format.fprintf fmt ";@;")
+  else
+    l
+    |> List.iter (fun e ->
+           Format.fprintf fmt "%a" pp_card e;
+           Format.fprintf fmt ";@;")
+
+let pp_deck_of_card name fmt l =
+  Format.fprintf fmt "%s : " name;
+  Format.fprintf fmt "@[<v>%a@]@;" (pp_list_of_card true) l
+
+let pp_pile_of_card name fmt l =
+  Format.fprintf fmt "%s : " name;
+  Format.fprintf fmt "@[<v>%a@]@;" (pp_list_of_card false) l
 
 let init_card_from_int = function
   | n when n <= 0 -> Safety EmergencyVehicle
