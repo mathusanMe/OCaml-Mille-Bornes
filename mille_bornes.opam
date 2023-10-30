@@ -32,4 +32,3 @@ build: [
 ]
 dev-repo:
   "git+https://gaufre.informatique.univ-paris-diderot.fr/selvakum/2023-ppo4-sad"
-  
