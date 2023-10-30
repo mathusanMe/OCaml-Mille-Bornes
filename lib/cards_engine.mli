@@ -15,6 +15,20 @@ type deck_of_card = card list
 type pile_of_card = card list
 (* A pile_of_card is used like a pile *)
 
-val card_to_string : card -> string
+val equal_remedy_card : remedy_card -> remedy_card -> bool
+val equal_hazard_card : hazard_card -> hazard_card -> bool
+val equal_safety_card : safety_card -> safety_card -> bool
+val equal_distance_card : distance_card -> distance_card -> bool
+val equal_card : card -> card -> bool
+val equal_deck_of_card : deck_of_card -> deck_of_card -> bool
+val equal_pile_of_card : pile_of_card -> pile_of_card -> bool
+val pp_remedy : Format.formatter -> remedy_card -> unit
+val pp_hazard : Format.formatter -> hazard_card -> unit
+val pp_safety : Format.formatter -> safety_card -> unit
+val pp_card : Format.formatter -> card -> unit
+val pp_distance : Format.formatter -> distance_card -> unit
+val pp_list_of_card : bool -> Format.formatter -> card list -> unit
+val pp_deck_of_card : string -> Format.formatter -> deck_of_card -> unit
+val pp_pile_of_card : string -> Format.formatter -> pile_of_card -> unit
 val generate_initial_pile : unit -> pile_of_card
 (* Generate an entire mille bornes card pile *)

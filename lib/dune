@@ -1,2 +1,4 @@
 (library
- (name mille_bornes))
+ (name mille_bornes)
+ (preprocess
+  (pps ppx_deriving.eq)))
