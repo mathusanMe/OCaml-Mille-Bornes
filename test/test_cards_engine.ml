@@ -71,6 +71,17 @@ let test_pp_pile_of_card3 =
         \         \n"
         (Format.asprintf "%a" (pp_pile_of_card "Pile 3") exemple_pp_list3))
 
+let test_get_hazard_corresponding_to_the_remedy =
+  Alcotest.test_case "test get_hazard_corresponding_to_the_remedy" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (get_hazard_corresponding_to_the_remedy Drive = Stop
+        && get_hazard_corresponding_to_the_remedy EndOfSpeedLimit = SpeedLimit
+        && get_hazard_corresponding_to_the_remedy Gas = OutOfGas
+        && get_hazard_corresponding_to_the_remedy SpareTire = FlatTire
+        && get_hazard_corresponding_to_the_remedy Repairs = Accident))
+
 let () =
   let open Alcotest in
   run "Cards_engine"
@@ -81,4 +92,6 @@ let () =
       ( "pp_pile_of_card",
         [ test_pp_pile_of_card1; test_pp_pile_of_card2; test_pp_pile_of_card3 ]
       );
+      ( "test get_hazard_corresponding_to_the_remedy",
+        [ test_get_hazard_corresponding_to_the_remedy ] );
     ]

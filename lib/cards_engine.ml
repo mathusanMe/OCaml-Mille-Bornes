@@ -100,3 +100,11 @@ let init_card_from_int = function
 
 let generate_initial_pile : unit -> pile_of_card =
  fun () -> List.init 106 init_card_from_int
+
+let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
+  match c with
+  | Drive -> Stop
+  | EndOfSpeedLimit -> SpeedLimit
+  | Gas -> OutOfGas
+  | SpareTire -> FlatTire
+  | Repairs -> Accident
