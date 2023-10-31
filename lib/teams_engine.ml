@@ -75,6 +75,26 @@ let set_next_player_from (t : team) =
 
 let is_computer = function Computer _ -> true | Human _ -> false
 
+let same_player (p1 : player) (p2 : player) =
+  let e1 = get_player_struct_from p1 in
+  let e2 = get_player_struct_from p2 in
+  e1.name = e2.name
+
+let same_team (t1 : team) (t2 : team) =
+  List.for_all2 same_player t1.players t2.players
+
+let replace_player_struct_in (p : player) (p_struct : player_struct) =
+  match p with Computer _ -> Computer p_struct | Human _ -> Human p_struct
+
+let replace_player_in (t : team) (p : player) =
+  {
+    t with
+    players = List.map (fun x -> if same_player x p then p else x) t.players;
+  }
+
+let replace_team_in (teams : team list) (t : team) =
+  List.map (fun x -> if same_team x t then t else x) teams
+
 let has_already_used_safety_card (t : team) (c : safety_card) =
   let f = List.exists (fun x -> x = Safety c) in
   f t.shared_driving_zone.safety_area
