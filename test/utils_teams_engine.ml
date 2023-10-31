@@ -14,3 +14,65 @@ let team_with_computer_human =
 
 let team_with_human_computer =
   init_team_with_two_players "Gabin" false "Computer" true
+
+open Mille_bornes.Cards_engine
+
+let team1 =
+  let driving_zone =
+    {
+      speed_limit_pile = [];
+      drive_pile = [];
+      can_drive = true;
+      distance_cards = [];
+      score = 0;
+      safety_area = [];
+      coup_fouree_cards = [];
+    }
+  in
+  let player1 = Human { name = "name1"; hand = [] } in
+  let player2 = Human { name = "name2"; hand = [] } in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = driving_zone;
+    current_player_index = 0;
+  }
+
+let team2 =
+  let driving_zone =
+    {
+      speed_limit_pile = [];
+      drive_pile = [];
+      can_drive = true;
+      distance_cards = [];
+      score = 0;
+      safety_area = [ Safety FuelTruck ];
+      coup_fouree_cards = [];
+    }
+  in
+  let player1 = Human { name = "name1"; hand = [] } in
+  let player2 = Human { name = "name2"; hand = [] } in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = driving_zone;
+    current_player_index = 0;
+  }
+
+let team3 =
+  let driving_zone =
+    {
+      speed_limit_pile = [];
+      drive_pile = [];
+      can_drive = true;
+      distance_cards = [];
+      score = 0;
+      safety_area = [ Safety FuelTruck ];
+      coup_fouree_cards = [ Safety EmergencyVehicle ];
+    }
+  in
+  let player1 = Human { name = "name1"; hand = [] } in
+  let player2 = Human { name = "name2"; hand = [] } in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = driving_zone;
+    current_player_index = 0;
+  }
