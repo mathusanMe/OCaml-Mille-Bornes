@@ -73,4 +73,9 @@ let set_next_player_from (t : team) =
     }
   else t
 
-let isComputer = function Computer _ -> true | Human _ -> false
+let is_computer = function Computer _ -> true | Human _ -> false
+
+let has_already_used_safety_card (t : team) (c : safety_card) =
+  let f = List.exists (fun x -> x = Safety c) in
+  f t.shared_driving_zone.safety_area
+  || f t.shared_driving_zone.coup_fouree_cards

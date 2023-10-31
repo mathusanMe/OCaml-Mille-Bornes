@@ -22,6 +22,7 @@ type team = {
 val get_current_player_from : team -> player
 val get_player_struct_from : player -> player_struct
 val set_next_player_from : team -> team
-val isComputer : player -> bool
+val is_computer : player -> bool
 val init_team_with_one_player : string -> bool -> team
 val init_team_with_two_players : string -> bool -> string -> bool -> team
+val has_already_used_safety_card : team -> safety_card -> bool

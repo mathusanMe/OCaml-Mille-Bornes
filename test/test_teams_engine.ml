@@ -16,7 +16,7 @@ let test_init_team_with_one_computer_player =
       Alcotest.(check bool)
         "same result" true
         (List.length team_with_one_computer.players = 1
-        && isComputer (List.nth team_with_one_computer.players 0)
+        && is_computer (List.nth team_with_one_computer.players 0)
         &&
         let player = List.nth team_with_one_computer.players 0 in
         let player_struct = get_player_struct_from player in
@@ -31,7 +31,7 @@ let test_init_team_with_one_human_player =
       Alcotest.(check bool)
         "same result" true
         (List.length team_with_one_human.players = 1
-        && (not (isComputer (List.nth team_with_one_human.players 0)))
+        && (not (is_computer (List.nth team_with_one_human.players 0)))
         &&
         let player = List.nth team_with_one_human.players 0 in
         let player_struct = get_player_struct_from player in
@@ -46,8 +46,8 @@ let test_init_team_with_two_computer_players =
       Alcotest.(check bool)
         "same result" true
         (List.length team_with_two_computers.players = 2
-        && isComputer (List.nth team_with_two_computers.players 0)
-        && isComputer (List.nth team_with_two_computers.players 1)
+        && is_computer (List.nth team_with_two_computers.players 0)
+        && is_computer (List.nth team_with_two_computers.players 1)
         &&
         let player1 = List.nth team_with_two_computers.players 0
         and player2 = List.nth team_with_two_computers.players 1 in
@@ -65,8 +65,8 @@ let test_init_team_with_two_human_players =
       Alcotest.(check bool)
         "same result" true
         (List.length team_with_two_humans.players = 2
-        && (not (isComputer (List.nth team_with_two_humans.players 0)))
-        && (not (isComputer (List.nth team_with_two_humans.players 1)))
+        && (not (is_computer (List.nth team_with_two_humans.players 0)))
+        && (not (is_computer (List.nth team_with_two_humans.players 1)))
         &&
         let player1 = List.nth team_with_two_humans.players 0
         and player2 = List.nth team_with_two_humans.players 1 in
@@ -85,8 +85,8 @@ let test_init_team_with_one_computer_player_and_one_human_player =
       Alcotest.(check bool)
         "same result" true
         (List.length team_with_computer_human.players = 2
-        && isComputer (List.nth team_with_computer_human.players 0)
-        && (not (isComputer (List.nth team_with_computer_human.players 1)))
+        && is_computer (List.nth team_with_computer_human.players 0)
+        && (not (is_computer (List.nth team_with_computer_human.players 1)))
         &&
         let player1 = List.nth team_with_computer_human.players 0
         and player2 = List.nth team_with_computer_human.players 1 in
@@ -105,8 +105,8 @@ let test_init_team_with_one_human_player_and_one_computer_player =
       Alcotest.(check bool)
         "same result" true
         (List.length team_with_human_computer.players = 2
-        && (not (isComputer (List.nth team_with_human_computer.players 0)))
-        && isComputer (List.nth team_with_human_computer.players 1)
+        && (not (is_computer (List.nth team_with_human_computer.players 0)))
+        && is_computer (List.nth team_with_human_computer.players 1)
         &&
         let player1 = List.nth team_with_human_computer.players 0
         and player2 = List.nth team_with_human_computer.players 1 in
@@ -117,6 +117,37 @@ let test_init_team_with_one_human_player_and_one_computer_player =
         && player2_struct.name = "Computer"
         && team_with_human_computer.current_player_index = 0
         && driving_zone_is_clear team_with_human_computer.shared_driving_zone))
+
+let test_has_already_used_safety1 =
+  Alcotest.test_case "given safety card not used by team yet, can be used"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ((not (has_already_used_safety_card team1 FuelTruck))
+        && (not (has_already_used_safety_card team1 EmergencyVehicle))
+        && (not (has_already_used_safety_card team1 PunctureProof))
+        && not (has_already_used_safety_card team1 DrivingAce)))
+
+let test_has_already_used_safety2 =
+  Alcotest.test_case "given safety card used by team, can't be reused" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (has_already_used_safety_card team2 FuelTruck
+        && (not (has_already_used_safety_card team2 EmergencyVehicle))
+        && (not (has_already_used_safety_card team2 PunctureProof))
+        && not (has_already_used_safety_card team2 DrivingAce)))
+
+let test_has_already_used_safety3 =
+  Alcotest.test_case
+    "given safety card used as coup fourre by team, can't be reused" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (has_already_used_safety_card team3 FuelTruck
+        && has_already_used_safety_card team3 EmergencyVehicle
+        && (not (has_already_used_safety_card team3 PunctureProof))
+        && not (has_already_used_safety_card team3 DrivingAce)))
 
 let () =
   let open Alcotest in
@@ -130,5 +161,11 @@ let () =
           test_init_team_with_two_human_players;
           test_init_team_with_one_computer_player_and_one_human_player;
           test_init_team_with_one_human_player_and_one_computer_player;
+        ] );
+      ( "has_already_used_safety_card",
+        [
+          test_has_already_used_safety1;
+          test_has_already_used_safety2;
+          test_has_already_used_safety3;
         ] );
     ]
