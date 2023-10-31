@@ -33,6 +33,9 @@ val pp_pile_of_card : string -> Format.formatter -> pile_of_card -> unit
 val generate_initial_pile : unit -> pile_of_card
 (* Generate an entire mille bornes card pile *)
 
+val draw_card_from_pile : pile_of_card -> card * pile_of_card
+(* Draw a card from a pile_of_card and return the card and the new pile_of_card *)
+
 val sort_card_list : card list -> card list
 (* Sort a cart list using an order determinate in the engine *)
 
