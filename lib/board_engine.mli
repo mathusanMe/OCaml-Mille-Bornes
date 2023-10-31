@@ -7,3 +7,5 @@ type board = {
   teams : team list;
   current_team_index : int;
 }
+
+val draw_card : board -> team -> board
