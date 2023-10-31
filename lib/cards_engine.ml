@@ -101,6 +101,9 @@ let init_card_from_int = function
 let generate_initial_pile : unit -> pile_of_card =
  fun () -> List.init 106 init_card_from_int
 
+let draw_card_from_pile (p : pile_of_card) =
+  match p with [] -> failwith "Empty pile" | h :: t -> (h, t)
+
 let card_to_int = function
   | Safety EmergencyVehicle -> 0
   | Safety FuelTruck -> 1
