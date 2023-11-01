@@ -7,7 +7,7 @@ let flatten_teams (teams : team list) =
   teams |> List.map (fun team -> team.players) |> List.flatten
 
 let test_draw_card_from_non_empty_draw_pile =
-  Alcotest.test_case "draw card from draw_pile" `Quick (fun () ->
+  Alcotest.test_case "draw card from non empty draw pile" `Quick (fun () ->
       Alcotest.(check bool)
         "draw and add card to current team's current player's hand" true
         (let draw_pile = board_with_draw_pile.draw_pile in
@@ -50,7 +50,7 @@ let test_draw_card_from_non_empty_draw_pile =
             = List.length new_board_with_draw_pile.draw_pile + 1))
 
 let test_draw_card_from_empty_draw_pile =
-  Alcotest.test_case "raise EmptyPile on draw card from empty draw pile" `Quick
+  Alcotest.test_case "raise EmptyPile on draw from empty draw pile" `Quick
     (fun () ->
       Alcotest.check_raises "Expected EmptyPile" EmptyPile (fun () ->
           ignore
@@ -61,7 +61,7 @@ let () =
   let open Alcotest in
   run "Board_engine"
     [
-      ( "draw card from draw_pile",
+      ( "draw card from draw pile",
         [
           test_draw_card_from_non_empty_draw_pile;
           test_draw_card_from_empty_draw_pile;
