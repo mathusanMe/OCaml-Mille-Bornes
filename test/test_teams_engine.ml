@@ -1,6 +1,90 @@
 open Mille_bornes.Teams_engine
 open Utils_teams_engine
 
+let test_set_next_player_and_get_current_player1 =
+  Alcotest.test_case
+    "test set_next_player and get_current_player on team with one computer \
+     player"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (get_current_player_from team_with_one_computer
+        = get_current_player_from (set_next_player_from team_with_one_computer)
+        ))
+
+let test_set_next_player_and_get_current_player2 =
+  Alcotest.test_case
+    "test set_next_player and get_current_player on team with one computer \
+     player and one human player"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (*Checks if the first player to play and the third player to play is the same.
+          Also check that the second player to play and the fourth player to play is the same.
+          Also check that the first player to play and the second players to play are not the same.
+          Also check that the second to play players and the third to play players are not the same.*)
+        (get_current_player_from team_with_computer_human
+         = get_current_player_from
+             (set_next_player_from
+                (set_next_player_from team_with_computer_human))
+        && get_current_player_from
+             (set_next_player_from team_with_computer_human)
+           = get_current_player_from
+               (set_next_player_from
+                  (set_next_player_from
+                     (set_next_player_from team_with_computer_human)))
+        && get_current_player_from team_with_computer_human
+           != get_current_player_from
+                (set_next_player_from team_with_computer_human)
+        && get_current_player_from
+             (set_next_player_from team_with_computer_human)
+           != get_current_player_from
+                (set_next_player_from
+                   (set_next_player_from team_with_computer_human))))
+
+let test_set_next_player1 =
+  Alcotest.test_case
+    "test if the index of the current player remains at 0 in a team with one \
+     player"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (team_with_one_human.current_player_index = 0
+        && (set_next_player_from team_with_one_human).current_player_index = 0
+        && team_with_one_computer.current_player_index = 0
+        && (set_next_player_from team_with_one_computer).current_player_index
+           = 0))
+
+let test_set_next_player2 =
+  Alcotest.test_case
+    "test if the index of the current player changes correctly in a team with \
+     2 players"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (team_with_computer_human.current_player_index = 0
+        && (set_next_player_from team_with_computer_human).current_player_index
+           = 1
+        && (set_next_player_from
+              (set_next_player_from team_with_computer_human))
+             .current_player_index = 0
+        && (set_next_player_from
+              (set_next_player_from
+                 (set_next_player_from team_with_computer_human)))
+             .current_player_index = 1))
+
+let test_get_current_player_from =
+  Alcotest.test_case "test get_current_player_from" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ((get_player_struct_from
+            (get_current_player_from team_with_computer_human))
+           .name = "Computer"
+        && (get_player_struct_from
+              (get_current_player_from
+                 (set_next_player_from team_with_computer_human)))
+             .name = "Mathusan"))
+
 let driving_zone_is_clear driving_zone =
   driving_zone.speed_limit_pile = []
   && driving_zone.drive_pile = []
@@ -78,7 +162,7 @@ let test_init_team_with_two_human_players =
         and player2_struct = get_player_struct_from player2 in
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Gabin"
-        && player2_struct.name = "Thomas"
+        && player2_struct.name = "Mathusan"
         && team_with_two_humans.score = 0
         && team_with_two_humans.can_drive = false
         && team_with_two_humans.current_player_index = 0
@@ -100,7 +184,7 @@ let test_init_team_with_one_computer_player_and_one_human_player =
         and player2_struct = get_player_struct_from player2 in
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Computer"
-        && player2_struct.name = "Gabin"
+        && player2_struct.name = "Mathusan"
         && team_with_computer_human.score = 0
         && team_with_computer_human.can_drive = false
         && team_with_computer_human.current_player_index = 0
@@ -163,6 +247,14 @@ let () =
   let open Alcotest in
   run "Teams_engine"
     [
+      ( "test get_current_player_from and set_next_player_from",
+        [
+          test_set_next_player_and_get_current_player1;
+          test_set_next_player_and_get_current_player2;
+          test_set_next_player1;
+          test_set_next_player2;
+          test_get_current_player_from;
+        ] );
       ( "init teams, players and driving_zone function tests",
         [
           test_init_team_with_one_computer_player;

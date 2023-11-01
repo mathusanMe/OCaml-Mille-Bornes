@@ -7,10 +7,10 @@ let team_with_two_computers =
   init_team_with_two_players "Computer1" true "Computer2" true
 
 let team_with_two_humans =
-  init_team_with_two_players "Gabin" false "Thomas" false
+  init_team_with_two_players "Gabin" false "Mathusan" false
 
 let team_with_computer_human =
-  init_team_with_two_players "Computer" true "Gabin" false
+  init_team_with_two_players "Computer" true "Mathusan" false
 
 let team_with_human_computer =
   init_team_with_two_players "Gabin" false "Computer" true
