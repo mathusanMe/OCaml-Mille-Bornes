@@ -130,8 +130,13 @@ let compare_card c1 c2 =
 
 let sort_card_list l = List.sort compare_card l
 
+exception EmptyPile
+
+let peek_card_from_draw_pile (p : pile_of_card) =
+  match p with [] -> raise EmptyPile | h :: _ -> h
+
 let draw_card_from_pile (p : pile_of_card) =
-  match p with [] -> failwith "Empty pile" | h :: t -> (h, t)
+  match p with [] -> raise EmptyPile | h :: t -> (h, t)
 
 let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
   match c with
