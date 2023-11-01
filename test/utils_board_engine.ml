@@ -1,4 +1,6 @@
 open Mille_bornes.Board_engine
+open Mille_bornes.Cards_engine
+open Mille_bornes.Teams_engine
 
 let team1 =
   let driving_zone =
@@ -62,7 +64,7 @@ let team3 =
 
 let board_with_draw_pile =
   {
-    draw_pile = [ D200; Remedy Drive ];
+    draw_pile = [ Distance D200; Remedy Drive ];
     discard_pile = [ Hazard Accident; Remedy Repairs ];
     teams = [ team1; team2; team3 ];
     current_team_index = 1;
