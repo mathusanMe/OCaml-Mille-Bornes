@@ -4,9 +4,7 @@ open Utils_teams_engine
 let driving_zone_is_clear driving_zone =
   driving_zone.speed_limit_pile = []
   && driving_zone.drive_pile = []
-  && driving_zone.can_drive = false
   && driving_zone.distance_cards = []
-  && driving_zone.score = 0
   && driving_zone.safety_area = []
   && driving_zone.coup_fouree_cards = []
 
@@ -22,6 +20,8 @@ let test_init_team_with_one_computer_player =
         let player_struct = get_player_struct_from player in
         player_struct.hand = []
         && player_struct.name = "Computer"
+        && team_with_one_computer.score = 0
+        && team_with_one_computer.can_drive = false
         && team_with_one_computer.current_player_index = 0
         && driving_zone_is_clear team_with_one_computer.shared_driving_zone))
 
@@ -37,6 +37,8 @@ let test_init_team_with_one_human_player =
         let player_struct = get_player_struct_from player in
         player_struct.hand = []
         && player_struct.name = "Thomas"
+        && team_with_one_computer.score = 0
+        && team_with_one_computer.can_drive = false
         && team_with_one_human.current_player_index = 0
         && driving_zone_is_clear team_with_one_human.shared_driving_zone))
 
@@ -56,6 +58,8 @@ let test_init_team_with_two_computer_players =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Computer1"
         && player2_struct.name = "Computer2"
+        && team_with_two_computers.score = 0
+        && team_with_two_computers.can_drive = false
         && team_with_two_computers.current_player_index = 0
         && driving_zone_is_clear team_with_two_computers.shared_driving_zone))
 
@@ -75,6 +79,8 @@ let test_init_team_with_two_human_players =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Gabin"
         && player2_struct.name = "Thomas"
+        && team_with_two_humans.score = 0
+        && team_with_two_humans.can_drive = false
         && team_with_two_humans.current_player_index = 0
         && driving_zone_is_clear team_with_two_humans.shared_driving_zone))
 
@@ -95,6 +101,8 @@ let test_init_team_with_one_computer_player_and_one_human_player =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Computer"
         && player2_struct.name = "Gabin"
+        && team_with_computer_human.score = 0
+        && team_with_computer_human.can_drive = false
         && team_with_computer_human.current_player_index = 0
         && driving_zone_is_clear team_with_computer_human.shared_driving_zone))
 
@@ -115,6 +123,8 @@ let test_init_team_with_one_human_player_and_one_computer_player =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Gabin"
         && player2_struct.name = "Computer"
+        && team_with_human_computer.score = 0
+        && team_with_human_computer.can_drive = false
         && team_with_human_computer.current_player_index = 0
         && driving_zone_is_clear team_with_human_computer.shared_driving_zone))
 
