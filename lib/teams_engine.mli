@@ -6,9 +6,7 @@ type player = Computer of player_struct | Human of player_struct
 type driving_zone = {
   speed_limit_pile : pile_of_card;
   drive_pile : pile_of_card;
-  can_drive : bool;
   distance_cards : deck_of_card;
-  score : int;
   safety_area : deck_of_card;
   coup_fouree_cards : deck_of_card;
 }
@@ -16,6 +14,8 @@ type driving_zone = {
 type team = {
   players : player list;
   shared_driving_zone : driving_zone;
+  score : int;
+  can_drive : bool;
   current_player_index : int;
 }
 

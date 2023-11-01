@@ -6,9 +6,7 @@ type player = Computer of player_struct | Human of player_struct
 type driving_zone = {
   speed_limit_pile : pile_of_card;
   drive_pile : pile_of_card;
-  can_drive : bool;
   distance_cards : deck_of_card;
-  score : int;
   safety_area : deck_of_card;
   coup_fouree_cards : deck_of_card;
 }
@@ -16,6 +14,8 @@ type driving_zone = {
 type team = {
   players : player list;
   shared_driving_zone : driving_zone;
+  score : int;
+  can_drive : bool;
   current_player_index : int;
 }
 
@@ -29,9 +29,7 @@ let init_driving_zone () =
   {
     speed_limit_pile = [];
     drive_pile = [];
-    can_drive = false;
     distance_cards = [];
-    score = 0;
     safety_area = [];
     coup_fouree_cards = [];
   }
@@ -41,6 +39,8 @@ let init_team_with_one_player (name : string) (is_computer : bool) =
   {
     players = [ player ];
     shared_driving_zone = init_driving_zone ();
+    score = 0;
+    can_drive = false;
     current_player_index = 0;
   }
 
@@ -55,6 +55,8 @@ let init_team_with_two_players (name1 : string) (is_computer1 : bool)
   {
     players = [ player1; player2 ];
     shared_driving_zone = init_driving_zone ();
+    score = 0;
+    can_drive = false;
     current_player_index = 0;
   }
 
@@ -69,6 +71,8 @@ let set_next_player_from (t : team) =
     {
       players = t.players;
       shared_driving_zone = t.shared_driving_zone;
+      score = 0;
+      can_drive = false;
       current_player_index = 1 - t.current_player_index;
     }
   else t
