@@ -24,7 +24,8 @@ let test_draw_card_from_non_empty_draw_pile =
            (flatten_teams board_with_draw_pile.teams)
            (flatten_teams new_board_with_draw_pile.teams)
          |> List.filter (fun (player, new_player) ->
-                same_player player new_player)
+                same_player player new_player
+                && not (same_player player current_player))
          |> List.map (fun (player, new_player) ->
                 ( get_player_struct_from player,
                   get_player_struct_from new_player ))
