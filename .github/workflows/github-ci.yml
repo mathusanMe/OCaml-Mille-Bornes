@@ -1,11 +1,11 @@
-name: Builds, tests & co
+name: Builds, Tests & Co
 
 on:
   pull_request:
   push:
   schedule:
     # Prime the caches every Monday
-    - cron: 0 1 * * MON
+    - cron: '0 1 * * MON'
 
 permissions: read-all
 
@@ -32,8 +32,33 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-      - run: opam install . --deps-only --with-test
+      - name: Cache Opam Dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.opam
+          key: ${{ runner.os }}-opam-${{ matrix.ocaml-compiler }}-${{ hashFiles('**/opam.locked') }}
+          restore-keys: |
+            ${{ runner.os }}-opam-${{ matrix.ocaml-compiler }}-
 
-      - run: opam exec -- dune build
+      - name: Install Dependencies
+        run: opam install . --deps-only --with-test
 
-      - run: opam exec -- dune runtest
+      # Add OCamlFormat installation step if it's not already included in the project dependencies
+      - name: Install OCamlFormat
+        run: opam install ocamlformat
+
+      - name: Check OCaml Formatting
+        run: opam exec -- ocamlformat --check **/*.ml **/*.mli
+
+      - name: Build Project
+        run: opam exec -- dune build
+
+      - name: Run Tests
+        run: opam exec -- dune runtest
+
+      - name: Upload Artifacts (optional)
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
+          path: path/to/your/artifacts
