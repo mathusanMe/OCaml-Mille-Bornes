@@ -7,9 +7,7 @@ let team1 =
     {
       speed_limit_pile = [];
       drive_pile = [];
-      can_drive = true;
       distance_cards = [];
-      score = 0;
       safety_area = [];
       coup_fouree_cards = [];
     }
@@ -19,6 +17,8 @@ let team1 =
   {
     players = [ player1; player2 ];
     shared_driving_zone = driving_zone;
+    score = 0;
+    can_drive = true;
     current_player_index = 0;
   }
 
@@ -27,9 +27,7 @@ let team2 =
     {
       speed_limit_pile = [];
       drive_pile = [];
-      can_drive = true;
       distance_cards = [];
-      score = 0;
       safety_area = [];
       coup_fouree_cards = [];
     }
@@ -39,6 +37,8 @@ let team2 =
   {
     players = [ player1; player2 ];
     shared_driving_zone = driving_zone;
+    score = 0;
+    can_drive = true;
     current_player_index = 0;
   }
 
@@ -47,9 +47,7 @@ let team_not_in_board =
     {
       speed_limit_pile = [];
       drive_pile = [];
-      can_drive = true;
       distance_cards = [];
-      score = 0;
       safety_area = [];
       coup_fouree_cards = [];
     }
@@ -59,6 +57,8 @@ let team_not_in_board =
   {
     players = [ player1; player2 ];
     shared_driving_zone = driving_zone;
+    score = 0;
+    can_drive = true;
     current_player_index = 0;
   }
 
