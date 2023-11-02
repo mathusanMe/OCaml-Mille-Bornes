@@ -101,38 +101,6 @@ let init_card_from_int = function
 let generate_initial_pile : unit -> pile_of_card =
  fun () -> List.init 106 init_card_from_int
 
-let card_to_int = function
-  | Safety EmergencyVehicle -> 0
-  | Safety FuelTruck -> 1
-  | Safety PunctureProof -> 2
-  | Safety DrivingAce -> 3
-  | Hazard Stop -> 4
-  | Hazard SpeedLimit -> 5
-  | Hazard OutOfGas -> 6
-  | Hazard FlatTire -> 7
-  | Hazard Accident -> 8
-  | Remedy Drive -> 9
-  | Remedy EndOfSpeedLimit -> 10
-  | Remedy Gas -> 11
-  | Remedy SpareTire -> 12
-  | Remedy Repairs -> 13
-  | Distance D25 -> 14
-  | Distance D50 -> 15
-  | Distance D75 -> 16
-  | Distance D100 -> 17
-  | Distance D200 -> 18
-
-(* Compare c1 and c2 using card_to_int *)
-let compare_card c1 c2 =
-  let n1 = card_to_int c1 in
-  let n2 = card_to_int c2 in
-  if n1 < n2 then -1 else if n1 > n2 then 1 else 0
-
-let sort_card_list l = List.sort compare_card l
-
-let draw_card_from_pile (p : pile_of_card) =
-  match p with [] -> failwith "Empty pile" | h :: t -> (h, t)
-
 let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
   match c with
   | Drive -> Stop
