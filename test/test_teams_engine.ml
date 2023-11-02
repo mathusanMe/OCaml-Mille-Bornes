@@ -243,6 +243,52 @@ let test_has_already_used_safety3 =
         && (not (has_already_used_safety_card team3 PunctureProof))
         && not (has_already_used_safety_card team3 DrivingAce)))
 
+let test_is_attacked1 =
+  Alcotest.test_case
+    "check if a team is attacked neither on its speed_limite_pile nor on its \
+     drive_pile"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ((not (is_attacked_by_hazard_on_drive_pile team1))
+        && not (is_attacked_by_speed_limit team1)))
+
+let test_is_attacked2 =
+  Alcotest.test_case
+    "checks if a team is attacked on its speed_limite_pile but not on its \
+     drive_pile"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ((not (is_attacked_by_hazard_on_drive_pile team2))
+        && is_attacked_by_speed_limit team2))
+
+let test_is_attacked3 =
+  Alcotest.test_case
+    "checks if a team is attacked on its drive_pile but not on its \
+     speed_limite_pile"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (is_attacked_by_hazard_on_drive_pile team3
+        && not (is_attacked_by_speed_limit team3)))
+
+let test_is_attacked4 =
+  Alcotest.test_case
+    "Test if the EmergencyVehicle card blocks SpeedLimit and Stop cards" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ((not (is_attacked_by_hazard_on_drive_pile team4))
+        && not (is_attacked_by_speed_limit team4)))
+
+let test_is_attacked5 =
+  Alcotest.test_case "Test if the remedy block hazard" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ((not (is_attacked_by_hazard_on_drive_pile team5))
+        && not (is_attacked_by_speed_limit team5)))
+
 let () =
   let open Alcotest in
   run "Teams_engine"
@@ -269,5 +315,13 @@ let () =
           test_has_already_used_safety1;
           test_has_already_used_safety2;
           test_has_already_used_safety3;
+        ] );
+      ( "is attacked on drive pile or on speed limit pile",
+        [
+          test_is_attacked1;
+          test_is_attacked2;
+          test_is_attacked3;
+          test_is_attacked4;
+          test_is_attacked5;
         ] );
     ]

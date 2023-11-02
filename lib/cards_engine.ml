@@ -164,3 +164,5 @@ let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
   | Gas -> OutOfGas
   | SpareTire -> FlatTire
   | Repairs -> Accident
+
+let is_empty (l : card list) = List.length l = 0

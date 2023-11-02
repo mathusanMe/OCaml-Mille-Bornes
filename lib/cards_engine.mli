@@ -40,3 +40,4 @@ val shuffle_pile : pile_of_card -> pile_of_card
 (* Take a pile of card and shuffle it entirely *)
 
 val get_hazard_corresponding_to_the_remedy : remedy_card -> hazard_card
+val is_empty : card list -> bool
