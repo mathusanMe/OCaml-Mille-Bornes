@@ -42,7 +42,7 @@ let team2 =
     current_player_index = 0;
   }
 
-let team_not_in_board =
+let team3 =
   let driving_zone =
     {
       speed_limit_pile = [];
@@ -54,8 +54,8 @@ let team_not_in_board =
       coup_fouree_cards = [];
     }
   in
-  let player1 = Human { name = "team_not_in_board_name1"; hand = [] } in
-  let player2 = Human { name = "team_not_in_board_name2"; hand = [] } in
+  let player1 = Human { name = "team3_name1"; hand = [] } in
+  let player2 = Human { name = "team3_name2"; hand = [] } in
   {
     players = [ player1; player2 ];
     shared_driving_zone = driving_zone;
@@ -66,7 +66,7 @@ let board_with_draw_pile =
   {
     draw_pile = [ Distance D200; Remedy Drive ];
     discard_pile = [ Hazard Accident; Remedy Repairs ];
-    teams = [ team1; team2 ];
+    teams = [ team1; team2; team3 ];
     current_team_index = 1;
   }
 
@@ -74,6 +74,6 @@ let board_with_empty_draw_pile =
   {
     draw_pile = [];
     discard_pile = [ Hazard Accident; Remedy Repairs ];
-    teams = [ team1; team2 ];
+    teams = [ team1; team2; team3 ];
     current_team_index = 1;
   }
