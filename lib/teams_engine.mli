@@ -26,3 +26,6 @@ val is_computer : player -> bool
 val init_team_with_one_player : string -> bool -> team
 val init_team_with_two_players : string -> bool -> string -> bool -> team
 val has_already_used_safety_card : team -> safety_card -> bool
+val has_safety_to_counter_hazard : team -> hazard_card -> bool
+val is_attacked_by_hazard_on_drive_pile : team -> bool
+val is_attacked_by_speed_limit : team -> bool

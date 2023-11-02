@@ -83,3 +83,25 @@ let has_already_used_safety_card (t : team) (c : safety_card) =
   let f = List.exists (fun x -> x = Safety c) in
   f t.shared_driving_zone.safety_area
   || f t.shared_driving_zone.coup_fouree_cards
+
+let has_safety_to_counter_hazard (t : team) (c : hazard_card) =
+  let necessary_safety =
+    match c with
+    | Stop | SpeedLimit -> EmergencyVehicle
+    | OutOfGas -> FuelTruck
+    | FlatTire -> PunctureProof
+    | Accident -> DrivingAce
+  in
+  has_already_used_safety_card t necessary_safety
+
+let is_attacked_by_hazard_on_drive_pile (t : team) =
+  (not (is_empty t.shared_driving_zone.drive_pile))
+  &&
+  match List.hd t.shared_driving_zone.drive_pile with
+  | Hazard hazard -> not (has_safety_to_counter_hazard t hazard)
+  | _ -> false
+
+let is_attacked_by_speed_limit (t : team) =
+  (not (is_empty t.shared_driving_zone.speed_limit_pile))
+  && List.hd t.shared_driving_zone.speed_limit_pile = Hazard SpeedLimit
+  && not (has_safety_to_counter_hazard t SpeedLimit)

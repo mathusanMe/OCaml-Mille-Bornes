@@ -40,8 +40,8 @@ let team1 =
 let team2 =
   let driving_zone =
     {
-      speed_limit_pile = [];
-      drive_pile = [];
+      speed_limit_pile = [ Hazard SpeedLimit ];
+      drive_pile = [ Hazard OutOfGas ];
       distance_cards = [];
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [];
@@ -60,11 +60,51 @@ let team2 =
 let team3 =
   let driving_zone =
     {
-      speed_limit_pile = [];
-      drive_pile = [];
+      speed_limit_pile = [ Hazard SpeedLimit ];
+      drive_pile = [ Hazard Accident; Hazard Stop ];
       distance_cards = [];
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [ Safety EmergencyVehicle ];
+    }
+  in
+  let player1 = Human { name = "name1"; hand = [] } in
+  let player2 = Human { name = "name2"; hand = [] } in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = driving_zone;
+    score = 0;
+    can_drive = true;
+    current_player_index = 0;
+  }
+
+let team4 =
+  let driving_zone =
+    {
+      speed_limit_pile = [ Hazard SpeedLimit ];
+      drive_pile = [ Hazard Stop ];
+      distance_cards = [];
+      safety_area = [];
+      coup_fouree_cards = [ Safety EmergencyVehicle ];
+    }
+  in
+  let player1 = Human { name = "name1"; hand = [] } in
+  let player2 = Human { name = "name2"; hand = [] } in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = driving_zone;
+    score = 0;
+    can_drive = true;
+    current_player_index = 0;
+  }
+
+let team5 =
+  let driving_zone =
+    {
+      speed_limit_pile = [ Remedy EndOfSpeedLimit; Hazard SpeedLimit ];
+      drive_pile = [ Remedy Drive; Hazard Stop ];
+      distance_cards = [];
+      safety_area = [];
+      coup_fouree_cards = [];
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
