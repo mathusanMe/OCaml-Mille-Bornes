@@ -33,4 +33,10 @@ val pp_pile_of_card : string -> Format.formatter -> pile_of_card -> unit
 val generate_initial_pile : unit -> pile_of_card
 (* Generate an entire mille bornes card pile *)
 
+val sort_card_list : card list -> card list
+(* Sort a cart list using an order determinate in the engine *)
+
+val shuffle_pile : pile_of_card -> pile_of_card
+(* Take a pile of card and shuffle it entirely *)
+
 val get_hazard_corresponding_to_the_remedy : remedy_card -> hazard_card
