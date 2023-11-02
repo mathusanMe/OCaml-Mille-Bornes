@@ -8,8 +8,6 @@ type board = {
   current_team_index : int;
 }
 
-let get_current_team_from (b : board) = List.nth b.teams b.current_team_index
-
 let draw_card (b : board) (t : team) =
   let card, new_draw_pile = draw_card_from_pile b.draw_pile in
   let player = get_current_player_from t in
