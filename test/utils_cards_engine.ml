@@ -19,3 +19,13 @@ let exemple_pp_list3 =
     Distance D200;
     Distance D200;
   ]
+
+let exemple_list_to_sort1 = [ Remedy Drive ]
+
+let exemple_list_to_sort2 =
+  [ Distance D200; Remedy Gas; Hazard Accident; Safety DrivingAce ]
+
+let exemple_list_to_sort3 =
+  exemple_pp_list1 @ exemple_pp_list2 @ exemple_pp_list3
+
+let exemple_list_to_sort4 = List.rev exemple_list_to_sort3
