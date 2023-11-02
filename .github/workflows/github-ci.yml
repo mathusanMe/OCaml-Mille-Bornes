@@ -1,4 +1,4 @@
-name: Builds, Tests & Co
+name: Build, Test & Check Format
 
 on:
   pull_request:
@@ -53,5 +53,3 @@ jobs:
 
       - name: Run Tests
         run: opam exec -- dune runtest
-
-      # Additional steps like uploading artifacts, linting, etc., can be added here.
