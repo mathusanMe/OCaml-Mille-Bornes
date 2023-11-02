@@ -1,56 +1,39 @@
-name: OCaml CI
+name: Builds, tests & co
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+  schedule:
+    # Prime the caches every Monday
+    - cron: 0 1 * * MON
+
+permissions: read-all
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        ocaml-compiler:
+          - "5.1"
 
-    env:
-      OCAML_COMPILER: "4.11.1"
-      CLEAN_OPAM_CACHE: "false"
-      CLEAN_DUNE_CACHE: "false"
-      DUNE_FLAGS: "--error-reporting twice --display short"
-      DUNE_BUILD_TARGETS: "@all"
-      DUNE_TEST_TARGETS: "@runtest"
-      DUNE_DOC_TARGETS: "@doc"
-      ARTIFACTS: "artifacts/$OCAML_COMPILER"
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout tree
+        uses: actions/checkout@v4
 
-    - name: Setup Opam and OCaml
-      uses: avsm/setup-ocaml@v2
-      with:
-        ocaml-compiler: ${{ env.OCAML_COMPILER }}
-        dune-cache: true
+      - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-    - name: Install Dune
-      run: opam install dune
+      - run: opam install . --deps-only --with-test
 
-    - name: Install Dependencies
-      run: |
-        opam install . --deps-only --locked --with-test --with-doc
-        eval $(opam env)
+      - run: opam exec -- dune build
 
-    - name: Build
-      run: |
-        eval $(opam env)
-        dune build ${{ env.DUNE_FLAGS }} ${{ env.DUNE_BUILD_TARGETS }}
-
-    - name: Run Tests
-      run: dune build ${{ env.DUNE_FLAGS }} ${{ env.DUNE_TEST_TARGETS }}
-
-    - name: Build Documentation
-      run: dune build ${{ env.DUNE_FLAGS }} ${{ env.DUNE_DOC_TARGETS }}
-
-    - name: Format Check
-      run: |
-        opam install ocamlformat --yes
-        dune build @fmt ${{ env.DUNE_BUILD_TARGETS }} ${{ env.DUNE_TEST_TARGETS }} ${{ env.DUNE_FLAGS }} --auto-promote || (echo "The code is not properly formatted" && exit 1)
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: build-artifacts
-        path: ${{ env.ARTIFACTS }}
+      - run: opam exec -- dune runtest
