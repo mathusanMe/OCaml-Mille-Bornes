@@ -25,10 +25,13 @@ jobs:
         ocaml-compiler: ${{ env.OCAML_COMPILER }}
         dune-cache: true
 
+    - name: Install Dune
+      run: opam install dune
+
     - name: Install Dependencies
       run: |
-        sudo apt-get update
         opam install . --deps-only --locked --with-test --with-doc
+        eval $(opam env)
 
     - name: Build
       run: |
