@@ -1,2 +1,3 @@
-(test
- (name mille_bornes))
+(tests
+ (names test_cards_engine test_teams_engine test_board_engine)
+ (libraries mille_bornes alcotest lwt.unix))
