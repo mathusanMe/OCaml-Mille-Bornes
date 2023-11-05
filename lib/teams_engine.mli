@@ -34,3 +34,8 @@ val has_already_used_safety_card : team -> safety_card -> bool
 val has_safety_to_counter_hazard : team -> hazard_card -> bool
 val is_attacked_by_hazard_on_drive_pile : team -> bool
 val is_attacked_by_speed_limit : team -> bool
+
+(* TODO : removed from the .mli add_card_to_speed_limit_pile and add_card_to_drive_pile_and_set_can_drive*)
+val add_card_to_speed_limit_pile : team -> card -> team
+val add_card_to_drive_pile : team -> card -> team
+val add_card_to_drive_pile_and_set_can_drive : team -> card -> bool -> team

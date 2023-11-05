@@ -125,3 +125,36 @@ let is_attacked_by_speed_limit (t : team) =
   (not (is_empty t.shared_driving_zone.speed_limit_pile))
   && List.hd t.shared_driving_zone.speed_limit_pile = Hazard SpeedLimit
   && not (has_safety_to_counter_hazard t SpeedLimit)
+
+let add_card_to_speed_limit_pile (t : team) (c : card) =
+  {
+    t with
+    shared_driving_zone =
+      {
+        t.shared_driving_zone with
+        speed_limit_pile =
+          add_card_to_pile t.shared_driving_zone.speed_limit_pile c;
+      };
+  }
+
+let add_card_to_drive_pile (t : team) (c : card) =
+  {
+    t with
+    shared_driving_zone =
+      {
+        t.shared_driving_zone with
+        drive_pile = add_card_to_pile t.shared_driving_zone.drive_pile c;
+      };
+  }
+
+let add_card_to_drive_pile_and_set_can_drive (t : team) (c : card)
+    (set_can_drive : bool) =
+  {
+    t with
+    shared_driving_zone =
+      {
+        t.shared_driving_zone with
+        drive_pile = add_card_to_pile t.shared_driving_zone.drive_pile c;
+      };
+    can_drive = set_can_drive;
+  }

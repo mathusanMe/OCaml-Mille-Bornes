@@ -174,3 +174,5 @@ let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
   | Repairs -> Accident
 
 let is_empty (l : card list) = List.length l = 0
+let add_card_to_pile (p : pile_of_card) (c : card) = c :: p
+let add_card_to_deck (d : deck_of_card) (c : card) = sort_card_list (c :: d)

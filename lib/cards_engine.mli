@@ -49,3 +49,5 @@ val shuffle_pile : pile_of_card -> pile_of_card
 
 val get_hazard_corresponding_to_the_remedy : remedy_card -> hazard_card
 val is_empty : card list -> bool
+val add_card_to_pile : pile_of_card -> card -> pile_of_card
+val add_card_to_deck : deck_of_card -> card -> deck_of_card

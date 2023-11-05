@@ -18,7 +18,7 @@ let draw_card (b : board) (t : team) =
   else
     let player = get_current_player_from t in
     let player_struct = get_player_struct_from player in
-    let new_hand = sort_card_list (card :: player_struct.hand) in
+    let new_hand = add_card_to_deck player_struct.hand card in
     let new_player_struct = { player_struct with hand = new_hand } in
     let new_player = replace_player_struct_in player new_player_struct in
     let new_team = replace_player_in t new_player in

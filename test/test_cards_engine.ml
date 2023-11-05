@@ -168,6 +168,59 @@ let test_get_hazard_corresponding_to_the_remedy =
         && get_hazard_corresponding_to_the_remedy SpareTire = FlatTire
         && get_hazard_corresponding_to_the_remedy Repairs = Accident))
 
+let test_add_card_to_pile1 =
+  Alcotest.test_case "test add_card_to_pile on empty pile" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card [ Hazard Stop ]
+           (add_card_to_pile exemple_pile1 (Hazard Stop))))
+
+let test_add_card_to_pile2 =
+  Alcotest.test_case "test add_card_to_pile on non-empty pile" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [ Remedy EndOfSpeedLimit; Remedy Drive ]
+           (add_card_to_pile exemple_pile2 (Remedy EndOfSpeedLimit))))
+
+let test_add_card_to_deck1 =
+  Alcotest.test_case "test add_card_to_deck on empty deck" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [ Safety EmergencyVehicle ]
+           (add_card_to_deck exemple_deck1 (Safety EmergencyVehicle))))
+
+let test_add_card_to_deck2 =
+  Alcotest.test_case "test add_card_to_deck on non-empty deck" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [ Remedy Drive; Remedy EndOfSpeedLimit ]
+           (add_card_to_deck exemple_deck2 (Remedy EndOfSpeedLimit))))
+
+let test_add_card_to_deck3 =
+  Alcotest.test_case "test add_card_to_deck on in a deck with many cards" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [
+             Safety FuelTruck;
+             Hazard OutOfGas;
+             Hazard FlatTire;
+             Remedy Drive;
+             Remedy EndOfSpeedLimit;
+             Remedy SpareTire;
+             Distance D25;
+             Distance D100;
+             Distance D100;
+             Distance D100;
+             Distance D200;
+             Distance D200;
+           ]
+           (add_card_to_deck exemple_deck3 (Remedy EndOfSpeedLimit))))
+
 let () =
   let open Alcotest in
   run "Cards_engine"
@@ -188,4 +241,12 @@ let () =
       ("shuffle_pile", [ test_shuffle_pile ]);
       ( "test get_hazard_corresponding_to_the_remedy",
         [ test_get_hazard_corresponding_to_the_remedy ] );
+      ( "add_card to_deck and to_pile",
+        [
+          test_add_card_to_pile1;
+          test_add_card_to_pile2;
+          test_add_card_to_deck1;
+          test_add_card_to_deck2;
+          test_add_card_to_deck3;
+        ] );
     ]
