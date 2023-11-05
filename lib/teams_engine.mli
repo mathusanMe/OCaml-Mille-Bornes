@@ -28,6 +28,8 @@ val same_team : team -> team -> bool
 val replace_player_struct_in : player -> player_struct -> player
 val replace_player_in : team -> player -> team
 val replace_team_in : team list -> team -> team list
+val pp_player : bool -> Format.formatter -> player -> unit
+val pp_team : bool -> Format.formatter -> team -> unit
 val init_team_with_one_player : string -> bool -> team
 val init_team_with_two_players : string -> bool -> string -> bool -> team
 val has_already_used_safety_card : team -> safety_card -> bool

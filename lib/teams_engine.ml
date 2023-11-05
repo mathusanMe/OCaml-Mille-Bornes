@@ -99,6 +99,41 @@ let replace_player_in (t : team) (p : player) =
 let replace_team_in (teams : team list) (t : team) =
   List.map (fun x -> if same_team x t then t else x) teams
 
+let pp_player with_hand fmt p =
+  let pp_hand b hand = if b then pp_deck_of_card "hand" fmt hand in
+  match p with
+  | Computer p_struct ->
+      Format.fprintf fmt "%s (computer)@ " p_struct.name;
+      pp_hand with_hand p_struct.hand
+  | Human p_struct ->
+      Format.fprintf fmt "%s@ " p_struct.name;
+      pp_hand with_hand p_struct.hand
+
+let pp_player_list with_hands fmt players =
+  let pp_iter fmt =
+    List.iter (fun p -> Format.fprintf fmt "%a" (pp_player with_hands) p)
+  in
+  if with_hands then
+    Format.fprintf fmt "Name(s) with deck :@ %a" pp_iter players
+  else Format.fprintf fmt "Name(s) :@ %a" pp_iter players
+
+let pp_driving_zone fmt dz =
+  Format.fprintf fmt "Driving Zone : @ %a@;%a@;%a%a%a"
+    (pp_top_pile_of_card "Top of speed limit pile")
+    dz.speed_limit_pile
+    (pp_top_pile_of_card "Top of drive pile")
+    dz.drive_pile
+    (pp_deck_of_card "Distance cards")
+    dz.distance_cards
+    (pp_deck_of_card "Safety cards")
+    dz.safety_area
+    (pp_deck_of_card "Coup fourree cards")
+    dz.coup_fouree_cards
+
+let pp_team with_hand fmt team =
+  Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;" (pp_player_list with_hand)
+    team.players pp_driving_zone team.shared_driving_zone
+
 let has_already_used_safety_card (t : team) (c : safety_card) =
   let f = List.exists (fun x -> x = Safety c) in
   f t.shared_driving_zone.safety_area

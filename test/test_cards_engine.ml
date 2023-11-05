@@ -39,6 +39,12 @@ let test_pp_deck_of_card3 =
         \         \n"
         (Format.asprintf "%a" (pp_deck_of_card "Deck 3") exemple_pp_list3))
 
+let test_pp_deck_of_card4 =
+  Alcotest.test_case "test pp_deck_of_card on an empty deck" `Quick (fun () ->
+      Alcotest.(check string)
+        "same result" "Empty deck : (empty);\n             \n"
+        (Format.asprintf "%a" (pp_deck_of_card "Empty deck") []))
+
 let test_pp_pile_of_card1 =
   Alcotest.test_case "test pp_pile_of_card on exemple_pp_pile_of_card1" `Quick
     (fun () ->
@@ -76,6 +82,12 @@ let test_pp_pile_of_card3 =
         \         200;\n\
         \         \n"
         (Format.asprintf "%a" (pp_pile_of_card "Pile 3") exemple_pp_list3))
+
+let test_pp_pile_of_card4 =
+  Alcotest.test_case "test pp_pile_of_card on an empty pile" `Quick (fun () ->
+      Alcotest.(check string)
+        "same result" "Empty pile : (empty);\n             \n"
+        (Format.asprintf "%a" (pp_pile_of_card "Empty pile") []))
 
 let test_sort_card_list1 =
   Alcotest.test_case "test sort_card_list on exemple_list_to_sort1" `Quick
@@ -226,11 +238,19 @@ let () =
   run "Cards_engine"
     [
       ( "pp_deck_of_card",
-        [ test_pp_deck_of_card1; test_pp_deck_of_card2; test_pp_deck_of_card3 ]
-      );
+        [
+          test_pp_deck_of_card1;
+          test_pp_deck_of_card2;
+          test_pp_deck_of_card3;
+          test_pp_deck_of_card4;
+        ] );
       ( "pp_pile_of_card",
-        [ test_pp_pile_of_card1; test_pp_pile_of_card2; test_pp_pile_of_card3 ]
-      );
+        [
+          test_pp_pile_of_card1;
+          test_pp_pile_of_card2;
+          test_pp_pile_of_card3;
+          test_pp_pile_of_card4;
+        ] );
       ( "sort_card_list",
         [
           test_sort_card_list1;

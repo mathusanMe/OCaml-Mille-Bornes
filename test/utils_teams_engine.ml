@@ -116,3 +116,53 @@ let team5 =
     can_drive = true;
     current_player_index = 0;
   }
+
+let team6 =
+  let driving_zone =
+    {
+      speed_limit_pile = [ Hazard SpeedLimit; Remedy EndOfSpeedLimit ];
+      drive_pile =
+        [ Remedy Drive; Hazard OutOfGas; Remedy Gas; Hazard Accident ];
+      distance_cards =
+        [ Distance D25; Distance D100; Distance D100; Distance D200 ];
+      safety_area = [ Safety FuelTruck; Safety DrivingAce ];
+      coup_fouree_cards = [ Safety EmergencyVehicle ];
+    }
+  in
+  let player1 =
+    Human
+      {
+        name = "Thomas";
+        hand =
+          [
+            Remedy Repairs;
+            Hazard SpeedLimit;
+            Hazard OutOfGas;
+            Safety DrivingAce;
+            Distance D100;
+            Distance D200;
+          ];
+      }
+  in
+  let player2 =
+    Human
+      {
+        name = "Mathusan";
+        hand =
+          [
+            Remedy Drive;
+            Remedy Gas;
+            Distance D25;
+            Distance D75;
+            Distance D100;
+            Distance D200;
+          ];
+      }
+  in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = driving_zone;
+    score = 0;
+    can_drive = true;
+    current_player_index = 0;
+  }
