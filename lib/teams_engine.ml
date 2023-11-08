@@ -226,3 +226,42 @@ let use_distance_card (t : team) (c : distance_card) =
       };
     score = t.score + value;
   }
+
+let is_usable_safety_card (t : team) = function
+  | safety_effect -> not (has_already_used_safety_card t safety_effect)
+
+let add_card_to_safety_area (t : team) (s : safety_card) =
+  {
+    t with
+    shared_driving_zone =
+      {
+        t.shared_driving_zone with
+        safety_area =
+          add_card_to_deck t.shared_driving_zone.safety_area (Safety s);
+      };
+  }
+
+let use_safety_card (t : team) = function
+  | EmergencyVehicle ->
+      { (add_card_to_safety_area t EmergencyVehicle) with can_drive = true }
+  | safety -> add_card_to_safety_area t safety
+
+let add_card_to_coup_fouree (t : team) (s : safety_card) =
+  {
+    t with
+    shared_driving_zone =
+      {
+        t.shared_driving_zone with
+        coup_fouree_cards =
+          add_card_to_deck t.shared_driving_zone.coup_fouree_cards (Safety s);
+      };
+  }
+
+let use_coup_fouree (t : team) = function
+  | EmergencyVehicle ->
+      {
+        (add_card_to_coup_fouree t EmergencyVehicle) with
+        can_drive = true;
+        score = t.score + 200;
+      }
+  | safety -> { (add_card_to_coup_fouree t safety) with score = t.score + 200 }

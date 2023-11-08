@@ -689,6 +689,130 @@ let test_use_distance_card =
          in
          res1 && res2 && res3 && res4 && res5 && res6))
 
+let test_is_usable_safety_card1 =
+  Alcotest.test_case "check if a team has not yet used safety_card" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (is_usable_safety_card team1 EmergencyVehicle
+        && is_usable_safety_card team1 FuelTruck
+        && is_usable_safety_card team1 PunctureProof
+        && is_usable_safety_card team1 DrivingAce))
+
+let test_is_usable_safety_card2 =
+  Alcotest.test_case
+    "checks if a team has used a safety_card in safety_area and \
+     coup_fouree_cards"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ((not (is_usable_safety_card team3 EmergencyVehicle))
+        && (not (is_usable_safety_card team3 FuelTruck))
+        && is_usable_safety_card team3 PunctureProof
+        && is_usable_safety_card team3 DrivingAce))
+
+let test_use_safety_card =
+  Alcotest.test_case "test use_safety_card" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let team = use_safety_card team1 FuelTruck in
+         let res1 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 safety_area = [ Safety FuelTruck ];
+               };
+           }
+           = team
+         in
+         let team = use_safety_card team EmergencyVehicle in
+         let res2 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 safety_area = [ Safety EmergencyVehicle; Safety FuelTruck ];
+               };
+             can_drive = true;
+           }
+           = team
+         in
+         let team = use_safety_card team DrivingAce in
+         let res3 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 safety_area =
+                   [
+                     Safety EmergencyVehicle;
+                     Safety FuelTruck;
+                     Safety DrivingAce;
+                   ];
+               };
+             can_drive = true;
+           }
+           = team
+         in
+         res1 && res2 && res3))
+
+let test_use_coup_fouree =
+  Alcotest.test_case "test use_coup_fouree" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let team = use_coup_fouree team1 FuelTruck in
+         let res1 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 coup_fouree_cards = [ Safety FuelTruck ];
+               };
+             score = 200;
+           }
+           = team
+         in
+         let team = use_coup_fouree team EmergencyVehicle in
+         let res2 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 coup_fouree_cards =
+                   [ Safety EmergencyVehicle; Safety FuelTruck ];
+               };
+             score = 400;
+             can_drive = true;
+           }
+           = team
+         in
+         let team = use_coup_fouree team DrivingAce in
+         let res3 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 coup_fouree_cards =
+                   [
+                     Safety EmergencyVehicle;
+                     Safety FuelTruck;
+                     Safety DrivingAce;
+                   ];
+               };
+             score = 600;
+             can_drive = true;
+           }
+           = team
+         in
+         res1 && res2 && res3))
+
 let () =
   let open Alcotest in
   run "Teams_engine"
@@ -750,4 +874,8 @@ let () =
           test_is_usable_distance_card5;
         ] );
       ("use_distance_card", [ test_use_distance_card ]);
+      ( "is_usable_safety_card",
+        [ test_is_usable_safety_card1; test_is_usable_safety_card2 ] );
+      ("use_safety_card", [ test_use_safety_card ]);
+      ("use_coup_fouree", [ test_use_coup_fouree ]);
     ]

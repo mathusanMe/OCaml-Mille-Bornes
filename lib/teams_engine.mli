@@ -40,3 +40,6 @@ val is_usable_hazard_card : team -> hazard_card -> bool
 val use_hazard_card : team -> hazard_card -> team
 val is_usable_distance_card : team -> distance_card -> bool
 val use_distance_card : team -> distance_card -> team
+val is_usable_safety_card : team -> safety_card -> bool
+val use_safety_card : team -> safety_card -> team
+val use_coup_fouree : team -> safety_card -> team
