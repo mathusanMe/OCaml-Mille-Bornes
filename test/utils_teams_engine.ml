@@ -41,7 +41,7 @@ let team2 =
   let driving_zone =
     {
       speed_limit_pile = [ Hazard SpeedLimit ];
-      drive_pile = [ Hazard OutOfGas ];
+      drive_pile = [ Hazard OutOfGas; Remedy Drive ];
       distance_cards = [];
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [];
@@ -101,7 +101,7 @@ let team5 =
   let driving_zone =
     {
       speed_limit_pile = [ Remedy EndOfSpeedLimit; Hazard SpeedLimit ];
-      drive_pile = [ Remedy Drive; Hazard Stop ];
+      drive_pile = [ Remedy Drive; Hazard Stop; Remedy Drive ];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [];

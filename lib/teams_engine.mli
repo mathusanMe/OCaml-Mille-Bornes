@@ -38,3 +38,5 @@ val is_attacked_by_hazard_on_drive_pile : team -> bool
 val is_attacked_by_speed_limit : team -> bool
 val is_usable_hazard_card : team -> hazard_card -> bool
 val use_hazard_card : team -> hazard_card -> team
+val is_usable_distance_card : team -> distance_card -> bool
+val use_distance_card : team -> distance_card -> team

@@ -197,3 +197,32 @@ let use_hazard_card (t : team) = function
   | SpeedLimit -> add_card_to_speed_limit_pile t (Hazard SpeedLimit)
   | Stop -> set_can_drive (add_card_to_drive_pile t (Hazard Stop)) false
   | hazard -> add_card_to_drive_pile t (Hazard hazard)
+
+let is_usable_distance_card (t : team) (c : distance_card) =
+  if (not t.can_drive) || is_attacked_by_hazard_on_drive_pile t then false
+  else
+    match c with
+    | D200 ->
+        if not (is_attacked_by_speed_limit t) then
+          List.fold_left
+            (fun acc c -> if c = Distance D200 then acc + 1 else acc)
+            0 t.shared_driving_zone.distance_cards
+          < 2
+        else false
+    | D25 | D50 -> true
+    | _ -> not (is_attacked_by_speed_limit t)
+
+let use_distance_card (t : team) (c : distance_card) =
+  let value =
+    match c with D25 -> 25 | D50 -> 50 | D75 -> 75 | D100 -> 100 | D200 -> 200
+  in
+  {
+    t with
+    shared_driving_zone =
+      {
+        t.shared_driving_zone with
+        distance_cards =
+          add_card_to_deck t.shared_driving_zone.distance_cards (Distance c);
+      };
+    score = t.score + value;
+  }

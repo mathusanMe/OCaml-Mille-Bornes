@@ -553,6 +553,142 @@ let test_use_hazard_card =
          in
          res1 && res2 && res3 && res4 && res5 && res6))
 
+let test_is_usable_distance_card1 =
+  Alcotest.test_case "checks if a team cannot advance because can_drive = false"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ D25; D50; D75; D100; D200 ]
+        |> List.for_all (fun card -> not (is_usable_distance_card team1 card))))
+
+let test_is_usable_distance_card2 =
+  Alcotest.test_case "checks if a team has Hazard SpeedLimit" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ D25; D50 ]
+         |> List.for_all (fun card -> is_usable_distance_card team2 card)
+        && [ D75; D100; D200 ]
+           |> List.for_all (fun card ->
+                  not (is_usable_distance_card team2 card))))
+
+let test_is_usable_distance_card3 =
+  Alcotest.test_case "checks if a team has Hazard on his drive_pile" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ D25; D50; D75; D100; D200 ]
+        |> List.for_all (fun card -> not (is_usable_distance_card team3 card))))
+
+let test_is_usable_distance_card4 =
+  Alcotest.test_case
+    "Test if the EmergencyVehicle card blocks SpeedLimit and Stop cards" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ D25; D50; D75; D100; D200 ]
+        |> List.for_all (fun card -> is_usable_distance_card team4 card)))
+
+let test_is_usable_distance_card5 =
+  Alcotest.test_case
+    "Test with Remedy on top of speed_limit_pile and drive_pile" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ D25; D50; D75; D100; D200 ]
+        |> List.for_all (fun card -> is_usable_distance_card team5 card)))
+
+let test_use_distance_card =
+  Alcotest.test_case "Test with use_distance_card" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let team = use_distance_card team5 D25 in
+         let res1 =
+           {
+             team5 with
+             score = 25;
+             shared_driving_zone =
+               {
+                 team5.shared_driving_zone with
+                 distance_cards = [ Distance D25 ];
+               };
+           }
+           = team
+         in
+         let team = use_distance_card team D50 in
+         let res2 =
+           {
+             team5 with
+             score = 75;
+             shared_driving_zone =
+               {
+                 team5.shared_driving_zone with
+                 distance_cards = [ Distance D25; Distance D50 ];
+               };
+           }
+           = team
+         in
+         let team = use_distance_card team D75 in
+         let res3 =
+           {
+             team5 with
+             score = 150;
+             shared_driving_zone =
+               {
+                 team5.shared_driving_zone with
+                 distance_cards = [ Distance D25; Distance D50; Distance D75 ];
+               };
+           }
+           = team
+         in
+         let team = use_distance_card team D100 in
+         let res4 =
+           {
+             team5 with
+             score = 250;
+             shared_driving_zone =
+               {
+                 team5.shared_driving_zone with
+                 distance_cards =
+                   [ Distance D25; Distance D50; Distance D75; Distance D100 ];
+               };
+           }
+           = team
+         in
+         let team = use_distance_card team D200 in
+         let res5 =
+           {
+             team5 with
+             score = 450;
+             shared_driving_zone =
+               {
+                 team5.shared_driving_zone with
+                 distance_cards =
+                   [
+                     Distance D25;
+                     Distance D50;
+                     Distance D75;
+                     Distance D100;
+                     Distance D200;
+                   ];
+               };
+           }
+           = team
+         in
+         let team = use_distance_card team D75 in
+         let res6 =
+           team.score = 525
+           && team.shared_driving_zone.distance_cards
+              = [
+                  Distance D25;
+                  Distance D50;
+                  Distance D75;
+                  Distance D75;
+                  Distance D100;
+                  Distance D200;
+                ]
+         in
+         res1 && res2 && res3 && res4 && res5 && res6))
+
 let () =
   let open Alcotest in
   run "Teams_engine"
@@ -605,4 +741,13 @@ let () =
           test_is_usable_hazard_card5;
         ] );
       ("use_hazard_card", [ test_use_hazard_card ]);
+      ( "is_usable_distance_card",
+        [
+          test_is_usable_distance_card1;
+          test_is_usable_distance_card2;
+          test_is_usable_distance_card3;
+          test_is_usable_distance_card4;
+          test_is_usable_distance_card5;
+        ] );
+      ("use_distance_card", [ test_use_distance_card ]);
     ]
