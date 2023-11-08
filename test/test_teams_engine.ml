@@ -1,4 +1,5 @@
 open Mille_bornes.Teams_engine
+open Mille_bornes.Cards_engine
 open Utils_teams_engine
 
 let test_set_next_player_and_get_current_player1 =
@@ -409,6 +410,149 @@ let test_is_attacked5 =
         ((not (is_attacked_by_hazard_on_drive_pile team5))
         && not (is_attacked_by_speed_limit team5)))
 
+let test_is_usable_hazard_card1 =
+  Alcotest.test_case
+    "check if you can use all the hazards on a team with your drive_pile and \
+     speed_limite_pile empty"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
+        |> List.for_all (fun card -> is_usable_hazard_card team1 card)))
+
+let test_is_usable_hazard_card2 =
+  Alcotest.test_case
+    "check that a hazard can be used on a team with safety cards and already \
+     attacked in without speed_limit_pile"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ SpeedLimit; OutOfGas ]
+         |> List.for_all (fun card -> not (is_usable_hazard_card team2 card))
+        && [ Stop; FlatTire; Accident ]
+           |> List.for_all (fun card -> is_usable_hazard_card team2 card)))
+
+let test_is_usable_hazard_card3 =
+  Alcotest.test_case
+    "check if a team is attacked in its drive_pile and is protected by an \
+     Safety EmergencyVehicle"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
+        |> List.for_all (fun card -> not (is_usable_hazard_card team3 card))))
+
+let test_is_usable_hazard_card4 =
+  Alcotest.test_case
+    "Test if the EmergencyVehicle card blocks SpeedLimit and Stop cards" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit ]
+         |> List.for_all (fun card -> not (is_usable_hazard_card team4 card))
+        && [ OutOfGas; FlatTire; Accident ]
+           |> List.for_all (fun card -> is_usable_hazard_card team4 card)))
+
+let test_is_usable_hazard_card5 =
+  Alcotest.test_case
+    "check that a hazard can be used on a team that has a remedy card above \
+     drive_pile and speed_limit_pile"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
+        |> List.for_all (fun card -> is_usable_hazard_card team5 card)))
+
+let test_use_hazard_card =
+  Alcotest.test_case "test use_hazard_card" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let team = use_hazard_card team1 SpeedLimit in
+         let res1 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 speed_limit_pile = [ Hazard SpeedLimit ];
+               };
+           }
+           = team
+         in
+         let team = use_hazard_card team SpeedLimit in
+         let res2 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+               };
+           }
+           = team
+         in
+         let team = use_hazard_card team OutOfGas in
+         let res3 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                 drive_pile = [ Hazard OutOfGas ];
+               };
+           }
+           = team
+         in
+         let team = use_hazard_card team FlatTire in
+         let res4 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                 drive_pile = [ Hazard FlatTire; Hazard OutOfGas ];
+               };
+           }
+           = team
+         in
+         let team = use_hazard_card team Accident in
+         let res5 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                 drive_pile =
+                   [ Hazard Accident; Hazard FlatTire; Hazard OutOfGas ];
+               };
+           }
+           = team
+         in
+         let team = use_hazard_card team Stop in
+         let res6 =
+           {
+             team1 with
+             shared_driving_zone =
+               {
+                 team.shared_driving_zone with
+                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                 drive_pile =
+                   [
+                     Hazard Stop;
+                     Hazard Accident;
+                     Hazard FlatTire;
+                     Hazard OutOfGas;
+                   ];
+               };
+             can_drive = false;
+           }
+           = team
+         in
+         res1 && res2 && res3 && res4 && res5 && res6))
+
 let () =
   let open Alcotest in
   run "Teams_engine"
@@ -452,4 +596,13 @@ let () =
           test_is_attacked4;
           test_is_attacked5;
         ] );
+      ( "is_usable_hazard_card",
+        [
+          test_is_usable_hazard_card1;
+          test_is_usable_hazard_card2;
+          test_is_usable_hazard_card3;
+          test_is_usable_hazard_card4;
+          test_is_usable_hazard_card5;
+        ] );
+      ("use_hazard_card", [ test_use_hazard_card ]);
     ]

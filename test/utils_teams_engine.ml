@@ -33,7 +33,7 @@ let team1 =
     players = [ player1; player2 ];
     shared_driving_zone = driving_zone;
     score = 0;
-    can_drive = true;
+    can_drive = false;
     current_player_index = 0;
   }
 

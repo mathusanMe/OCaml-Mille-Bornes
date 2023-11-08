@@ -182,14 +182,18 @@ let add_card_to_drive_pile (t : team) (c : card) =
       };
   }
 
-let add_card_to_drive_pile_and_set_can_drive (t : team) (c : card)
-    (set_can_drive : bool) =
-  {
-    t with
-    shared_driving_zone =
-      {
-        t.shared_driving_zone with
-        drive_pile = add_card_to_pile t.shared_driving_zone.drive_pile c;
-      };
-    can_drive = set_can_drive;
-  }
+let set_can_drive (t : team) (set_can_drive : bool) =
+  { t with can_drive = set_can_drive }
+
+let is_usable_hazard_card (t : team) = function
+  | SpeedLimit ->
+      (not (has_safety_to_counter_hazard t SpeedLimit))
+      && not (is_attacked_by_speed_limit t)
+  | hazard ->
+      (not (has_safety_to_counter_hazard t hazard))
+      && not (is_attacked_by_hazard_on_drive_pile t)
+
+let use_hazard_card (t : team) = function
+  | SpeedLimit -> add_card_to_speed_limit_pile t (Hazard SpeedLimit)
+  | Stop -> set_can_drive (add_card_to_drive_pile t (Hazard Stop)) false
+  | hazard -> add_card_to_drive_pile t (Hazard hazard)
