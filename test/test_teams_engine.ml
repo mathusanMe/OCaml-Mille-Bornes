@@ -338,20 +338,20 @@ let test_has_already_used_safety1 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ((not (has_already_used_safety_card team1 FuelTruck))
-        && (not (has_already_used_safety_card team1 EmergencyVehicle))
-        && (not (has_already_used_safety_card team1 PunctureProof))
-        && not (has_already_used_safety_card team1 DrivingAce)))
+        ([ FuelTruck; EmergencyVehicle; PunctureProof; DrivingAce ]
+        |> List.for_all (fun card ->
+               not (has_already_used_safety_card team1 card))))
 
 let test_has_already_used_safety2 =
   Alcotest.test_case "given safety card used by team, can't be reused" `Quick
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (has_already_used_safety_card team2 FuelTruck
-        && (not (has_already_used_safety_card team2 EmergencyVehicle))
-        && (not (has_already_used_safety_card team2 PunctureProof))
-        && not (has_already_used_safety_card team2 DrivingAce)))
+        ([ FuelTruck ]
+         |> List.for_all (fun card -> has_already_used_safety_card team2 card)
+        && [ EmergencyVehicle; PunctureProof; DrivingAce ]
+           |> List.for_all (fun card ->
+                  not (has_already_used_safety_card team2 card))))
 
 let test_has_already_used_safety3 =
   Alcotest.test_case
@@ -359,10 +359,11 @@ let test_has_already_used_safety3 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (has_already_used_safety_card team3 FuelTruck
-        && has_already_used_safety_card team3 EmergencyVehicle
-        && (not (has_already_used_safety_card team3 PunctureProof))
-        && not (has_already_used_safety_card team3 DrivingAce)))
+        ([ FuelTruck; EmergencyVehicle ]
+         |> List.for_all (fun card -> has_already_used_safety_card team3 card)
+        && [ PunctureProof; DrivingAce ]
+           |> List.for_all (fun card ->
+                  not (has_already_used_safety_card team3 card))))
 
 let test_is_attacked1 =
   Alcotest.test_case
@@ -694,10 +695,8 @@ let test_is_usable_safety_card1 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (is_usable_safety_card team1 EmergencyVehicle
-        && is_usable_safety_card team1 FuelTruck
-        && is_usable_safety_card team1 PunctureProof
-        && is_usable_safety_card team1 DrivingAce))
+        ([ EmergencyVehicle; FuelTruck; PunctureProof; DrivingAce ]
+        |> List.for_all (fun card -> is_usable_safety_card team1 card)))
 
 let test_is_usable_safety_card2 =
   Alcotest.test_case
@@ -706,10 +705,10 @@ let test_is_usable_safety_card2 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ((not (is_usable_safety_card team3 EmergencyVehicle))
-        && (not (is_usable_safety_card team3 FuelTruck))
-        && is_usable_safety_card team3 PunctureProof
-        && is_usable_safety_card team3 DrivingAce))
+        ([ EmergencyVehicle; FuelTruck ]
+         |> List.for_all (fun card -> not (is_usable_safety_card team3 card))
+        && [ PunctureProof; DrivingAce ]
+           |> List.for_all (fun card -> is_usable_safety_card team3 card)))
 
 let test_use_safety_card =
   Alcotest.test_case "test use_safety_card" `Quick (fun () ->
@@ -813,6 +812,160 @@ let test_use_coup_fouree =
          in
          res1 && res2 && res3))
 
+let test_is_usable_remedy_card1 =
+  Alcotest.test_case
+    "You can’t play any remedy if you have no hazard except drive" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Drive ]
+         |> List.for_all (fun card -> is_usable_remedy_card team1 card)
+        && [ EndOfSpeedLimit; Gas; SpareTire; Repairs ]
+           |> List.for_all (fun card -> not (is_usable_remedy_card team1 card))
+        ))
+
+let test_is_usable_remedy_card2 =
+  Alcotest.test_case
+    "Check if the safety_area blocks hazards so you cannot use a Remedy if the \
+     hazard is already countered."
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ EndOfSpeedLimit ]
+         |> List.for_all (fun card -> is_usable_remedy_card team2 card)
+        && [ Drive; Gas; SpareTire; Repairs ]
+           |> List.for_all (fun card -> not (is_usable_remedy_card team2 card))
+        ))
+
+let test_is_usable_remedy_card3 =
+  Alcotest.test_case
+    "Check if the coup_fouree_cards block hazards so you cannot use a Remedy \
+     if the hazard is already countered."
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Repairs ]
+         |> List.for_all (fun card -> is_usable_remedy_card team3 card)
+        && [ Drive; EndOfSpeedLimit; Gas; SpareTire ]
+           |> List.for_all (fun card -> not (is_usable_remedy_card team3 card))
+        ))
+
+let test_is_usable_remedy_card4 =
+  Alcotest.test_case
+    "Test if the EmergencyVehicle card blocks SpeedLimit and Stop cards. So \
+     you cannot use a Remedy if the hazard is already countered."
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Drive; EndOfSpeedLimit; Gas; SpareTire; Repairs ]
+        |> List.for_all (fun card -> not (is_usable_remedy_card team4 card))))
+
+let test_is_usable_remedy_card5 =
+  Alcotest.test_case
+    "Check if all hazards are blocked by remedy. You cannot use remedy" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Drive; EndOfSpeedLimit; Gas; SpareTire; Repairs ]
+        |> List.for_all (fun card -> not (is_usable_remedy_card team5 card))))
+
+let test_use_remedy_card =
+  Alcotest.test_case "test use_remedy_card" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let team = use_remedy_card team1 EndOfSpeedLimit in
+         let res1 =
+           team.shared_driving_zone.speed_limit_pile
+           = [ Remedy EndOfSpeedLimit ]
+           && {
+                team with
+                shared_driving_zone =
+                  { team.shared_driving_zone with speed_limit_pile = [] };
+              }
+              = team1
+         in
+         let team = use_remedy_card team EndOfSpeedLimit in
+         let res2 =
+           team.shared_driving_zone.speed_limit_pile
+           = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
+           && {
+                team with
+                shared_driving_zone =
+                  { team.shared_driving_zone with speed_limit_pile = [] };
+              }
+              = team1
+         in
+         let team = use_remedy_card team Gas in
+         let res3 =
+           team.shared_driving_zone.speed_limit_pile
+           = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
+           && team.shared_driving_zone.drive_pile = [ Remedy Gas ]
+           && {
+                team with
+                shared_driving_zone =
+                  {
+                    team.shared_driving_zone with
+                    speed_limit_pile = [];
+                    drive_pile = [];
+                  };
+              }
+              = team1
+         in
+         let team = use_remedy_card team SpareTire in
+         let res4 =
+           team.shared_driving_zone.speed_limit_pile
+           = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
+           && team.shared_driving_zone.drive_pile
+              = [ Remedy SpareTire; Remedy Gas ]
+           && {
+                team with
+                shared_driving_zone =
+                  {
+                    team.shared_driving_zone with
+                    speed_limit_pile = [];
+                    drive_pile = [];
+                  };
+              }
+              = team1
+         in
+         let team = use_remedy_card team Repairs in
+         let res5 =
+           team.shared_driving_zone.speed_limit_pile
+           = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
+           && team.shared_driving_zone.drive_pile
+              = [ Remedy Repairs; Remedy SpareTire; Remedy Gas ]
+           && {
+                team with
+                shared_driving_zone =
+                  {
+                    team.shared_driving_zone with
+                    speed_limit_pile = [];
+                    drive_pile = [];
+                  };
+              }
+              = team1
+         in
+         let team = use_remedy_card team Drive in
+         let res6 =
+           team.shared_driving_zone.speed_limit_pile
+           = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
+           && team.shared_driving_zone.drive_pile
+              = [ Remedy Drive; Remedy Repairs; Remedy SpareTire; Remedy Gas ]
+           && team.can_drive
+           && {
+                team with
+                shared_driving_zone =
+                  {
+                    team.shared_driving_zone with
+                    speed_limit_pile = [];
+                    drive_pile = [];
+                  };
+                can_drive = false;
+              }
+              = team1
+         in
+         res1 && res2 && res3 && res4 && res5 && res6))
+
 let () =
   let open Alcotest in
   run "Teams_engine"
@@ -878,4 +1031,13 @@ let () =
         [ test_is_usable_safety_card1; test_is_usable_safety_card2 ] );
       ("use_safety_card", [ test_use_safety_card ]);
       ("use_coup_fouree", [ test_use_coup_fouree ]);
+      ( "is_usable_remedy_card",
+        [
+          test_is_usable_remedy_card1;
+          test_is_usable_remedy_card2;
+          test_is_usable_remedy_card3;
+          test_is_usable_remedy_card4;
+          test_is_usable_remedy_card5;
+        ] );
+      ("use_remedy_card", [ test_use_remedy_card ]);
     ]

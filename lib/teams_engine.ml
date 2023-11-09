@@ -265,3 +265,37 @@ let use_coup_fouree (t : team) = function
         score = t.score + 200;
       }
   | safety -> { (add_card_to_coup_fouree t safety) with score = t.score + 200 }
+
+let is_usable_remedy_card (t : team) = function
+  | Drive ->
+      (not t.can_drive)
+      &&
+      if is_attacked_by_hazard_on_drive_pile t then
+        peek_card_from_draw_pile t.shared_driving_zone.drive_pile = Hazard Stop
+      else true
+  | EndOfSpeedLimit -> is_attacked_by_speed_limit t
+  | remedy ->
+      (not (is_empty t.shared_driving_zone.drive_pile))
+      &&
+      let hazard = get_hazard_corresponding_to_the_remedy remedy in
+      peek_card_from_draw_pile t.shared_driving_zone.drive_pile = Hazard hazard
+      && not (has_safety_to_counter_hazard t hazard)
+
+let use_remedy_card (t : team) = function
+  | EndOfSpeedLimit -> add_card_to_speed_limit_pile t (Remedy EndOfSpeedLimit)
+  | Drive -> set_can_drive (add_card_to_drive_pile t (Remedy Drive)) true
+  | remedy -> add_card_to_drive_pile t (Remedy remedy)
+
+let is_usable_card (t : team) (c : card) =
+  match c with
+  | Hazard hazard -> is_usable_hazard_card t hazard
+  | Remedy remedy -> is_usable_remedy_card t remedy
+  | Safety safety -> is_usable_safety_card t safety
+  | Distance distance_card -> is_usable_distance_card t distance_card
+
+let use_card (t : team) (c : card) =
+  match c with
+  | Hazard hazard -> use_hazard_card t hazard
+  | Remedy remedy -> use_remedy_card t remedy
+  | Safety safety -> use_safety_card t safety
+  | Distance distance_card -> use_distance_card t distance_card
