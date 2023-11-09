@@ -33,7 +33,7 @@ let team1 =
     players = [ player1; player2 ];
     shared_driving_zone = driving_zone;
     score = 0;
-    can_drive = true;
+    can_drive = false;
     current_player_index = 0;
   }
 
@@ -41,7 +41,7 @@ let team2 =
   let driving_zone =
     {
       speed_limit_pile = [ Hazard SpeedLimit ];
-      drive_pile = [ Hazard OutOfGas ];
+      drive_pile = [ Hazard OutOfGas; Remedy Drive ];
       distance_cards = [];
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [];
@@ -101,7 +101,7 @@ let team5 =
   let driving_zone =
     {
       speed_limit_pile = [ Remedy EndOfSpeedLimit; Hazard SpeedLimit ];
-      drive_pile = [ Remedy Drive; Hazard Stop ];
+      drive_pile = [ Remedy Drive; Hazard Stop; Remedy Drive ];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [];
@@ -109,6 +109,56 @@ let team5 =
   in
   let player1 = Human { name = "name1"; hand = [] } in
   let player2 = Human { name = "name2"; hand = [] } in
+  {
+    players = [ player1; player2 ];
+    shared_driving_zone = driving_zone;
+    score = 0;
+    can_drive = true;
+    current_player_index = 0;
+  }
+
+let team6 =
+  let driving_zone =
+    {
+      speed_limit_pile = [ Hazard SpeedLimit; Remedy EndOfSpeedLimit ];
+      drive_pile =
+        [ Remedy Drive; Hazard OutOfGas; Remedy Gas; Hazard Accident ];
+      distance_cards =
+        [ Distance D25; Distance D100; Distance D100; Distance D200 ];
+      safety_area = [ Safety FuelTruck; Safety DrivingAce ];
+      coup_fouree_cards = [ Safety EmergencyVehicle ];
+    }
+  in
+  let player1 =
+    Human
+      {
+        name = "Thomas";
+        hand =
+          [
+            Remedy Repairs;
+            Hazard SpeedLimit;
+            Hazard OutOfGas;
+            Safety DrivingAce;
+            Distance D100;
+            Distance D200;
+          ];
+      }
+  in
+  let player2 =
+    Human
+      {
+        name = "Mathusan";
+        hand =
+          [
+            Remedy Drive;
+            Remedy Gas;
+            Distance D25;
+            Distance D75;
+            Distance D100;
+            Distance D200;
+          ];
+      }
+  in
   {
     players = [ player1; player2 ];
     shared_driving_zone = driving_zone;

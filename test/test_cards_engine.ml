@@ -39,6 +39,12 @@ let test_pp_deck_of_card3 =
         \         \n"
         (Format.asprintf "%a" (pp_deck_of_card "Deck 3") exemple_pp_list3))
 
+let test_pp_deck_of_card4 =
+  Alcotest.test_case "test pp_deck_of_card on an empty deck" `Quick (fun () ->
+      Alcotest.(check string)
+        "same result" "Empty deck : (empty);\n             \n"
+        (Format.asprintf "%a" (pp_deck_of_card "Empty deck") []))
+
 let test_pp_pile_of_card1 =
   Alcotest.test_case "test pp_pile_of_card on exemple_pp_pile_of_card1" `Quick
     (fun () ->
@@ -76,6 +82,12 @@ let test_pp_pile_of_card3 =
         \         200;\n\
         \         \n"
         (Format.asprintf "%a" (pp_pile_of_card "Pile 3") exemple_pp_list3))
+
+let test_pp_pile_of_card4 =
+  Alcotest.test_case "test pp_pile_of_card on an empty pile" `Quick (fun () ->
+      Alcotest.(check string)
+        "same result" "Empty pile : (empty);\n             \n"
+        (Format.asprintf "%a" (pp_pile_of_card "Empty pile") []))
 
 let test_sort_card_list1 =
   Alcotest.test_case "test sort_card_list on exemple_list_to_sort1" `Quick
@@ -168,16 +180,77 @@ let test_get_hazard_corresponding_to_the_remedy =
         && get_hazard_corresponding_to_the_remedy SpareTire = FlatTire
         && get_hazard_corresponding_to_the_remedy Repairs = Accident))
 
+let test_add_card_to_pile1 =
+  Alcotest.test_case "test add_card_to_pile on empty pile" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card [ Hazard Stop ]
+           (add_card_to_pile exemple_pile1 (Hazard Stop))))
+
+let test_add_card_to_pile2 =
+  Alcotest.test_case "test add_card_to_pile on non-empty pile" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [ Remedy EndOfSpeedLimit; Remedy Drive ]
+           (add_card_to_pile exemple_pile2 (Remedy EndOfSpeedLimit))))
+
+let test_add_card_to_deck1 =
+  Alcotest.test_case "test add_card_to_deck on empty deck" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [ Safety EmergencyVehicle ]
+           (add_card_to_deck exemple_deck1 (Safety EmergencyVehicle))))
+
+let test_add_card_to_deck2 =
+  Alcotest.test_case "test add_card_to_deck on non-empty deck" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [ Remedy Drive; Remedy EndOfSpeedLimit ]
+           (add_card_to_deck exemple_deck2 (Remedy EndOfSpeedLimit))))
+
+let test_add_card_to_deck3 =
+  Alcotest.test_case "test add_card_to_deck on in a deck with many cards" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (equal_deck_of_card
+           [
+             Safety FuelTruck;
+             Hazard OutOfGas;
+             Hazard FlatTire;
+             Remedy Drive;
+             Remedy EndOfSpeedLimit;
+             Remedy SpareTire;
+             Distance D25;
+             Distance D100;
+             Distance D100;
+             Distance D100;
+             Distance D200;
+             Distance D200;
+           ]
+           (add_card_to_deck exemple_deck3 (Remedy EndOfSpeedLimit))))
+
 let () =
   let open Alcotest in
   run "Cards_engine"
     [
       ( "pp_deck_of_card",
-        [ test_pp_deck_of_card1; test_pp_deck_of_card2; test_pp_deck_of_card3 ]
-      );
+        [
+          test_pp_deck_of_card1;
+          test_pp_deck_of_card2;
+          test_pp_deck_of_card3;
+          test_pp_deck_of_card4;
+        ] );
       ( "pp_pile_of_card",
-        [ test_pp_pile_of_card1; test_pp_pile_of_card2; test_pp_pile_of_card3 ]
-      );
+        [
+          test_pp_pile_of_card1;
+          test_pp_pile_of_card2;
+          test_pp_pile_of_card3;
+          test_pp_pile_of_card4;
+        ] );
       ( "sort_card_list",
         [
           test_sort_card_list1;
@@ -188,4 +261,12 @@ let () =
       ("shuffle_pile", [ test_shuffle_pile ]);
       ( "test get_hazard_corresponding_to_the_remedy",
         [ test_get_hazard_corresponding_to_the_remedy ] );
+      ( "add_card to_deck and to_pile",
+        [
+          test_add_card_to_pile1;
+          test_add_card_to_pile2;
+          test_add_card_to_deck1;
+          test_add_card_to_deck2;
+          test_add_card_to_deck3;
+        ] );
     ]

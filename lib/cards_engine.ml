@@ -19,6 +19,8 @@ type card =
 type deck_of_card = card list [@@deriving eq]
 type pile_of_card = card list [@@deriving eq]
 
+let is_empty (l : card list) = match l with [] -> true | _ -> false
+
 let remedy_to_string = function
   | Drive -> "Drive"
   | EndOfSpeedLimit -> "End of speed limit"
@@ -58,7 +60,8 @@ let pp_card fmt = function
   | Distance d -> pp_distance fmt d
 
 let pp_list_of_card with_index fmt l =
-  if with_index then
+  if is_empty l then Format.fprintf fmt "(empty);@;"
+  else if with_index then
     l
     |> List.iteri (fun i e ->
            Format.fprintf fmt "%d. %a" i pp_card e;
@@ -76,6 +79,11 @@ let pp_deck_of_card name fmt l =
 let pp_pile_of_card name fmt l =
   Format.fprintf fmt "%s : " name;
   Format.fprintf fmt "@[<v>%a@]@;" (pp_list_of_card false) l
+
+let pp_top_pile_of_card name fmt l =
+  Format.fprintf fmt "%s : " name;
+  if is_empty l then Format.fprintf fmt "(empty);@;"
+  else Format.fprintf fmt "%a;@;" pp_card (List.hd l)
 
 let init_card_from_int = function
   | n when n <= 0 -> Safety EmergencyVehicle
@@ -173,4 +181,5 @@ let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
   | SpareTire -> FlatTire
   | Repairs -> Accident
 
-let is_empty (l : card list) = List.length l = 0
+let add_card_to_pile (p : pile_of_card) (c : card) = c :: p
+let add_card_to_deck (d : deck_of_card) (c : card) = sort_card_list (c :: d)
