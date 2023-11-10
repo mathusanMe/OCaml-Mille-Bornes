@@ -10,11 +10,11 @@ type board = {
 
 let get_current_team_from (b : board) = List.nth b.teams b.current_team_index
 
-exception TeamNotFound
+exception Team_not_found
 
 let draw_card (b : board) (t : team) =
   let card, new_draw_pile = draw_card_from_pile b.draw_pile in
-  if not (List.mem t b.teams) then raise TeamNotFound
+  if not (List.mem t b.teams) then raise Team_not_found
   else
     let player = get_current_player_from t in
     let player_struct = get_player_struct_from player in

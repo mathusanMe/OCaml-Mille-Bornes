@@ -85,37 +85,40 @@ let pp_top_pile_of_card name fmt l =
   if is_empty l then Format.fprintf fmt "(empty);@;"
   else Format.fprintf fmt "%a;@;" pp_card (List.hd l)
 
+exception Fail_init_card
+
 let init_card_from_int = function
-  | n when n <= 0 -> Safety EmergencyVehicle
-  | n when n <= 1 -> Safety FuelTruck
-  | n when n <= 2 -> Safety PunctureProof
-  | n when n <= 3 -> Safety DrivingAce
-  | n when n <= 8 -> Hazard Stop
-  | n when n <= 12 -> Hazard SpeedLimit
-  | n when n <= 15 -> Hazard OutOfGas
-  | n when n <= 18 -> Hazard FlatTire
-  | n when n <= 21 -> Hazard Accident
-  | n when n <= 35 -> Remedy Drive
-  | n when n <= 41 -> Remedy EndOfSpeedLimit
-  | n when n <= 47 -> Remedy Gas
-  | n when n <= 53 -> Remedy SpareTire
-  | n when n <= 59 -> Remedy Repairs
-  | n when n <= 69 -> Distance D25
-  | n when n <= 79 -> Distance D50
-  | n when n <= 89 -> Distance D75
-  | n when n <= 101 -> Distance D100
-  | _ -> Distance D200
+  | 0 -> Safety EmergencyVehicle
+  | 1 -> Safety FuelTruck
+  | 2 -> Safety PunctureProof
+  | 3 -> Safety DrivingAce
+  | n when n >= 4 && n <= 8 -> Hazard Stop
+  | n when n >= 9 && n <= 12 -> Hazard SpeedLimit
+  | n when n >= 13 && n <= 15 -> Hazard OutOfGas
+  | n when n >= 16 && n <= 18 -> Hazard FlatTire
+  | n when n >= 19 && n <= 21 -> Hazard Accident
+  | n when n >= 22 && n <= 35 -> Remedy Drive
+  | n when n >= 36 && n <= 41 -> Remedy EndOfSpeedLimit
+  | n when n >= 42 && n <= 47 -> Remedy Gas
+  | n when n >= 48 && n <= 53 -> Remedy SpareTire
+  | n when n >= 54 && n <= 59 -> Remedy Repairs
+  | n when n >= 60 && n <= 69 -> Distance D25
+  | n when n >= 70 && n <= 79 -> Distance D50
+  | n when n >= 80 && n <= 89 -> Distance D75
+  | n when n >= 90 && n <= 101 -> Distance D100
+  | n when n >= 102 && n <= 105 -> Distance D200
+  | _ -> raise Fail_init_card
 
 let generate_initial_pile : unit -> pile_of_card =
  fun () -> List.init 106 init_card_from_int
 
-exception EmptyPile
+exception Empty_pile
 
 let peek_card_from_draw_pile (p : pile_of_card) =
-  match p with [] -> raise EmptyPile | h :: _ -> h
+  match p with [] -> raise Empty_pile | h :: _ -> h
 
 let draw_card_from_pile (p : pile_of_card) =
-  match p with [] -> raise EmptyPile | h :: t -> (h, t)
+  match p with [] -> raise Empty_pile | h :: t -> (h, t)
 
 let card_to_int = function
   | Safety EmergencyVehicle -> 0
