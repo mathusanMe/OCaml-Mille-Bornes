@@ -160,32 +160,16 @@ let compare_card c1 c2 =
 
 let sort_card_list l = List.sort compare_card l
 
-(* Returns the list with v1 in place of i2 and v2 in place of i1 *)
-let swap_value p i1 i2 v1 v2 =
-  if i1 = i2 then p
-  else
-    let rec aux_switch_value i acc lst =
-      match lst with
-      | [] -> List.rev acc
-      | hd :: tl ->
-          if i1 = i then aux_switch_value (i + 1) (v2 :: acc) tl
-          else if i2 = i then aux_switch_value (i + 1) (v1 :: acc) tl
-          else aux_switch_value (i + 1) (hd :: acc) tl
-    in
-    aux_switch_value 0 [] p
-
-let shuffle_pile p =
+let shuffle_pile (p : pile_of_card) =
   let _ = Random.self_init () in
-  let n = List.length p in
-  let rec aux_shuffle_pile p_acc i =
-    if i = n then p_acc
-    else
-      let r = Random.int n in
-      aux_shuffle_pile
-        (swap_value p_acc i r (List.nth p_acc i) (List.nth p_acc r))
-        (i + 1)
+  let rec aux_shuffle_pile = function
+    | [] -> []
+    | [ card ] -> [ card ]
+    | p ->
+        let left, right = List.partition (fun _ -> Random.bool ()) p in
+        List.rev_append (aux_shuffle_pile left) (aux_shuffle_pile right)
   in
-  aux_shuffle_pile p 0
+  aux_shuffle_pile p
 
 let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
   match c with
