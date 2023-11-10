@@ -35,8 +35,9 @@ val generate_initial_pile : unit -> pile_of_card
 (* Generate an entire mille bornes card pile *)
 
 exception Empty_pile
+exception Empty_deck
 
-val peek_card_from_draw_pile : pile_of_card -> card
+val peek_card_from_pile : pile_of_card -> card
 (* Return the first card of a pile_of_card without removing it from the pile_of_card *)
 
 val draw_card_from_pile : pile_of_card -> card * pile_of_card
@@ -52,3 +53,4 @@ val get_hazard_corresponding_to_the_remedy : remedy_card -> hazard_card
 val is_empty : card list -> bool
 val add_card_to_pile : pile_of_card -> card -> pile_of_card
 val add_card_to_deck : deck_of_card -> card -> deck_of_card
+val remove_card_from_deck : deck_of_card -> card -> deck_of_card

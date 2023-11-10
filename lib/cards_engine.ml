@@ -124,8 +124,10 @@ let generate_initial_pile : unit -> pile_of_card =
  fun () -> List.init 106 init_card_from_int
 
 exception Empty_pile
+exception Empty_deck
 
-let peek_card_from_draw_pile (p : pile_of_card) =
+
+let peek_card_from_pile (p : pile_of_card) =
   match p with [] -> raise Empty_pile | h :: _ -> h
 
 let draw_card_from_pile (p : pile_of_card) =
@@ -154,3 +156,8 @@ let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
 
 let add_card_to_pile (p : pile_of_card) (c : card) = c :: p
 let add_card_to_deck (d : deck_of_card) (c : card) = sort_card_list (c :: d)
+
+let rec remove_card_from_deck (d : deck_of_card) (c : card) =
+  match d with
+  | [] -> raise EmptyPile
+  | h :: t -> if h = c then t else h :: remove_card_from_deck t c
