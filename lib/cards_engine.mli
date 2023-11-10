@@ -34,7 +34,7 @@ val pp_top_pile_of_card : string -> Format.formatter -> pile_of_card -> unit
 val generate_initial_pile : unit -> pile_of_card
 (* Generate an entire mille bornes card pile *)
 
-exception EmptyPile
+exception Empty_pile
 
 val peek_card_from_draw_pile : pile_of_card -> card
 (* Return the first card of a pile_of_card without removing it from the pile_of_card *)

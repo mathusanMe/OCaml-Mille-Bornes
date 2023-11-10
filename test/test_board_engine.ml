@@ -7,13 +7,13 @@ let test_draw_card_from_draw_pile_for_team_not_in_game =
   Alcotest.test_case
     "raise TeamNotFound on draw from draw pile for team not in game" `Quick
     (fun () ->
-      Alcotest.check_raises "Expected TeamNotFound" TeamNotFound (fun () ->
+      Alcotest.check_raises "Expected TeamNotFound" Team_not_found (fun () ->
           ignore (draw_card board_with_draw_pile team_not_in_board)))
 
 let test_draw_card_from_empty_draw_pile =
   Alcotest.test_case "raise EmptyPile on draw from empty draw pile" `Quick
     (fun () ->
-      Alcotest.check_raises "Expected EmptyPile" EmptyPile (fun () ->
+      Alcotest.check_raises "Expected EmptyPile" Empty_pile (fun () ->
           ignore
             (draw_card board_with_empty_draw_pile
                (get_current_team_from board_with_empty_draw_pile))))
