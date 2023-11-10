@@ -376,7 +376,7 @@ let is_usable_remedy_card (p_info : public_informations) = function
       &&
       let hazard = get_hazard_corresponding_to_the_remedy remedy in
       peek_card_from_pile p_info.drive_pile = Hazard hazard
-      && not (has_safety_to_counter_hazard p_info hazard)
+      && not (has_safety_to_counter_hazard_on_public_informations p_info hazard)
 
 let use_remedy_card (t : team) = function
   | EndOfSpeedLimit -> add_card_to_speed_limit_pile t (Remedy EndOfSpeedLimit)

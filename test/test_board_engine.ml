@@ -3,31 +3,19 @@ open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
 open Utils_board_engine
 
-let flatten_teams (teams : team list) =
-  teams |> List.map (fun team -> team.players) |> List.flatten
-
-let compare_all_hands_except_player (b1 : board) (b2 : board) (p : player) =
-  List.map2
-    (fun player new_player -> (player, new_player))
-    (flatten_teams b1.teams) (flatten_teams b2.teams)
-  |> List.filter (fun (player, new_player) ->
-         same_player player new_player && not (same_player player p))
-  |> List.map (fun (player, new_player) ->
-         (get_player_struct_from player, get_player_struct_from new_player))
-  |> List.for_all (fun (player, new_player) ->
-         equal_deck_of_card player.hand new_player.hand)
-
 let test_draw_card_from_draw_pile_for_team_not_in_game =
   Alcotest.test_case
-    "raise TeamNotFound on draw from draw pile for team not in game" `Quick
+    "raise Team_not_found on draw from draw pile for team not in game" `Quick
     (fun () ->
       Alcotest.check_raises "Expected Team_not_found" Team_not_found (fun () ->
-          ignore (draw_card draw_card_board_with_draw_pile team_not_in_board)))
+          ignore
+            (draw_card draw_card_board_with_draw_pile
+               draw_card_team_not_in_board)))
 
 let test_draw_card_from_empty_draw_pile =
-  Alcotest.test_case "raise EmptyPile on draw from empty draw pile" `Quick
+  Alcotest.test_case "raise Empty_pile on draw from empty draw pile" `Quick
     (fun () ->
-      Alcotest.check_raises "Expected EmptyPile" Empty_pile (fun () ->
+      Alcotest.check_raises "Expected Empty_pile" Empty_pile (fun () ->
           ignore
             (draw_card draw_card_board_with_empty_draw_pile
                (get_current_team_from draw_card_board_with_empty_draw_pile))))
@@ -75,12 +63,13 @@ let test_switch_draw_and_discard_pile_from_empty_draw_pile =
          pile of the tested board are the same on content"
         true
         (let new_board =
-           swap_draw_and_shuffled_discard_pile board_with_empty_draw_pile
+           swap_draw_and_shuffled_discard_pile
+             draw_card_board_with_empty_draw_pile
          in
          is_discard_pile_empty new_board
          && equal_pile_of_card
               (sort_card_list new_board.draw_pile)
-              (sort_card_list board_with_empty_draw_pile.discard_pile)))
+              (sort_card_list draw_card_board_with_empty_draw_pile.discard_pile)))
 
 let test_switch_draw_and_discard_pile_from_empty_draw_pile_and_heavy_discard_pile
     =
@@ -100,10 +89,12 @@ let test_switch_draw_and_discard_pile_from_empty_draw_pile_and_heavy_discard_pil
               (sort_card_list new_board.draw_pile)
               (sort_card_list
                  board_with_empty_draw_pile_and_heavy_discard_pile.discard_pile)))
+
 let test_discard_card_from_team_not_in_board =
-  Alcotest.test_case "raise TeamNotFound on discard card from team not in board"
-    `Quick (fun () ->
-      Alcotest.check_raises "Expected TeamNotFound" TeamNotFound (fun () ->
+  Alcotest.test_case
+    "raise Team_not_found on discard card from team not in board" `Quick
+    (fun () ->
+      Alcotest.check_raises "Expected Team_not_found" Team_not_found (fun () ->
           ignore
             (discard_card
                discard_card_board_with_team_with_current_player_with_empty_hand
@@ -111,10 +102,10 @@ let test_discard_card_from_team_not_in_board =
 
 let test_discard_card_from_team_with_current_player_with_empty_hand =
   Alcotest.test_case
-    "raise EmptyDeck on discard card from team with current player with empty \
+    "raise Empty_deck on discard card from team with current player with empty \
      hand"
     `Quick (fun () ->
-      Alcotest.check_raises "Expected EmptyDeck" EmptyDeck (fun () ->
+      Alcotest.check_raises "Expected Empty_deck" Empty_deck (fun () ->
           ignore
             (discard_card
                discard_card_board_with_team_with_current_player_with_empty_hand
@@ -123,10 +114,10 @@ let test_discard_card_from_team_with_current_player_with_empty_hand =
 
 let test_discard_card_from_team_with_current_player_without_card_within_hand =
   Alcotest.test_case
-    "raise CardNotFound on discard card from team with current player without \
-     card within hand"
+    "raise Card_not_found on discard card from team with current player \
+     without card within hand"
     `Quick (fun () ->
-      Alcotest.check_raises "Expected CardNotFound" CardNotFound (fun () ->
+      Alcotest.check_raises "Expected Card_not_found" Card_not_found (fun () ->
           ignore
             (discard_card
                discard_card_board_with_team_with_current_player_with_non_empty_hand
@@ -177,6 +168,196 @@ let test_discard_card_from_team_with_current_player_with_card_within_hand =
                   .discard_pile
               + 1))
 
+let test_place_card_from_team_not_in_board =
+  Alcotest.test_case "raise Team_not_found on place card from team not in board"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Team_not_found" Team_not_found (fun () ->
+          ignore
+            (place_card
+               place_card_board_with_team_with_current_player_with_empty_hand
+               place_card_team_not_in_board (Safety EmergencyVehicle)
+               place_card_team_with_current_player_with_empty_hand)))
+
+let test_place_card_to_team_not_in_board =
+  Alcotest.test_case "raise Team_not_found on place card to team not in board"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Team_not_found" Team_not_found (fun () ->
+          ignore
+            (place_card
+               place_card_board_with_team_with_current_player_with_empty_hand
+               place_card_team_with_current_player_with_empty_hand
+               (Safety EmergencyVehicle) place_card_team_not_in_board)))
+
+let test_place_card_from_team_with_current_player_with_empty_hand =
+  Alcotest.test_case
+    "raise Empty_deck on place card from team with current player with empty \
+     hand"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Empty_deck" Empty_deck (fun () ->
+          ignore
+            (place_card
+               place_card_board_with_team_with_current_player_with_empty_hand
+               place_card_team_with_current_player_with_empty_hand
+               (Safety EmergencyVehicle)
+               place_card_team_with_current_player_with_empty_hand)))
+
+let test_place_card_from_team_with_current_player_without_card_within_hand =
+  Alcotest.test_case
+    "raise Card_not_found on place card from team with current player without \
+     card within hand"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Card_not_found" Card_not_found (fun () ->
+          ignore
+            (place_card
+               place_card_board_with_team_with_current_player_with_non_empty_hand
+               place_card_team_with_current_player_with_non_empty_hand
+               (Hazard OutOfGas)
+               place_card_team_with_current_player_with_non_empty_hand)))
+
+let test_place_attack_card_from_team_with_current_player_with_card_within_hand_to_same_team
+    =
+  Alcotest.test_case
+    "raise Invalid_move on place attack card from team with current player \
+     with card within hand to same team"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Invalid_move" Invalid_move (fun () ->
+          ignore
+            (place_card
+               place_card_board_with_team_with_current_player_with_non_empty_hand
+               place_card_team_with_current_player_with_non_empty_hand
+               (Hazard Accident)
+               place_card_team_with_current_player_with_non_empty_hand)))
+
+let test_place_defend_card_from_team_with_current_player_with_card_within_hand_to_another_team
+    =
+  Alcotest.test_case
+    "raise Invalid_move on place defend card from team with current player \
+     with card within hand to another team"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Invalid_move" Invalid_move (fun () ->
+          ignore
+            (place_card place_card_board_with_teams
+               place_card_team_with_current_player_with_non_empty_hand
+               (Safety EmergencyVehicle)
+               place_card_team_with_current_player_with_empty_hand)))
+
+let test_place_distance_card_from_team_with_current_player_with_card_within_hand_to_another_team
+    =
+  Alcotest.test_case
+    "raise Invalid_move on place distance card from team with current player \
+     with card within hand to another team"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Invalid_move" Invalid_move (fun () ->
+          ignore
+            (place_card place_card_board_with_teams
+               place_card_team_with_current_player_with_non_empty_hand
+               (Distance D25)
+               place_card_team_with_current_player_with_empty_hand)))
+
+let test_place_attack_card_from_team_with_current_player_with_card_within_hand_to_another_team
+    =
+  Alcotest.test_case
+    "place attack card from team with current player with card within hand to \
+     another team"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "place attack card from team with current player with card within hand \
+         to another team"
+        true
+        (let board = place_card_board_with_teams in
+         let card = Hazard Accident in
+         let team_from = place_card_team_with_current_player_with_non_empty_hand
+         and team_to = place_card_team_with_current_player_with_empty_hand in
+         let current_player_team_from = get_current_player_from team_from
+         and current_player_team_to = get_current_player_from team_to in
+         let current_player_team_from_struct =
+           get_player_struct_from current_player_team_from
+         in
+         let new_board = place_card board team_from card team_to in
+         compare_all_hands_except_two_players board new_board
+           current_player_team_from current_player_team_to
+         &&
+         let new_team_from =
+           List.find (fun team -> same_team team team_from) new_board.teams
+         and new_team_to =
+           List.find (fun team -> same_team team team_to) new_board.teams
+         in
+         let new_player_team_from =
+           List.find
+             (fun player -> same_player player current_player_team_from)
+             new_team_from.players
+         in
+         let new_player_team_from_struct =
+           get_player_struct_from new_player_team_from
+         in
+         List.length new_player_team_from_struct.hand
+         = List.length current_player_team_from_struct.hand - 1
+         && (not (List.mem card new_player_team_from_struct.hand))
+         && equal_card
+              (peek_card_from_pile
+                 new_team_to.shared_public_informations.drive_pile)
+              card))
+
+let test_place_defend_card_from_team_with_current_player_with_card_within_hand_to_same_team
+    =
+  Alcotest.test_case
+    "place defend card from team with current player with card within hand to \
+     same team"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "place defend card from team with current player with card within hand \
+         to same team"
+        true
+        (let board = place_card_board_with_teams in
+         let card = Safety EmergencyVehicle in
+         let team = place_card_team_with_current_player_with_non_empty_hand in
+         let current_player = get_current_player_from team in
+         let current_player_struct = get_player_struct_from current_player in
+         let new_board = place_card board team card team in
+         compare_all_hands_except_player board new_board current_player
+         &&
+         let new_team = List.find (fun t -> same_team t team) new_board.teams in
+         let new_player =
+           List.find
+             (fun player -> same_player player current_player)
+             new_team.players
+         in
+         let new_player_struct = get_player_struct_from new_player in
+         List.length new_player_struct.hand
+         = List.length current_player_struct.hand - 1
+         && (not (List.mem card new_player_struct.hand))
+         && List.mem card new_team.shared_public_informations.safety_area))
+
+let test_place_distance_card_from_team_with_current_player_with_card_within_hand_to_same_team
+    =
+  Alcotest.test_case
+    "place distance card from team with current player with card within hand \
+     to same team"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "place distance card from team with current player with card within \
+         hand to same team"
+        true
+        (let board = place_card_board_with_teams in
+         let card = Distance D25 in
+         let team = place_card_team_with_current_player_with_non_empty_hand in
+         let current_player = get_current_player_from team in
+         let current_player_struct = get_player_struct_from current_player in
+         let new_board = place_card board team card team in
+         compare_all_hands_except_player board new_board current_player
+         &&
+         let new_team = List.find (fun t -> same_team t team) new_board.teams in
+         let new_player =
+           List.find
+             (fun player -> same_player player current_player)
+             new_team.players
+         in
+         let new_player_struct = get_player_struct_from new_player in
+         List.length new_player_struct.hand
+         = List.length current_player_struct.hand - 1
+         && (not (List.mem card new_player_struct.hand))
+         && List.mem card new_team.shared_public_informations.distance_cards))
+
 let () =
   let open Alcotest in
   run "Board_engine"
@@ -195,5 +376,18 @@ let () =
           test_discard_card_from_team_with_current_player_with_empty_hand;
           test_discard_card_from_team_with_current_player_without_card_within_hand;
           test_discard_card_from_team_with_current_player_with_card_within_hand;
+        ] );
+      ( "place card from team to team",
+        [
+          test_place_card_from_team_not_in_board;
+          test_place_card_to_team_not_in_board;
+          test_place_card_from_team_with_current_player_with_empty_hand;
+          test_place_card_from_team_with_current_player_without_card_within_hand;
+          test_place_attack_card_from_team_with_current_player_with_card_within_hand_to_same_team;
+          test_place_defend_card_from_team_with_current_player_with_card_within_hand_to_another_team;
+          test_place_distance_card_from_team_with_current_player_with_card_within_hand_to_another_team;
+          test_place_attack_card_from_team_with_current_player_with_card_within_hand_to_another_team;
+          test_place_defend_card_from_team_with_current_player_with_card_within_hand_to_same_team;
+          test_place_distance_card_from_team_with_current_player_with_card_within_hand_to_same_team;
         ] );
     ]
