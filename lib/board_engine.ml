@@ -32,3 +32,21 @@ let swap_draw_and_shuffled_discard_pile b =
   let new_draw_pile = b.discard_pile |> shuffle_pile in
   let new_discard_pile = b.draw_pile in
   { b with draw_pile = new_draw_pile; discard_pile = new_discard_pile }
+  
+exception CardNotFound
+
+let discard_card (b : board) (t : team) (c : card) =
+  if not (List.mem t b.teams) then raise TeamNotFound
+  else
+    let player = get_current_player_from t in
+    let player_struct = get_player_struct_from player in
+    if player_struct.hand = [] then raise EmptyDeck
+    else if not (List.mem c player_struct.hand) then raise CardNotFound
+    else
+      let new_hand = remove_card_from_deck player_struct.hand c in
+      let new_player_struct = { player_struct with hand = new_hand } in
+      let new_player = replace_player_struct_in player new_player_struct in
+      let new_team = replace_player_in t new_player in
+      let new_teams = replace_team_in b.teams new_team in
+      let discard_pile = add_card_to_pile b.discard_pile c in
+      { b with discard_pile; teams = new_teams }
