@@ -3,19 +3,19 @@ open Cards_engine
 type player_struct = { name : string; hand : deck_of_card }
 type player = Computer of player_struct | Human of player_struct
 
-type driving_zone = {
+type public_informations = {
   speed_limit_pile : pile_of_card;
   drive_pile : pile_of_card;
   distance_cards : deck_of_card;
   safety_area : deck_of_card;
   coup_fouree_cards : deck_of_card;
+  score : int;
+  can_drive : bool;
 }
 
 type team = {
   players : player list;
-  shared_driving_zone : driving_zone;
-  score : int;
-  can_drive : bool;
+  shared_public_informations : public_informations;
   current_player_index : int;
 }
 
@@ -25,22 +25,22 @@ let init_player_struct (entered_name : string) =
 let init_human (entered_name : string) = Human (init_player_struct entered_name)
 let init_computer (name : string) = Computer (init_player_struct name)
 
-let init_driving_zone () =
+let init_public_informations () =
   {
     speed_limit_pile = [];
     drive_pile = [];
     distance_cards = [];
     safety_area = [];
     coup_fouree_cards = [];
+    score = 0;
+    can_drive = false;
   }
 
 let init_team_with_one_player (name : string) (is_computer : bool) =
   let player = if is_computer then init_computer name else init_human name in
   {
     players = [ player ];
-    shared_driving_zone = init_driving_zone ();
-    score = 0;
-    can_drive = false;
+    shared_public_informations = init_public_informations ();
     current_player_index = 0;
   }
 
@@ -54,9 +54,7 @@ let init_team_with_two_players (name1 : string) (is_computer1 : bool)
   in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = init_driving_zone ();
-    score = 0;
-    can_drive = false;
+    shared_public_informations = init_public_informations ();
     current_player_index = 0;
   }
 
@@ -70,9 +68,7 @@ let set_next_player_from (t : team) =
   if List.length t.players = 2 then
     {
       players = t.players;
-      shared_driving_zone = t.shared_driving_zone;
-      score = 0;
-      can_drive = false;
+      shared_public_informations = t.shared_public_informations;
       current_player_index = 1 - t.current_player_index;
     }
   else t
@@ -117,7 +113,7 @@ let pp_player_list with_hands fmt players =
     Format.fprintf fmt "Name(s) with deck :@ %a" pp_iter players
   else Format.fprintf fmt "Name(s) :@ %a" pp_iter players
 
-let pp_driving_zone fmt dz =
+let pp_public_informations fmt dz =
   Format.fprintf fmt "Driving Zone : @ %a@;%a@;%a%a%a"
     (pp_top_pile_of_card "Top of speed limit pile")
     dz.speed_limit_pile
@@ -132,12 +128,12 @@ let pp_driving_zone fmt dz =
 
 let pp_team with_hand fmt team =
   Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;" (pp_player_list with_hand)
-    team.players pp_driving_zone team.shared_driving_zone
+    team.players pp_public_informations team.shared_public_informations
 
 let has_already_used_safety_card (t : team) (c : safety_card) =
   let f = List.exists (fun x -> x = Safety c) in
-  f t.shared_driving_zone.safety_area
-  || f t.shared_driving_zone.coup_fouree_cards
+  f t.shared_public_informations.safety_area
+  || f t.shared_public_informations.coup_fouree_cards
 
 let has_safety_to_counter_hazard (t : team) (c : hazard_card) =
   let necessary_safety =
@@ -150,40 +146,44 @@ let has_safety_to_counter_hazard (t : team) (c : hazard_card) =
   has_already_used_safety_card t necessary_safety
 
 let is_attacked_by_hazard_on_drive_pile (t : team) =
-  (not (is_empty t.shared_driving_zone.drive_pile))
+  (not (is_empty t.shared_public_informations.drive_pile))
   &&
-  match List.hd t.shared_driving_zone.drive_pile with
+  match List.hd t.shared_public_informations.drive_pile with
   | Hazard hazard -> not (has_safety_to_counter_hazard t hazard)
   | _ -> false
 
 let is_attacked_by_speed_limit (t : team) =
-  (not (is_empty t.shared_driving_zone.speed_limit_pile))
-  && List.hd t.shared_driving_zone.speed_limit_pile = Hazard SpeedLimit
+  (not (is_empty t.shared_public_informations.speed_limit_pile))
+  && List.hd t.shared_public_informations.speed_limit_pile = Hazard SpeedLimit
   && not (has_safety_to_counter_hazard t SpeedLimit)
 
 let add_card_to_speed_limit_pile (t : team) (c : card) =
   {
     t with
-    shared_driving_zone =
+    shared_public_informations =
       {
-        t.shared_driving_zone with
+        t.shared_public_informations with
         speed_limit_pile =
-          add_card_to_pile t.shared_driving_zone.speed_limit_pile c;
+          add_card_to_pile t.shared_public_informations.speed_limit_pile c;
       };
   }
 
 let add_card_to_drive_pile (t : team) (c : card) =
   {
     t with
-    shared_driving_zone =
+    shared_public_informations =
       {
-        t.shared_driving_zone with
-        drive_pile = add_card_to_pile t.shared_driving_zone.drive_pile c;
+        t.shared_public_informations with
+        drive_pile = add_card_to_pile t.shared_public_informations.drive_pile c;
       };
   }
 
 let set_can_drive (t : team) (set_can_drive : bool) =
-  { t with can_drive = set_can_drive }
+  {
+    t with
+    shared_public_informations =
+      { t.shared_public_informations with can_drive = set_can_drive };
+  }
 
 let is_usable_hazard_card (t : team) = function
   | SpeedLimit ->
@@ -199,14 +199,17 @@ let use_hazard_card (t : team) = function
   | hazard -> add_card_to_drive_pile t (Hazard hazard)
 
 let is_usable_distance_card (t : team) (c : distance_card) =
-  if (not t.can_drive) || is_attacked_by_hazard_on_drive_pile t then false
+  if
+    (not t.shared_public_informations.can_drive)
+    || is_attacked_by_hazard_on_drive_pile t
+  then false
   else
     match c with
     | D200 ->
         if not (is_attacked_by_speed_limit t) then
           List.fold_left
             (fun acc c -> if c = Distance D200 then acc + 1 else acc)
-            0 t.shared_driving_zone.distance_cards
+            0 t.shared_public_informations.distance_cards
           < 2
         else false
     | D25 | D50 -> true
@@ -218,13 +221,14 @@ let use_distance_card (t : team) (c : distance_card) =
   in
   {
     t with
-    shared_driving_zone =
+    shared_public_informations =
       {
-        t.shared_driving_zone with
+        t.shared_public_informations with
         distance_cards =
-          add_card_to_deck t.shared_driving_zone.distance_cards (Distance c);
+          add_card_to_deck t.shared_public_informations.distance_cards
+            (Distance c);
+        score = t.shared_public_informations.score + value;
       };
-    score = t.score + value;
   }
 
 let is_usable_safety_card (t : team) = function
@@ -233,52 +237,77 @@ let is_usable_safety_card (t : team) = function
 let add_card_to_safety_area (t : team) (s : safety_card) =
   {
     t with
-    shared_driving_zone =
+    shared_public_informations =
       {
-        t.shared_driving_zone with
+        t.shared_public_informations with
         safety_area =
-          add_card_to_deck t.shared_driving_zone.safety_area (Safety s);
+          add_card_to_deck t.shared_public_informations.safety_area (Safety s);
       };
   }
 
 let use_safety_card (t : team) = function
   | EmergencyVehicle ->
-      { (add_card_to_safety_area t EmergencyVehicle) with can_drive = true }
+      add_card_to_safety_area
+        {
+          t with
+          shared_public_informations =
+            { t.shared_public_informations with can_drive = true };
+        }
+        EmergencyVehicle
   | safety -> add_card_to_safety_area t safety
 
 let add_card_to_coup_fouree (t : team) (s : safety_card) =
   {
     t with
-    shared_driving_zone =
+    shared_public_informations =
       {
-        t.shared_driving_zone with
+        t.shared_public_informations with
         coup_fouree_cards =
-          add_card_to_deck t.shared_driving_zone.coup_fouree_cards (Safety s);
+          add_card_to_deck t.shared_public_informations.coup_fouree_cards
+            (Safety s);
       };
   }
 
 let use_coup_fouree (t : team) = function
   | EmergencyVehicle ->
-      {
-        (add_card_to_coup_fouree t EmergencyVehicle) with
-        can_drive = true;
-        score = t.score + 200;
-      }
-  | safety -> { (add_card_to_coup_fouree t safety) with score = t.score + 200 }
+      add_card_to_coup_fouree
+        {
+          t with
+          shared_public_informations =
+            {
+              t.shared_public_informations with
+              can_drive = true;
+              score = t.shared_public_informations.score + 200;
+            };
+        }
+        EmergencyVehicle
+  | safety ->
+      add_card_to_coup_fouree
+        {
+          t with
+          shared_public_informations =
+            {
+              t.shared_public_informations with
+              score = t.shared_public_informations.score + 200;
+            };
+        }
+        safety
 
 let is_usable_remedy_card (t : team) = function
   | Drive ->
-      (not t.can_drive)
+      (not t.shared_public_informations.can_drive)
       &&
       if is_attacked_by_hazard_on_drive_pile t then
-        peek_card_from_draw_pile t.shared_driving_zone.drive_pile = Hazard Stop
+        peek_card_from_draw_pile t.shared_public_informations.drive_pile
+        = Hazard Stop
       else true
   | EndOfSpeedLimit -> is_attacked_by_speed_limit t
   | remedy ->
-      (not (is_empty t.shared_driving_zone.drive_pile))
+      (not (is_empty t.shared_public_informations.drive_pile))
       &&
       let hazard = get_hazard_corresponding_to_the_remedy remedy in
-      peek_card_from_draw_pile t.shared_driving_zone.drive_pile = Hazard hazard
+      peek_card_from_draw_pile t.shared_public_informations.drive_pile
+      = Hazard hazard
       && not (has_safety_to_counter_hazard t hazard)
 
 let use_remedy_card (t : team) = function
