@@ -126,7 +126,6 @@ let generate_initial_pile : unit -> pile_of_card =
 exception Empty_pile
 exception Empty_deck
 
-
 let peek_card_from_pile (p : pile_of_card) =
   match p with [] -> raise Empty_pile | h :: _ -> h
 
@@ -159,5 +158,5 @@ let add_card_to_deck (d : deck_of_card) (c : card) = sort_card_list (c :: d)
 
 let rec remove_card_from_deck (d : deck_of_card) (c : card) =
   match d with
-  | [] -> raise EmptyPile
+  | [] -> raise Empty_deck
   | h :: t -> if h = c then t else h :: remove_card_from_deck t c
