@@ -21,37 +21,48 @@ type pile_of_card = card list [@@deriving eq]
 
 let is_empty (l : card list) = match l with [] -> true | _ -> false
 
-let remedy_to_string = function
-  | Drive -> "Drive"
-  | EndOfSpeedLimit -> "End of speed limit"
-  | Gas -> "Gas"
-  | SpareTire -> "Spare tire"
-  | Repairs -> "Repairs"
+let pp_remedy fmt r =
+  let r_str =
+    match r with
+    | Drive -> "Drive"
+    | EndOfSpeedLimit -> "End of speed limit"
+    | Gas -> "Gas"
+    | SpareTire -> "Spare tire"
+    | Repairs -> "Repairs"
+  in
+  Format.fprintf fmt "%s" r_str
 
-let hazard_to_string = function
-  | Stop -> "Stop"
-  | SpeedLimit -> "Speed limit"
-  | OutOfGas -> "Out of gas"
-  | FlatTire -> "Flat tire"
-  | Accident -> "Accident"
+let pp_hazard fmt h =
+  let h_str =
+    match h with
+    | Stop -> "Stop"
+    | SpeedLimit -> "Speed limit"
+    | OutOfGas -> "Out of gas"
+    | FlatTire -> "Flat tire"
+    | Accident -> "Accident"
+  in
+  Format.fprintf fmt "%s" h_str
 
-let safety_to_string = function
-  | EmergencyVehicle -> "Emergency vehicle"
-  | FuelTruck -> "Fuel truck"
-  | PunctureProof -> "Puncture proof"
-  | DrivingAce -> "Driving ace"
+let pp_safety fmt s =
+  let s_str =
+    match s with
+    | EmergencyVehicle -> "Emergency vehicle"
+    | FuelTruck -> "Fuel truck"
+    | PunctureProof -> "Puncture proof"
+    | DrivingAce -> "Driving ace"
+  in
+  Format.fprintf fmt "%s" s_str
 
-let distance_to_string = function
-  | D25 -> "25"
-  | D50 -> "50"
-  | D75 -> "75"
-  | D100 -> "100"
-  | D200 -> "200"
-
-let pp_remedy fmt r = Format.fprintf fmt "%s" (remedy_to_string r)
-let pp_hazard fmt h = Format.fprintf fmt "%s" (hazard_to_string h)
-let pp_safety fmt s = Format.fprintf fmt "%s" (safety_to_string s)
-let pp_distance fmt d = Format.fprintf fmt "%s" (distance_to_string d)
+let pp_distance fmt d =
+  let d_str =
+    match d with
+    | D25 -> "25"
+    | D50 -> "50"
+    | D75 -> "75"
+    | D100 -> "100"
+    | D200 -> "200"
+  in
+  Format.fprintf fmt "%s" d_str
 
 let pp_card fmt = function
   | Remedy r -> pp_remedy fmt r
