@@ -206,12 +206,12 @@ let test_pp_team5 =
         \                     \n\n"
         (Format.asprintf "%a" (pp_team true) team6))
 
-let driving_zone_is_clear driving_zone =
-  driving_zone.speed_limit_pile = []
-  && driving_zone.drive_pile = []
-  && driving_zone.distance_cards = []
-  && driving_zone.safety_area = []
-  && driving_zone.coup_fouree_cards = []
+let public_informations_is_clear public_informations =
+  public_informations.speed_limit_pile = []
+  && public_informations.drive_pile = []
+  && public_informations.distance_cards = []
+  && public_informations.safety_area = []
+  && public_informations.coup_fouree_cards = []
 
 let test_init_team_with_one_computer_player =
   Alcotest.test_case "initialisation of a team of 1 computer player " `Quick
@@ -225,10 +225,11 @@ let test_init_team_with_one_computer_player =
         let player_struct = get_player_struct_from player in
         player_struct.hand = []
         && player_struct.name = "Computer"
-        && team_with_one_computer.score = 0
-        && team_with_one_computer.can_drive = false
+        && team_with_one_computer.shared_public_informations.score = 0
+        && team_with_one_computer.shared_public_informations.can_drive = false
         && team_with_one_computer.current_player_index = 0
-        && driving_zone_is_clear team_with_one_computer.shared_driving_zone))
+        && public_informations_is_clear
+             team_with_one_computer.shared_public_informations))
 
 let test_init_team_with_one_human_player =
   Alcotest.test_case "initialisation of a team of 1 human player " `Quick
@@ -242,10 +243,11 @@ let test_init_team_with_one_human_player =
         let player_struct = get_player_struct_from player in
         player_struct.hand = []
         && player_struct.name = "Thomas"
-        && team_with_one_computer.score = 0
-        && team_with_one_computer.can_drive = false
+        && team_with_one_computer.shared_public_informations.score = 0
+        && team_with_one_computer.shared_public_informations.can_drive = false
         && team_with_one_human.current_player_index = 0
-        && driving_zone_is_clear team_with_one_human.shared_driving_zone))
+        && public_informations_is_clear
+             team_with_one_human.shared_public_informations))
 
 let test_init_team_with_two_computer_players =
   Alcotest.test_case "initialisation of a team of 2 computer players " `Quick
@@ -263,10 +265,11 @@ let test_init_team_with_two_computer_players =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Computer1"
         && player2_struct.name = "Computer2"
-        && team_with_two_computers.score = 0
-        && team_with_two_computers.can_drive = false
+        && team_with_two_computers.shared_public_informations.score = 0
+        && team_with_two_computers.shared_public_informations.can_drive = false
         && team_with_two_computers.current_player_index = 0
-        && driving_zone_is_clear team_with_two_computers.shared_driving_zone))
+        && public_informations_is_clear
+             team_with_two_computers.shared_public_informations))
 
 let test_init_team_with_two_human_players =
   Alcotest.test_case "initialisation of a team of 2 humans players " `Quick
@@ -284,10 +287,11 @@ let test_init_team_with_two_human_players =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Gabin"
         && player2_struct.name = "Mathusan"
-        && team_with_two_humans.score = 0
-        && team_with_two_humans.can_drive = false
+        && team_with_two_humans.shared_public_informations.score = 0
+        && team_with_two_humans.shared_public_informations.can_drive = false
         && team_with_two_humans.current_player_index = 0
-        && driving_zone_is_clear team_with_two_humans.shared_driving_zone))
+        && public_informations_is_clear
+             team_with_two_humans.shared_public_informations))
 
 let test_init_team_with_one_computer_player_and_one_human_player =
   Alcotest.test_case
@@ -306,10 +310,11 @@ let test_init_team_with_one_computer_player_and_one_human_player =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Computer"
         && player2_struct.name = "Mathusan"
-        && team_with_computer_human.score = 0
-        && team_with_computer_human.can_drive = false
+        && team_with_computer_human.shared_public_informations.score = 0
+        && team_with_computer_human.shared_public_informations.can_drive = false
         && team_with_computer_human.current_player_index = 0
-        && driving_zone_is_clear team_with_computer_human.shared_driving_zone))
+        && public_informations_is_clear
+             team_with_computer_human.shared_public_informations))
 
 let test_init_team_with_one_human_player_and_one_computer_player =
   Alcotest.test_case
@@ -328,10 +333,11 @@ let test_init_team_with_one_human_player_and_one_computer_player =
         player1_struct.hand = [] && player2_struct.hand = []
         && player1_struct.name = "Gabin"
         && player2_struct.name = "Computer"
-        && team_with_human_computer.score = 0
-        && team_with_human_computer.can_drive = false
+        && team_with_human_computer.shared_public_informations.score = 0
+        && team_with_human_computer.shared_public_informations.can_drive = false
         && team_with_human_computer.current_player_index = 0
-        && driving_zone_is_clear team_with_human_computer.shared_driving_zone))
+        && public_informations_is_clear
+             team_with_human_computer.shared_public_informations))
 
 let test_has_already_used_safety1 =
   Alcotest.test_case "given safety card not used by team yet, can be used"
@@ -472,9 +478,9 @@ let test_use_hazard_card =
          let res1 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  speed_limit_pile = [ Hazard SpeedLimit ];
                };
            }
@@ -484,9 +490,9 @@ let test_use_hazard_card =
          let res2 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
                };
            }
@@ -496,9 +502,9 @@ let test_use_hazard_card =
          let res3 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
                  drive_pile = [ Hazard OutOfGas ];
                };
@@ -509,9 +515,9 @@ let test_use_hazard_card =
          let res4 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
                  drive_pile = [ Hazard FlatTire; Hazard OutOfGas ];
                };
@@ -522,9 +528,9 @@ let test_use_hazard_card =
          let res5 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
                  drive_pile =
                    [ Hazard Accident; Hazard FlatTire; Hazard OutOfGas ];
@@ -536,9 +542,9 @@ let test_use_hazard_card =
          let res6 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
                  drive_pile =
                    [
@@ -547,8 +553,8 @@ let test_use_hazard_card =
                      Hazard FlatTire;
                      Hazard OutOfGas;
                    ];
+                 can_drive = false;
                };
-             can_drive = false;
            }
            = team
          in
@@ -606,11 +612,11 @@ let test_use_distance_card =
          let res1 =
            {
              team5 with
-             score = 25;
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team5.shared_driving_zone with
+                 team5.shared_public_informations with
                  distance_cards = [ Distance D25 ];
+                 score = 25;
                };
            }
            = team
@@ -619,11 +625,11 @@ let test_use_distance_card =
          let res2 =
            {
              team5 with
-             score = 75;
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team5.shared_driving_zone with
+                 team5.shared_public_informations with
                  distance_cards = [ Distance D25; Distance D50 ];
+                 score = 75;
                };
            }
            = team
@@ -632,11 +638,11 @@ let test_use_distance_card =
          let res3 =
            {
              team5 with
-             score = 150;
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team5.shared_driving_zone with
+                 team5.shared_public_informations with
                  distance_cards = [ Distance D25; Distance D50; Distance D75 ];
+                 score = 150;
                };
            }
            = team
@@ -645,12 +651,12 @@ let test_use_distance_card =
          let res4 =
            {
              team5 with
-             score = 250;
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team5.shared_driving_zone with
+                 team5.shared_public_informations with
                  distance_cards =
                    [ Distance D25; Distance D50; Distance D75; Distance D100 ];
+                 score = 250;
                };
            }
            = team
@@ -659,10 +665,9 @@ let test_use_distance_card =
          let res5 =
            {
              team5 with
-             score = 450;
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team5.shared_driving_zone with
+                 team5.shared_public_informations with
                  distance_cards =
                    [
                      Distance D25;
@@ -671,22 +676,31 @@ let test_use_distance_card =
                      Distance D100;
                      Distance D200;
                    ];
+                 score = 450;
                };
            }
            = team
          in
          let team = use_distance_card team D75 in
          let res6 =
-           team.score = 525
-           && team.shared_driving_zone.distance_cards
-              = [
-                  Distance D25;
-                  Distance D50;
-                  Distance D75;
-                  Distance D75;
-                  Distance D100;
-                  Distance D200;
-                ]
+           {
+             team5 with
+             shared_public_informations =
+               {
+                 team5.shared_public_informations with
+                 distance_cards =
+                   [
+                     Distance D25;
+                     Distance D50;
+                     Distance D75;
+                     Distance D75;
+                     Distance D100;
+                     Distance D200;
+                   ];
+                 score = 525;
+               };
+           }
+           = team
          in
          res1 && res2 && res3 && res4 && res5 && res6))
 
@@ -718,9 +732,9 @@ let test_use_safety_card =
          let res1 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  safety_area = [ Safety FuelTruck ];
                };
            }
@@ -730,12 +744,12 @@ let test_use_safety_card =
          let res2 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  safety_area = [ Safety EmergencyVehicle; Safety FuelTruck ];
+                 can_drive = true;
                };
-             can_drive = true;
            }
            = team
          in
@@ -743,17 +757,17 @@ let test_use_safety_card =
          let res3 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  safety_area =
                    [
                      Safety EmergencyVehicle;
                      Safety FuelTruck;
                      Safety DrivingAce;
                    ];
+                 can_drive = true;
                };
-             can_drive = true;
            }
            = team
          in
@@ -767,12 +781,12 @@ let test_use_coup_fouree =
          let res1 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  coup_fouree_cards = [ Safety FuelTruck ];
+                 score = 200;
                };
-             score = 200;
            }
            = team
          in
@@ -780,14 +794,14 @@ let test_use_coup_fouree =
          let res2 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  coup_fouree_cards =
                    [ Safety EmergencyVehicle; Safety FuelTruck ];
+                 score = 400;
+                 can_drive = true;
                };
-             score = 400;
-             can_drive = true;
            }
            = team
          in
@@ -795,18 +809,18 @@ let test_use_coup_fouree =
          let res3 =
            {
              team1 with
-             shared_driving_zone =
+             shared_public_informations =
                {
-                 team.shared_driving_zone with
+                 team.shared_public_informations with
                  coup_fouree_cards =
                    [
                      Safety EmergencyVehicle;
                      Safety FuelTruck;
                      Safety DrivingAce;
                    ];
+                 score = 600;
+                 can_drive = true;
                };
-             score = 600;
-             can_drive = true;
            }
            = team
          in
@@ -875,36 +889,36 @@ let test_use_remedy_card =
         "same result" true
         (let team = use_remedy_card team1 EndOfSpeedLimit in
          let res1 =
-           team.shared_driving_zone.speed_limit_pile
+           team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit ]
            && {
                 team with
-                shared_driving_zone =
-                  { team.shared_driving_zone with speed_limit_pile = [] };
+                shared_public_informations =
+                  { team.shared_public_informations with speed_limit_pile = [] };
               }
               = team1
          in
          let team = use_remedy_card team EndOfSpeedLimit in
          let res2 =
-           team.shared_driving_zone.speed_limit_pile
+           team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
            && {
                 team with
-                shared_driving_zone =
-                  { team.shared_driving_zone with speed_limit_pile = [] };
+                shared_public_informations =
+                  { team.shared_public_informations with speed_limit_pile = [] };
               }
               = team1
          in
          let team = use_remedy_card team Gas in
          let res3 =
-           team.shared_driving_zone.speed_limit_pile
+           team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
-           && team.shared_driving_zone.drive_pile = [ Remedy Gas ]
+           && team.shared_public_informations.drive_pile = [ Remedy Gas ]
            && {
                 team with
-                shared_driving_zone =
+                shared_public_informations =
                   {
-                    team.shared_driving_zone with
+                    team.shared_public_informations with
                     speed_limit_pile = [];
                     drive_pile = [];
                   };
@@ -913,15 +927,15 @@ let test_use_remedy_card =
          in
          let team = use_remedy_card team SpareTire in
          let res4 =
-           team.shared_driving_zone.speed_limit_pile
+           team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
-           && team.shared_driving_zone.drive_pile
+           && team.shared_public_informations.drive_pile
               = [ Remedy SpareTire; Remedy Gas ]
            && {
                 team with
-                shared_driving_zone =
+                shared_public_informations =
                   {
-                    team.shared_driving_zone with
+                    team.shared_public_informations with
                     speed_limit_pile = [];
                     drive_pile = [];
                   };
@@ -930,15 +944,15 @@ let test_use_remedy_card =
          in
          let team = use_remedy_card team Repairs in
          let res5 =
-           team.shared_driving_zone.speed_limit_pile
+           team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
-           && team.shared_driving_zone.drive_pile
+           && team.shared_public_informations.drive_pile
               = [ Remedy Repairs; Remedy SpareTire; Remedy Gas ]
            && {
                 team with
-                shared_driving_zone =
+                shared_public_informations =
                   {
-                    team.shared_driving_zone with
+                    team.shared_public_informations with
                     speed_limit_pile = [];
                     drive_pile = [];
                   };
@@ -947,20 +961,20 @@ let test_use_remedy_card =
          in
          let team = use_remedy_card team Drive in
          let res6 =
-           team.shared_driving_zone.speed_limit_pile
+           team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
-           && team.shared_driving_zone.drive_pile
+           && team.shared_public_informations.drive_pile
               = [ Remedy Drive; Remedy Repairs; Remedy SpareTire; Remedy Gas ]
-           && team.can_drive
+           && team.shared_public_informations.can_drive
            && {
                 team with
-                shared_driving_zone =
+                shared_public_informations =
                   {
-                    team.shared_driving_zone with
+                    team.shared_public_informations with
                     speed_limit_pile = [];
                     drive_pile = [];
+                    can_drive = false;
                   };
-                can_drive = false;
               }
               = team1
          in
@@ -986,7 +1000,7 @@ let () =
           test_pp_team4;
           test_pp_team5;
         ] );
-      ( "init teams, players and driving_zone function tests",
+      ( "init teams, players and public_informations function tests",
         [
           test_init_team_with_one_computer_player;
           test_init_team_with_one_human_player;

@@ -18,107 +18,107 @@ let team_with_human_computer =
 open Mille_bornes.Cards_engine
 
 let team1 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [];
+      score = 0;
+      can_drive = false;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
   let player2 = Human { name = "name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = false;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
 let team2 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [ Hazard SpeedLimit ];
       drive_pile = [ Hazard OutOfGas; Remedy Drive ];
       distance_cards = [];
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
   let player2 = Human { name = "name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
 let team3 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [ Hazard SpeedLimit ];
       drive_pile = [ Hazard Accident; Hazard Stop ];
       distance_cards = [];
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [ Safety EmergencyVehicle ];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
   let player2 = Human { name = "name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
 let team4 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [ Hazard SpeedLimit ];
       drive_pile = [ Hazard Stop ];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [ Safety EmergencyVehicle ];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
   let player2 = Human { name = "name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
 let team5 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [ Remedy EndOfSpeedLimit; Hazard SpeedLimit ];
       drive_pile = [ Remedy Drive; Hazard Stop; Remedy Drive ];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
   let player2 = Human { name = "name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
 let team6 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [ Hazard SpeedLimit; Remedy EndOfSpeedLimit ];
       drive_pile =
@@ -127,6 +127,8 @@ let team6 =
         [ Distance D25; Distance D100; Distance D100; Distance D200 ];
       safety_area = [ Safety FuelTruck; Safety DrivingAce ];
       coup_fouree_cards = [ Safety EmergencyVehicle ];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 =
@@ -161,8 +163,6 @@ let team6 =
   in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }

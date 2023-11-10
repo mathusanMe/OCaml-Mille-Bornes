@@ -3,19 +3,19 @@ open Cards_engine
 type player_struct = { name : string; hand : deck_of_card }
 type player = Computer of player_struct | Human of player_struct
 
-type driving_zone = {
+type public_informations = {
   speed_limit_pile : pile_of_card;
   drive_pile : pile_of_card;
   distance_cards : deck_of_card;
   safety_area : deck_of_card;
   coup_fouree_cards : deck_of_card;
+  score : int;
+  can_drive : bool;
 }
 
 type team = {
   players : player list;
-  shared_driving_zone : driving_zone;
-  score : int;
-  can_drive : bool;
+  shared_public_informations : public_informations;
   current_player_index : int;
 }
 

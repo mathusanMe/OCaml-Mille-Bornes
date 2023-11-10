@@ -3,62 +3,62 @@ open Mille_bornes.Cards_engine
 open Mille_bornes.Teams_engine
 
 let team1 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 = Human { name = "team1_name1"; hand = [] } in
   let player2 = Human { name = "team1_name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
 let team2 =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 = Human { name = "team2_name1"; hand = [] } in
   let player2 = Human { name = "team2_name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
 let team_not_in_board =
-  let driving_zone =
+  let public_informations =
     {
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];
       safety_area = [];
       coup_fouree_cards = [];
+      score = 0;
+      can_drive = true;
     }
   in
   let player1 = Human { name = "team_not_in_board_name1"; hand = [] } in
   let player2 = Human { name = "team_not_in_board_name2"; hand = [] } in
   {
     players = [ player1; player2 ];
-    shared_driving_zone = driving_zone;
-    score = 0;
-    can_drive = true;
+    shared_public_informations = public_informations;
     current_player_index = 0;
   }
 
