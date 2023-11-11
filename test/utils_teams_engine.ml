@@ -1,5 +1,14 @@
 open Mille_bornes.Teams_engine
 
+let equal_player (player1 : player) (player2 : player) =
+  match (player1, player2) with
+  | Computer (p_struct1, p_strat1), Computer (p_struct2, p_strat2) ->
+      p_struct1 = p_struct2 && p_strat1.name = p_strat2.name
+  | Human p_struct1, Human p_struct2 -> p_struct1 = p_struct2
+  | _ -> false
+
+let is_computer = function Computer _ -> true | Human _ -> false
+
 let strat =
   {
     name = "strat";

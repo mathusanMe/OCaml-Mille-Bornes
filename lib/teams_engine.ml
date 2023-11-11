@@ -38,13 +38,6 @@ type team = {
   current_player_index : int;
 }
 
-let equal_player (player1 : player) (player2 : player) =
-  match (player1, player2) with
-  | Computer (p_struct1, p_strat1), Computer (p_struct2, p_strat2) ->
-      p_struct1 = p_struct2 && p_strat1.name = p_strat2.name
-  | Human p_struct1, Human p_struct2 -> p_struct1 = p_struct2
-  | _ -> false
-
 let init_player_struct (entered_name : string) =
   { name = entered_name; hand = [] }
 
@@ -122,8 +115,6 @@ let set_next_player_from (t : team) =
       current_player_index = 1 - t.current_player_index;
     }
   else t
-
-let is_computer = function Computer _ -> true | Human _ -> false
 
 let same_player (p1 : player) (p2 : player) =
   let e1 = get_player_struct_from p1 in

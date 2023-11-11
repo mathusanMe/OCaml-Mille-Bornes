@@ -62,11 +62,9 @@ type team = {
   current_player_index : int;
 }
 
-val equal_player : player -> player -> bool
 val get_current_player_from : team -> player
 val get_player_struct_from : player -> player_struct
 val set_next_player_from : team -> team
-val is_computer : player -> bool
 val same_player : player -> player -> bool
 val same_team : team -> team -> bool
 val replace_player_struct_in : player -> player_struct -> player
