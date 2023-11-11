@@ -32,18 +32,6 @@ val pp_player : bool -> Format.formatter -> player -> unit
 val pp_team : bool -> Format.formatter -> team -> unit
 val init_team_with_one_player : string -> bool -> team
 val init_team_with_two_players : string -> bool -> string -> bool -> team
-val has_already_used_safety_card : team -> safety_card -> bool
-val has_safety_to_counter_hazard : team -> hazard_card -> bool
-val is_attacked_by_hazard_on_drive_pile : team -> bool
-val is_attacked_by_speed_limit : team -> bool
-val is_usable_hazard_card : team -> hazard_card -> bool
-val use_hazard_card : team -> hazard_card -> team
-val is_usable_distance_card : team -> distance_card -> bool
-val use_distance_card : team -> distance_card -> team
-val is_usable_safety_card : team -> safety_card -> bool
-val use_safety_card : team -> safety_card -> team
-val use_coup_fouree : team -> safety_card -> team
-val is_usable_remedy_card : team -> remedy_card -> bool
-val use_remedy_card : team -> remedy_card -> team
-val is_usable_card : team -> card -> bool
+val is_usable_card : public_informations -> card -> bool
 val use_card : team -> card -> team
+val use_coup_fouree : team -> safety_card -> team
