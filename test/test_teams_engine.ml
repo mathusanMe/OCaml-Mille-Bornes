@@ -9,9 +9,10 @@ let test_set_next_player_and_get_current_player1 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (get_current_player_from team_with_one_computer
-        = get_current_player_from (set_next_player_from team_with_one_computer)
-        ))
+        (equal_player
+           (get_current_player_from team_with_one_computer)
+           (get_current_player_from
+              (set_next_player_from team_with_one_computer))))
 
 let test_set_next_player_and_get_current_player2 =
   Alcotest.test_case
@@ -24,24 +25,30 @@ let test_set_next_player_and_get_current_player2 =
           Also check that the second player to play and the fourth player to play is the same.
           Also check that the first player to play and the second players to play are not the same.
           Also check that the second to play players and the third to play players are not the same.*)
-        (get_current_player_from team_with_computer_human
-         = get_current_player_from
-             (set_next_player_from
+        (equal_player
+           (get_current_player_from team_with_computer_human)
+           (get_current_player_from
+              (set_next_player_from
+                 (set_next_player_from team_with_computer_human)))
+        && equal_player
+             (get_current_player_from
                 (set_next_player_from team_with_computer_human))
-        && get_current_player_from
-             (set_next_player_from team_with_computer_human)
-           = get_current_player_from
-               (set_next_player_from
-                  (set_next_player_from
-                     (set_next_player_from team_with_computer_human)))
-        && get_current_player_from team_with_computer_human
-           != get_current_player_from
-                (set_next_player_from team_with_computer_human)
-        && get_current_player_from
-             (set_next_player_from team_with_computer_human)
-           != get_current_player_from
+             (get_current_player_from
                 (set_next_player_from
-                   (set_next_player_from team_with_computer_human))))
+                   (set_next_player_from
+                      (set_next_player_from team_with_computer_human))))
+        && (not
+              (equal_player
+                 (get_current_player_from team_with_computer_human)
+                 (get_current_player_from
+                    (set_next_player_from team_with_computer_human))))
+        && not
+             (equal_player
+                (get_current_player_from
+                   (set_next_player_from team_with_computer_human))
+                (get_current_player_from
+                   (set_next_player_from
+                      (set_next_player_from team_with_computer_human))))))
 
 let test_set_next_player1 =
   Alcotest.test_case
@@ -92,7 +99,7 @@ let test_pp_team1 =
       Alcotest.(check string)
         "same result"
         "Name(s) :\n\
-         Computer (computer)\n\
+         Computer (computer with strategy strat)\n\
          Mathusan\n\
          Driving Zone : \n\
          Top of speed limit pile : (empty);\n\n\
@@ -111,7 +118,7 @@ let test_pp_team2 =
       Alcotest.(check string)
         "same result"
         "Name(s) with deck :\n\
-         Computer (computer)\n\
+         Computer (computer with strategy strat)\n\
          hand : (empty);\n\
         \       \n\
          Mathusan\n\
@@ -338,6 +345,48 @@ let test_init_team_with_one_human_player_and_one_computer_player =
         && team_with_human_computer.current_player_index = 0
         && public_informations_is_clear
              team_with_human_computer.shared_public_informations))
+
+let test_has_safety_to_counter_hazard_on_his_hand1 =
+  Alcotest.test_case
+    "check if a human player with all safety cards can counter all hazards"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
+        |> List.for_all (fun card ->
+               has_safety_to_counter_hazard_on_his_hand human1 card)))
+
+let test_has_safety_to_counter_hazard_on_his_hand2 =
+  Alcotest.test_case
+    "check if a human player who does not have a safety card cannot counter \
+     hazards"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
+        |> List.for_all (fun card ->
+               not (has_safety_to_counter_hazard_on_his_hand human2 card))))
+
+let test_has_safety_to_counter_hazard_on_his_hand3 =
+  Alcotest.test_case
+    "check if a computer player with all safety cards can counter all hazards"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
+        |> List.for_all (fun card ->
+               has_safety_to_counter_hazard_on_his_hand computer1 card)))
+
+let test_has_safety_to_counter_hazard_on_his_hand4 =
+  Alcotest.test_case
+    "check if a computer player who does not have a safety card cannot counter \
+     hazards"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
+        |> List.for_all (fun card ->
+               not (has_safety_to_counter_hazard_on_his_hand computer2 card))))
 
 let test_is_usable_hazard_card1 =
   Alcotest.test_case
@@ -1016,6 +1065,13 @@ let () =
           test_init_team_with_two_human_players;
           test_init_team_with_one_computer_player_and_one_human_player;
           test_init_team_with_one_human_player_and_one_computer_player;
+        ] );
+      ( "tests has_safety_to_counter_hazard_on_his_hand",
+        [
+          test_has_safety_to_counter_hazard_on_his_hand1;
+          test_has_safety_to_counter_hazard_on_his_hand2;
+          test_has_safety_to_counter_hazard_on_his_hand3;
+          test_has_safety_to_counter_hazard_on_his_hand4;
         ] );
       ( "is_usable_hazard_card",
         [
