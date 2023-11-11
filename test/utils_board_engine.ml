@@ -5,6 +5,7 @@ open Mille_bornes.Teams_engine
 let team1 =
   let public_informations =
     {
+      id = 1;
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];
@@ -25,6 +26,7 @@ let team1 =
 let team2 =
   let public_informations =
     {
+      id = 2;
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];
@@ -45,6 +47,7 @@ let team2 =
 let team_not_in_board =
   let public_informations =
     {
+      id = 3;
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];

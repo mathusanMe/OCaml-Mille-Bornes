@@ -1,9 +1,9 @@
 open Cards_engine
 
 type player_struct = { name : string; hand : deck_of_card }
-type player = Computer of player_struct | Human of player_struct
 
 type public_informations = {
+  id : int;
   speed_limit_pile : pile_of_card;
   drive_pile : pile_of_card;
   distance_cards : deck_of_card;
@@ -13,20 +13,49 @@ type public_informations = {
   can_drive : bool;
 }
 
+type player = Computer of (player_struct * strategy) | Human of player_struct
+
+and strategy = {
+  name : string;
+  choose_card_to_play :
+    player ->
+    public_informations ->
+    public_informations list ->
+    int * int option;
+  want_to_peek_discard_pile :
+    player -> card -> public_informations -> public_informations list -> bool;
+  want_to_play_coup_fourre :
+    player ->
+    hazard_card ->
+    public_informations ->
+    public_informations list ->
+    bool;
+}
+
 type team = {
   players : player list;
   shared_public_informations : public_informations;
   current_player_index : int;
 }
 
+let equal_player (player1 : player) (player2 : player) =
+  match (player1, player2) with
+  | Computer (p_struct1, p_strat1), Computer (p_struct2, p_strat2) ->
+      p_struct1 = p_struct2 && p_strat1.name = p_strat2.name
+  | Human p_struct1, Human p_struct2 -> p_struct1 = p_struct2
+  | _ -> false
+
 let init_player_struct (entered_name : string) =
   { name = entered_name; hand = [] }
 
 let init_human (entered_name : string) = Human (init_player_struct entered_name)
-let init_computer (name : string) = Computer (init_player_struct name)
 
-let init_public_informations () =
+let init_computer (name : string) (strat : strategy) =
+  Computer (init_player_struct name, strat)
+
+let init_public_informations (i : int) =
   {
+    id = i;
     speed_limit_pile = [];
     drive_pile = [];
     distance_cards = [];
@@ -36,33 +65,54 @@ let init_public_informations () =
     can_drive = false;
   }
 
-let init_team_with_one_player (name : string) (is_computer : bool) =
-  let player = if is_computer then init_computer name else init_human name in
+let init_team_with_one_player (p : player) (id : int) =
   {
-    players = [ player ];
-    shared_public_informations = init_public_informations ();
+    players = [ p ];
+    shared_public_informations = init_public_informations id;
     current_player_index = 0;
   }
 
-let init_team_with_two_players (name1 : string) (is_computer1 : bool)
-    (name2 : string) (is_computer2 : bool) =
-  let player1 =
-    if is_computer1 then init_computer name1 else init_human name1
-  in
-  let player2 =
-    if is_computer2 then init_computer name2 else init_human name2
-  in
+let init_team_with_one_human (name : string) (id : int) =
+  init_team_with_one_player (init_human name) id
+
+let init_team_with_one_computer (name : string) (strat : strategy) (id : int) =
+  init_team_with_one_player (init_computer name strat) id
+
+let init_team_with_two_players (player1 : player) (player2 : player) (id : int)
+    =
   {
     players = [ player1; player2 ];
-    shared_public_informations = init_public_informations ();
+    shared_public_informations = init_public_informations id;
     current_player_index = 0;
   }
+
+let init_team_with_two_human (name1 : string) (name2 : string) (id : int) =
+  let player1 = init_human name1 in
+  let player2 = init_human name2 in
+  init_team_with_two_players player1 player2 id
+
+let init_team_with_one_human_and_one_computer (name1 : string)
+    (is_computer1 : bool) (name2 : string) (is_computer2 : bool)
+    (strat : strategy) (id : int) =
+  let player1 =
+    if is_computer1 then init_computer name1 strat else init_human name1
+  in
+  let player2 =
+    if is_computer2 then init_computer name2 strat else init_human name2
+  in
+  init_team_with_two_players player1 player2 id
+
+let init_team_with_two_computer (name1 : string) (strat1 : strategy)
+    (name2 : string) (strat2 : strategy) (id : int) =
+  let player1 = init_computer name1 strat1 in
+  let player2 = init_computer name2 strat2 in
+  init_team_with_two_players player1 player2 id
 
 let get_current_player_from (t : team) =
   List.nth t.players t.current_player_index
 
 let get_player_struct_from (p : player) =
-  match p with Human e -> e | Computer e -> e
+  match p with Human p_struct -> p_struct | Computer (p_struct, _) -> p_struct
 
 let set_next_player_from (t : team) =
   if List.length t.players = 2 then
@@ -82,9 +132,12 @@ let same_player (p1 : player) (p2 : player) =
 
 let same_team (t1 : team) (t2 : team) =
   List.for_all2 same_player t1.players t2.players
+  && t1.shared_public_informations.id = t2.shared_public_informations.id
 
 let replace_player_struct_in (p : player) (p_struct : player_struct) =
-  match p with Computer _ -> Computer p_struct | Human _ -> Human p_struct
+  match p with
+  | Computer (_, strat) -> Computer (p_struct, strat)
+  | Human _ -> Human p_struct
 
 let replace_player_in (t : team) (p : player) =
   {
@@ -98,8 +151,9 @@ let replace_team_in (teams : team list) (t : team) =
 let pp_player with_hand fmt p =
   let pp_hand b hand = if b then pp_deck_of_card "hand" fmt hand in
   match p with
-  | Computer p_struct ->
-      Format.fprintf fmt "%s (computer)@ " p_struct.name;
+  | Computer (p_struct, p_strat) ->
+      Format.fprintf fmt "%s (computer with strategy %s)@ " p_struct.name
+        p_strat.name;
       pp_hand with_hand p_struct.hand
   | Human p_struct ->
       Format.fprintf fmt "%s@ " p_struct.name;
@@ -135,8 +189,8 @@ let has_already_used_safety_card (p_info : public_informations)
   let f = List.exists (fun x -> x = Safety c) in
   f p_info.safety_area || f p_info.coup_fouree_cards
 
-let has_safety_to_counter_hazard (p_info : public_informations)
-    (c : hazard_card) =
+let has_safety_to_counter_hazard_on_public_informations
+    (p_info : public_informations) (c : hazard_card) =
   let necessary_safety =
     match c with
     | Stop | SpeedLimit -> EmergencyVehicle
@@ -146,17 +200,33 @@ let has_safety_to_counter_hazard (p_info : public_informations)
   in
   has_already_used_safety_card p_info necessary_safety
 
+let has_safety_to_counter_hazard_on_his_hand (p : player) (c : hazard_card) =
+  let necessary_safety =
+    match c with
+    | Stop | SpeedLimit -> EmergencyVehicle
+    | OutOfGas -> FuelTruck
+    | FlatTire -> PunctureProof
+    | Accident -> DrivingAce
+  in
+  let p_hand =
+    match p with
+    | Computer (p_struct, _) -> p_struct.hand
+    | Human p_struct -> p_struct.hand
+  in
+  List.exists (fun x -> x = Safety necessary_safety) p_hand
+
 let is_attacked_by_hazard_on_drive_pile (p_info : public_informations) =
   (not (is_empty p_info.drive_pile))
   &&
   match List.hd p_info.drive_pile with
-  | Hazard hazard -> not (has_safety_to_counter_hazard p_info hazard)
+  | Hazard hazard ->
+      not (has_safety_to_counter_hazard_on_public_informations p_info hazard)
   | _ -> false
 
 let is_attacked_by_speed_limit (p_info : public_informations) =
   (not (is_empty p_info.speed_limit_pile))
   && List.hd p_info.speed_limit_pile = Hazard SpeedLimit
-  && not (has_safety_to_counter_hazard p_info SpeedLimit)
+  && not (has_safety_to_counter_hazard_on_public_informations p_info SpeedLimit)
 
 let add_card_to_speed_limit_pile (t : team) (c : card) =
   {
@@ -188,10 +258,11 @@ let set_can_drive (t : team) (set_can_drive : bool) =
 
 let is_usable_hazard_card (p_info : public_informations) = function
   | SpeedLimit ->
-      (not (has_safety_to_counter_hazard p_info SpeedLimit))
+      (not
+         (has_safety_to_counter_hazard_on_public_informations p_info SpeedLimit))
       && not (is_attacked_by_speed_limit p_info)
   | hazard ->
-      (not (has_safety_to_counter_hazard p_info hazard))
+      (not (has_safety_to_counter_hazard_on_public_informations p_info hazard))
       && not (is_attacked_by_hazard_on_drive_pile p_info)
 
 let use_hazard_card (t : team) = function
@@ -305,7 +376,7 @@ let is_usable_remedy_card (p_info : public_informations) = function
       &&
       let hazard = get_hazard_corresponding_to_the_remedy remedy in
       peek_card_from_draw_pile p_info.drive_pile = Hazard hazard
-      && not (has_safety_to_counter_hazard p_info hazard)
+      && not (has_safety_to_counter_hazard_on_public_informations p_info hazard)
 
 let use_remedy_card (t : team) = function
   | EndOfSpeedLimit -> add_card_to_speed_limit_pile t (Remedy EndOfSpeedLimit)
