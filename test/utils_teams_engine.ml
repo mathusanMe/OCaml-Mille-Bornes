@@ -23,7 +23,7 @@ let team_with_computer_human =
 let team_with_human_computer =
   init_team_with_one_human_and_one_computer "Gabin" false "Computer" true strat
     12
-    
+
 open Mille_bornes.Cards_engine
 
 let team1 =

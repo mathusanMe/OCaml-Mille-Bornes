@@ -1,6 +1,7 @@
 open Cards_engine
 
 type player_struct = { name : string; hand : deck_of_card }
+
 type public_informations = {
   id : int;
   speed_limit_pile : pile_of_card;
