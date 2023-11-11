@@ -80,3 +80,11 @@ let board_with_empty_draw_pile =
     teams = [ team1; team2 ];
     current_team_index = 1;
   }
+
+let board_with_empty_draw_pile_and_heavy_discard_pile =
+  {
+    draw_pile = [];
+    discard_pile = generate_initial_pile ();
+    teams = [ team1; team2 ];
+    current_team_index = 1;
+  }
