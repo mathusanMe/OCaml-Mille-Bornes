@@ -130,12 +130,13 @@ let pp_team with_hand fmt team =
   Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;" (pp_player_list with_hand)
     team.players pp_public_informations team.shared_public_informations
 
-let has_already_used_safety_card (t : team) (c : safety_card) =
+let has_already_used_safety_card (p_info : public_informations)
+    (c : safety_card) =
   let f = List.exists (fun x -> x = Safety c) in
-  f t.shared_public_informations.safety_area
-  || f t.shared_public_informations.coup_fouree_cards
+  f p_info.safety_area || f p_info.coup_fouree_cards
 
-let has_safety_to_counter_hazard (t : team) (c : hazard_card) =
+let has_safety_to_counter_hazard (p_info : public_informations)
+    (c : hazard_card) =
   let necessary_safety =
     match c with
     | Stop | SpeedLimit -> EmergencyVehicle
@@ -143,19 +144,19 @@ let has_safety_to_counter_hazard (t : team) (c : hazard_card) =
     | FlatTire -> PunctureProof
     | Accident -> DrivingAce
   in
-  has_already_used_safety_card t necessary_safety
+  has_already_used_safety_card p_info necessary_safety
 
-let is_attacked_by_hazard_on_drive_pile (t : team) =
-  (not (is_empty t.shared_public_informations.drive_pile))
+let is_attacked_by_hazard_on_drive_pile (p_info : public_informations) =
+  (not (is_empty p_info.drive_pile))
   &&
-  match List.hd t.shared_public_informations.drive_pile with
-  | Hazard hazard -> not (has_safety_to_counter_hazard t hazard)
+  match List.hd p_info.drive_pile with
+  | Hazard hazard -> not (has_safety_to_counter_hazard p_info hazard)
   | _ -> false
 
-let is_attacked_by_speed_limit (t : team) =
-  (not (is_empty t.shared_public_informations.speed_limit_pile))
-  && List.hd t.shared_public_informations.speed_limit_pile = Hazard SpeedLimit
-  && not (has_safety_to_counter_hazard t SpeedLimit)
+let is_attacked_by_speed_limit (p_info : public_informations) =
+  (not (is_empty p_info.speed_limit_pile))
+  && List.hd p_info.speed_limit_pile = Hazard SpeedLimit
+  && not (has_safety_to_counter_hazard p_info SpeedLimit)
 
 let add_card_to_speed_limit_pile (t : team) (c : card) =
   {
@@ -185,35 +186,33 @@ let set_can_drive (t : team) (set_can_drive : bool) =
       { t.shared_public_informations with can_drive = set_can_drive };
   }
 
-let is_usable_hazard_card (t : team) = function
+let is_usable_hazard_card (p_info : public_informations) = function
   | SpeedLimit ->
-      (not (has_safety_to_counter_hazard t SpeedLimit))
-      && not (is_attacked_by_speed_limit t)
+      (not (has_safety_to_counter_hazard p_info SpeedLimit))
+      && not (is_attacked_by_speed_limit p_info)
   | hazard ->
-      (not (has_safety_to_counter_hazard t hazard))
-      && not (is_attacked_by_hazard_on_drive_pile t)
+      (not (has_safety_to_counter_hazard p_info hazard))
+      && not (is_attacked_by_hazard_on_drive_pile p_info)
 
 let use_hazard_card (t : team) = function
   | SpeedLimit -> add_card_to_speed_limit_pile t (Hazard SpeedLimit)
   | Stop -> set_can_drive (add_card_to_drive_pile t (Hazard Stop)) false
   | hazard -> add_card_to_drive_pile t (Hazard hazard)
 
-let is_usable_distance_card (t : team) (c : distance_card) =
-  if
-    (not t.shared_public_informations.can_drive)
-    || is_attacked_by_hazard_on_drive_pile t
-  then false
+let is_usable_distance_card (p_info : public_informations) (c : distance_card) =
+  if (not p_info.can_drive) || is_attacked_by_hazard_on_drive_pile p_info then
+    false
   else
     match c with
     | D200 ->
-        if not (is_attacked_by_speed_limit t) then
+        if not (is_attacked_by_speed_limit p_info) then
           List.fold_left
             (fun acc c -> if c = Distance D200 then acc + 1 else acc)
-            0 t.shared_public_informations.distance_cards
+            0 p_info.distance_cards
           < 2
         else false
     | D25 | D50 -> true
-    | _ -> not (is_attacked_by_speed_limit t)
+    | _ -> not (is_attacked_by_speed_limit p_info)
 
 let use_distance_card (t : team) (c : distance_card) =
   let value =
@@ -231,8 +230,8 @@ let use_distance_card (t : team) (c : distance_card) =
       };
   }
 
-let is_usable_safety_card (t : team) = function
-  | safety_effect -> not (has_already_used_safety_card t safety_effect)
+let is_usable_safety_card (p_info : public_informations) = function
+  | safety_effect -> not (has_already_used_safety_card p_info safety_effect)
 
 let add_card_to_safety_area (t : team) (s : safety_card) =
   {
@@ -293,34 +292,32 @@ let use_coup_fouree (t : team) = function
         }
         safety
 
-let is_usable_remedy_card (t : team) = function
+let is_usable_remedy_card (p_info : public_informations) = function
   | Drive ->
-      (not t.shared_public_informations.can_drive)
+      (not p_info.can_drive)
       &&
-      if is_attacked_by_hazard_on_drive_pile t then
-        peek_card_from_draw_pile t.shared_public_informations.drive_pile
-        = Hazard Stop
+      if is_attacked_by_hazard_on_drive_pile p_info then
+        peek_card_from_draw_pile p_info.drive_pile = Hazard Stop
       else true
-  | EndOfSpeedLimit -> is_attacked_by_speed_limit t
+  | EndOfSpeedLimit -> is_attacked_by_speed_limit p_info
   | remedy ->
-      (not (is_empty t.shared_public_informations.drive_pile))
+      (not (is_empty p_info.drive_pile))
       &&
       let hazard = get_hazard_corresponding_to_the_remedy remedy in
-      peek_card_from_draw_pile t.shared_public_informations.drive_pile
-      = Hazard hazard
-      && not (has_safety_to_counter_hazard t hazard)
+      peek_card_from_draw_pile p_info.drive_pile = Hazard hazard
+      && not (has_safety_to_counter_hazard p_info hazard)
 
 let use_remedy_card (t : team) = function
   | EndOfSpeedLimit -> add_card_to_speed_limit_pile t (Remedy EndOfSpeedLimit)
   | Drive -> set_can_drive (add_card_to_drive_pile t (Remedy Drive)) true
   | remedy -> add_card_to_drive_pile t (Remedy remedy)
 
-let is_usable_card (t : team) (c : card) =
+let is_usable_card (p_info : public_informations) (c : card) =
   match c with
-  | Hazard hazard -> is_usable_hazard_card t hazard
-  | Remedy remedy -> is_usable_remedy_card t remedy
-  | Safety safety -> is_usable_safety_card t safety
-  | Distance distance_card -> is_usable_distance_card t distance_card
+  | Hazard hazard -> is_usable_hazard_card p_info hazard
+  | Remedy remedy -> is_usable_remedy_card p_info remedy
+  | Safety safety -> is_usable_safety_card p_info safety
+  | Distance distance_card -> is_usable_distance_card p_info distance_card
 
 let use_card (t : team) (c : card) =
   match c with

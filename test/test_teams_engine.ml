@@ -339,84 +339,6 @@ let test_init_team_with_one_human_player_and_one_computer_player =
         && public_informations_is_clear
              team_with_human_computer.shared_public_informations))
 
-let test_has_already_used_safety1 =
-  Alcotest.test_case "given safety card not used by team yet, can be used"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        ([ FuelTruck; EmergencyVehicle; PunctureProof; DrivingAce ]
-        |> List.for_all (fun card ->
-               not (has_already_used_safety_card team1 card))))
-
-let test_has_already_used_safety2 =
-  Alcotest.test_case "given safety card used by team, can't be reused" `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        ([ FuelTruck ]
-         |> List.for_all (fun card -> has_already_used_safety_card team2 card)
-        && [ EmergencyVehicle; PunctureProof; DrivingAce ]
-           |> List.for_all (fun card ->
-                  not (has_already_used_safety_card team2 card))))
-
-let test_has_already_used_safety3 =
-  Alcotest.test_case
-    "given safety card used as coup fourre by team, can't be reused" `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        ([ FuelTruck; EmergencyVehicle ]
-         |> List.for_all (fun card -> has_already_used_safety_card team3 card)
-        && [ PunctureProof; DrivingAce ]
-           |> List.for_all (fun card ->
-                  not (has_already_used_safety_card team3 card))))
-
-let test_is_attacked1 =
-  Alcotest.test_case
-    "check if a team is attacked neither on its speed_limite_pile nor on its \
-     drive_pile"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        ((not (is_attacked_by_hazard_on_drive_pile team1))
-        && not (is_attacked_by_speed_limit team1)))
-
-let test_is_attacked2 =
-  Alcotest.test_case
-    "checks if a team is attacked on its speed_limite_pile but not on its \
-     drive_pile"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        ((not (is_attacked_by_hazard_on_drive_pile team2))
-        && is_attacked_by_speed_limit team2))
-
-let test_is_attacked3 =
-  Alcotest.test_case
-    "checks if a team is attacked on its drive_pile but not on its \
-     speed_limite_pile"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (is_attacked_by_hazard_on_drive_pile team3
-        && not (is_attacked_by_speed_limit team3)))
-
-let test_is_attacked4 =
-  Alcotest.test_case
-    "Test if the EmergencyVehicle card blocks SpeedLimit and Stop cards" `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        ((not (is_attacked_by_hazard_on_drive_pile team4))
-        && not (is_attacked_by_speed_limit team4)))
-
-let test_is_attacked5 =
-  Alcotest.test_case "Test if the remedy block hazard" `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        ((not (is_attacked_by_hazard_on_drive_pile team5))
-        && not (is_attacked_by_speed_limit team5)))
-
 let test_is_usable_hazard_card1 =
   Alcotest.test_case
     "check if you can use all the hazards on a team with your drive_pile and \
@@ -424,8 +346,15 @@ let test_is_usable_hazard_card1 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
-        |> List.for_all (fun card -> is_usable_hazard_card team1 card)))
+        ([
+           Hazard Stop;
+           Hazard SpeedLimit;
+           Hazard OutOfGas;
+           Hazard FlatTire;
+           Hazard Accident;
+         ]
+        |> List.for_all (fun card ->
+               is_usable_card team1.shared_public_informations card)))
 
 let test_is_usable_hazard_card2 =
   Alcotest.test_case
@@ -434,10 +363,12 @@ let test_is_usable_hazard_card2 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ SpeedLimit; OutOfGas ]
-         |> List.for_all (fun card -> not (is_usable_hazard_card team2 card))
-        && [ Stop; FlatTire; Accident ]
-           |> List.for_all (fun card -> is_usable_hazard_card team2 card)))
+        ([ Hazard SpeedLimit; Hazard OutOfGas ]
+         |> List.for_all (fun card ->
+                not (is_usable_card team2.shared_public_informations card))
+        && [ Hazard Stop; Hazard FlatTire; Hazard Accident ]
+           |> List.for_all (fun card ->
+                  is_usable_card team2.shared_public_informations card)))
 
 let test_is_usable_hazard_card3 =
   Alcotest.test_case
@@ -446,8 +377,15 @@ let test_is_usable_hazard_card3 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
-        |> List.for_all (fun card -> not (is_usable_hazard_card team3 card))))
+        ([
+           Hazard Stop;
+           Hazard SpeedLimit;
+           Hazard OutOfGas;
+           Hazard FlatTire;
+           Hazard Accident;
+         ]
+        |> List.for_all (fun card ->
+               not (is_usable_card team3.shared_public_informations card))))
 
 let test_is_usable_hazard_card4 =
   Alcotest.test_case
@@ -455,10 +393,12 @@ let test_is_usable_hazard_card4 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Stop; SpeedLimit ]
-         |> List.for_all (fun card -> not (is_usable_hazard_card team4 card))
-        && [ OutOfGas; FlatTire; Accident ]
-           |> List.for_all (fun card -> is_usable_hazard_card team4 card)))
+        ([ Hazard Stop; Hazard SpeedLimit ]
+         |> List.for_all (fun card ->
+                not (is_usable_card team4.shared_public_informations card))
+        && [ Hazard OutOfGas; Hazard FlatTire; Hazard Accident ]
+           |> List.for_all (fun card ->
+                  is_usable_card team4.shared_public_informations card)))
 
 let test_is_usable_hazard_card5 =
   Alcotest.test_case
@@ -467,14 +407,21 @@ let test_is_usable_hazard_card5 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Stop; SpeedLimit; OutOfGas; FlatTire; Accident ]
-        |> List.for_all (fun card -> is_usable_hazard_card team5 card)))
+        ([
+           Hazard Stop;
+           Hazard SpeedLimit;
+           Hazard OutOfGas;
+           Hazard FlatTire;
+           Hazard Accident;
+         ]
+        |> List.for_all (fun card ->
+               is_usable_card team5.shared_public_informations card)))
 
 let test_use_hazard_card =
-  Alcotest.test_case "test use_hazard_card" `Quick (fun () ->
+  Alcotest.test_case "test use_card" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (let team = use_hazard_card team1 SpeedLimit in
+        (let team = use_card team1 (Hazard SpeedLimit) in
          let res1 =
            {
              team1 with
@@ -486,7 +433,7 @@ let test_use_hazard_card =
            }
            = team
          in
-         let team = use_hazard_card team SpeedLimit in
+         let team = use_card team (Hazard SpeedLimit) in
          let res2 =
            {
              team1 with
@@ -498,7 +445,7 @@ let test_use_hazard_card =
            }
            = team
          in
-         let team = use_hazard_card team OutOfGas in
+         let team = use_card team (Hazard OutOfGas) in
          let res3 =
            {
              team1 with
@@ -511,7 +458,7 @@ let test_use_hazard_card =
            }
            = team
          in
-         let team = use_hazard_card team FlatTire in
+         let team = use_card team (Hazard FlatTire) in
          let res4 =
            {
              team1 with
@@ -524,7 +471,7 @@ let test_use_hazard_card =
            }
            = team
          in
-         let team = use_hazard_card team Accident in
+         let team = use_card team (Hazard Accident) in
          let res5 =
            {
              team1 with
@@ -538,7 +485,7 @@ let test_use_hazard_card =
            }
            = team
          in
-         let team = use_hazard_card team Stop in
+         let team = use_card team (Hazard Stop) in
          let res6 =
            {
              team1 with
@@ -565,26 +512,41 @@ let test_is_usable_distance_card1 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ D25; D50; D75; D100; D200 ]
-        |> List.for_all (fun card -> not (is_usable_distance_card team1 card))))
+        ([
+           Distance D25;
+           Distance D50;
+           Distance D75;
+           Distance D100;
+           Distance D200;
+         ]
+        |> List.for_all (fun card ->
+               not (is_usable_card team1.shared_public_informations card))))
 
 let test_is_usable_distance_card2 =
   Alcotest.test_case "checks if a team has Hazard SpeedLimit" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ D25; D50 ]
-         |> List.for_all (fun card -> is_usable_distance_card team2 card)
-        && [ D75; D100; D200 ]
+        ([ Distance D25; Distance D50 ]
+         |> List.for_all (fun card ->
+                is_usable_card team2.shared_public_informations card)
+        && [ Distance D75; Distance D100; Distance D200 ]
            |> List.for_all (fun card ->
-                  not (is_usable_distance_card team2 card))))
+                  not (is_usable_card team2.shared_public_informations card))))
 
 let test_is_usable_distance_card3 =
   Alcotest.test_case "checks if a team has Hazard on his drive_pile" `Quick
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ D25; D50; D75; D100; D200 ]
-        |> List.for_all (fun card -> not (is_usable_distance_card team3 card))))
+        ([
+           Distance D25;
+           Distance D50;
+           Distance D75;
+           Distance D100;
+           Distance D200;
+         ]
+        |> List.for_all (fun card ->
+               not (is_usable_card team3.shared_public_informations card))))
 
 let test_is_usable_distance_card4 =
   Alcotest.test_case
@@ -592,8 +554,15 @@ let test_is_usable_distance_card4 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ D25; D50; D75; D100; D200 ]
-        |> List.for_all (fun card -> is_usable_distance_card team4 card)))
+        ([
+           Distance D25;
+           Distance D50;
+           Distance D75;
+           Distance D100;
+           Distance D200;
+         ]
+        |> List.for_all (fun card ->
+               is_usable_card team4.shared_public_informations card)))
 
 let test_is_usable_distance_card5 =
   Alcotest.test_case
@@ -601,14 +570,21 @@ let test_is_usable_distance_card5 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ D25; D50; D75; D100; D200 ]
-        |> List.for_all (fun card -> is_usable_distance_card team5 card)))
+        ([
+           Distance D25;
+           Distance D50;
+           Distance D75;
+           Distance D100;
+           Distance D200;
+         ]
+        |> List.for_all (fun card ->
+               is_usable_card team5.shared_public_informations card)))
 
 let test_use_distance_card =
   Alcotest.test_case "Test with use_distance_card" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (let team = use_distance_card team5 D25 in
+        (let team = use_card team5 (Distance D25) in
          let res1 =
            {
              team5 with
@@ -621,7 +597,7 @@ let test_use_distance_card =
            }
            = team
          in
-         let team = use_distance_card team D50 in
+         let team = use_card team (Distance D50) in
          let res2 =
            {
              team5 with
@@ -634,7 +610,7 @@ let test_use_distance_card =
            }
            = team
          in
-         let team = use_distance_card team D75 in
+         let team = use_card team (Distance D75) in
          let res3 =
            {
              team5 with
@@ -647,7 +623,7 @@ let test_use_distance_card =
            }
            = team
          in
-         let team = use_distance_card team D100 in
+         let team = use_card team (Distance D100) in
          let res4 =
            {
              team5 with
@@ -661,7 +637,7 @@ let test_use_distance_card =
            }
            = team
          in
-         let team = use_distance_card team D200 in
+         let team = use_card team (Distance D200) in
          let res5 =
            {
              team5 with
@@ -681,7 +657,7 @@ let test_use_distance_card =
            }
            = team
          in
-         let team = use_distance_card team D75 in
+         let team = use_card team (Distance D75) in
          let res6 =
            {
              team5 with
@@ -709,8 +685,14 @@ let test_is_usable_safety_card1 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ EmergencyVehicle; FuelTruck; PunctureProof; DrivingAce ]
-        |> List.for_all (fun card -> is_usable_safety_card team1 card)))
+        ([
+           Safety EmergencyVehicle;
+           Safety FuelTruck;
+           Safety PunctureProof;
+           Safety DrivingAce;
+         ]
+        |> List.for_all (fun card ->
+               is_usable_card team1.shared_public_informations card)))
 
 let test_is_usable_safety_card2 =
   Alcotest.test_case
@@ -719,16 +701,18 @@ let test_is_usable_safety_card2 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ EmergencyVehicle; FuelTruck ]
-         |> List.for_all (fun card -> not (is_usable_safety_card team3 card))
-        && [ PunctureProof; DrivingAce ]
-           |> List.for_all (fun card -> is_usable_safety_card team3 card)))
+        ([ Safety EmergencyVehicle; Safety FuelTruck ]
+         |> List.for_all (fun card ->
+                not (is_usable_card team3.shared_public_informations card))
+        && [ Safety PunctureProof; Safety DrivingAce ]
+           |> List.for_all (fun card ->
+                  is_usable_card team3.shared_public_informations card)))
 
 let test_use_safety_card =
   Alcotest.test_case "test use_safety_card" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (let team = use_safety_card team1 FuelTruck in
+        (let team = use_card team1 (Safety FuelTruck) in
          let res1 =
            {
              team1 with
@@ -740,7 +724,7 @@ let test_use_safety_card =
            }
            = team
          in
-         let team = use_safety_card team EmergencyVehicle in
+         let team = use_card team (Safety EmergencyVehicle) in
          let res2 =
            {
              team1 with
@@ -753,7 +737,7 @@ let test_use_safety_card =
            }
            = team
          in
-         let team = use_safety_card team DrivingAce in
+         let team = use_card team (Safety DrivingAce) in
          let res3 =
            {
              team1 with
@@ -832,11 +816,17 @@ let test_is_usable_remedy_card1 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Drive ]
-         |> List.for_all (fun card -> is_usable_remedy_card team1 card)
-        && [ EndOfSpeedLimit; Gas; SpareTire; Repairs ]
-           |> List.for_all (fun card -> not (is_usable_remedy_card team1 card))
-        ))
+        ([ Remedy Drive ]
+         |> List.for_all (fun card ->
+                is_usable_card team1.shared_public_informations card)
+        && [
+             Remedy EndOfSpeedLimit;
+             Remedy Gas;
+             Remedy SpareTire;
+             Remedy Repairs;
+           ]
+           |> List.for_all (fun card ->
+                  not (is_usable_card team1.shared_public_informations card))))
 
 let test_is_usable_remedy_card2 =
   Alcotest.test_case
@@ -845,11 +835,12 @@ let test_is_usable_remedy_card2 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ EndOfSpeedLimit ]
-         |> List.for_all (fun card -> is_usable_remedy_card team2 card)
-        && [ Drive; Gas; SpareTire; Repairs ]
-           |> List.for_all (fun card -> not (is_usable_remedy_card team2 card))
-        ))
+        ([ Remedy EndOfSpeedLimit ]
+         |> List.for_all (fun card ->
+                is_usable_card team2.shared_public_informations card)
+        && [ Remedy Drive; Remedy Gas; Remedy SpareTire; Remedy Repairs ]
+           |> List.for_all (fun card ->
+                  not (is_usable_card team2.shared_public_informations card))))
 
 let test_is_usable_remedy_card3 =
   Alcotest.test_case
@@ -858,11 +849,14 @@ let test_is_usable_remedy_card3 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Repairs ]
-         |> List.for_all (fun card -> is_usable_remedy_card team3 card)
-        && [ Drive; EndOfSpeedLimit; Gas; SpareTire ]
-           |> List.for_all (fun card -> not (is_usable_remedy_card team3 card))
-        ))
+        ([ Remedy Repairs ]
+         |> List.for_all (fun card ->
+                is_usable_card team3.shared_public_informations card)
+        && [
+             Remedy Drive; Remedy EndOfSpeedLimit; Remedy Gas; Remedy SpareTire;
+           ]
+           |> List.for_all (fun card ->
+                  not (is_usable_card team3.shared_public_informations card))))
 
 let test_is_usable_remedy_card4 =
   Alcotest.test_case
@@ -871,8 +865,15 @@ let test_is_usable_remedy_card4 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Drive; EndOfSpeedLimit; Gas; SpareTire; Repairs ]
-        |> List.for_all (fun card -> not (is_usable_remedy_card team4 card))))
+        ([
+           Remedy Drive;
+           Remedy EndOfSpeedLimit;
+           Remedy Gas;
+           Remedy SpareTire;
+           Remedy Repairs;
+         ]
+        |> List.for_all (fun card ->
+               not (is_usable_card team4.shared_public_informations card))))
 
 let test_is_usable_remedy_card5 =
   Alcotest.test_case
@@ -880,14 +881,21 @@ let test_is_usable_remedy_card5 =
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([ Drive; EndOfSpeedLimit; Gas; SpareTire; Repairs ]
-        |> List.for_all (fun card -> not (is_usable_remedy_card team5 card))))
+        ([
+           Remedy Drive;
+           Remedy EndOfSpeedLimit;
+           Remedy Gas;
+           Remedy SpareTire;
+           Remedy Repairs;
+         ]
+        |> List.for_all (fun card ->
+               not (is_usable_card team5.shared_public_informations card))))
 
 let test_use_remedy_card =
   Alcotest.test_case "test use_remedy_card" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (let team = use_remedy_card team1 EndOfSpeedLimit in
+        (let team = use_card team1 (Remedy EndOfSpeedLimit) in
          let res1 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit ]
@@ -898,7 +906,7 @@ let test_use_remedy_card =
               }
               = team1
          in
-         let team = use_remedy_card team EndOfSpeedLimit in
+         let team = use_card team (Remedy EndOfSpeedLimit) in
          let res2 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
@@ -909,7 +917,7 @@ let test_use_remedy_card =
               }
               = team1
          in
-         let team = use_remedy_card team Gas in
+         let team = use_card team (Remedy Gas) in
          let res3 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
@@ -925,7 +933,7 @@ let test_use_remedy_card =
               }
               = team1
          in
-         let team = use_remedy_card team SpareTire in
+         let team = use_card team (Remedy SpareTire) in
          let res4 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
@@ -942,7 +950,7 @@ let test_use_remedy_card =
               }
               = team1
          in
-         let team = use_remedy_card team Repairs in
+         let team = use_card team (Remedy Repairs) in
          let res5 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
@@ -959,7 +967,7 @@ let test_use_remedy_card =
               }
               = team1
          in
-         let team = use_remedy_card team Drive in
+         let team = use_card team (Remedy Drive) in
          let res6 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
@@ -1008,20 +1016,6 @@ let () =
           test_init_team_with_two_human_players;
           test_init_team_with_one_computer_player_and_one_human_player;
           test_init_team_with_one_human_player_and_one_computer_player;
-        ] );
-      ( "has_already_used_safety_card",
-        [
-          test_has_already_used_safety1;
-          test_has_already_used_safety2;
-          test_has_already_used_safety3;
-        ] );
-      ( "is attacked on drive pile or on speed limit pile",
-        [
-          test_is_attacked1;
-          test_is_attacked2;
-          test_is_attacked3;
-          test_is_attacked4;
-          test_is_attacked5;
         ] );
       ( "is_usable_hazard_card",
         [
