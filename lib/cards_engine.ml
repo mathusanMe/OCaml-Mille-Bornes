@@ -1,18 +1,18 @@
-type remedy_card = Drive | EndOfSpeedLimit | Gas | SpareTire | Repairs
+type safety_card = EmergencyVehicle | FuelTruck | PunctureProof | DrivingAce
 [@@deriving eq]
 
 type hazard_card = Stop | SpeedLimit | OutOfGas | FlatTire | Accident
 [@@deriving eq]
 
-type safety_card = EmergencyVehicle | FuelTruck | PunctureProof | DrivingAce
+type remedy_card = Drive | EndOfSpeedLimit | Gas | SpareTire | Repairs
 [@@deriving eq]
 
 type distance_card = D25 | D50 | D75 | D100 | D200 [@@deriving eq]
 
 type card =
+  | Safety of safety_card
   | Remedy of remedy_card
   | Hazard of hazard_card
-  | Safety of safety_card
   | Distance of distance_card
 [@@deriving eq]
 
@@ -103,16 +103,16 @@ let init_card_from_int = function
   | 1 -> Safety FuelTruck
   | 2 -> Safety PunctureProof
   | 3 -> Safety DrivingAce
-  | n when n >= 4 && n <= 8 -> Hazard Stop
-  | n when n >= 9 && n <= 12 -> Hazard SpeedLimit
-  | n when n >= 13 && n <= 15 -> Hazard OutOfGas
-  | n when n >= 16 && n <= 18 -> Hazard FlatTire
-  | n when n >= 19 && n <= 21 -> Hazard Accident
-  | n when n >= 22 && n <= 35 -> Remedy Drive
-  | n when n >= 36 && n <= 41 -> Remedy EndOfSpeedLimit
-  | n when n >= 42 && n <= 47 -> Remedy Gas
-  | n when n >= 48 && n <= 53 -> Remedy SpareTire
-  | n when n >= 54 && n <= 59 -> Remedy Repairs
+  | n when n >= 4 && n <= 17 -> Remedy Drive
+  | n when n >= 18 && n <= 23 -> Remedy EndOfSpeedLimit
+  | n when n >= 24 && n <= 29 -> Remedy Gas
+  | n when n >= 30 && n <= 35 -> Remedy SpareTire
+  | n when n >= 36 && n <= 41 -> Remedy Repairs
+  | n when n >= 42 && n <= 46 -> Hazard Stop
+  | n when n >= 47 && n <= 50 -> Hazard SpeedLimit
+  | n when n >= 51 && n <= 53 -> Hazard OutOfGas
+  | n when n >= 54 && n <= 56 -> Hazard FlatTire
+  | n when n >= 57 && n <= 59 -> Hazard Accident
   | n when n >= 60 && n <= 69 -> Distance D25
   | n when n >= 70 && n <= 79 -> Distance D50
   | n when n >= 80 && n <= 89 -> Distance D75
@@ -131,34 +131,7 @@ let peek_card_from_draw_pile (p : pile_of_card) =
 let draw_card_from_pile (p : pile_of_card) =
   match p with [] -> raise Empty_pile | h :: t -> (h, t)
 
-let card_to_int = function
-  | Safety EmergencyVehicle -> 0
-  | Safety FuelTruck -> 1
-  | Safety PunctureProof -> 2
-  | Safety DrivingAce -> 3
-  | Hazard Stop -> 4
-  | Hazard SpeedLimit -> 5
-  | Hazard OutOfGas -> 6
-  | Hazard FlatTire -> 7
-  | Hazard Accident -> 8
-  | Remedy Drive -> 9
-  | Remedy EndOfSpeedLimit -> 10
-  | Remedy Gas -> 11
-  | Remedy SpareTire -> 12
-  | Remedy Repairs -> 13
-  | Distance D25 -> 14
-  | Distance D50 -> 15
-  | Distance D75 -> 16
-  | Distance D100 -> 17
-  | Distance D200 -> 18
-
-(* Compare c1 and c2 using card_to_int *)
-let compare_card c1 c2 =
-  let n1 = card_to_int c1 in
-  let n2 = card_to_int c2 in
-  if n1 < n2 then -1 else if n1 > n2 then 1 else 0
-
-let sort_card_list l = List.sort compare_card l
+let sort_card_list l = List.sort compare l
 
 let shuffle_pile (p : pile_of_card) =
   let _ = Random.self_init () in
