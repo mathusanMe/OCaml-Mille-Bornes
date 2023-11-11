@@ -4,9 +4,9 @@ type safety_card = EmergencyVehicle | FuelTruck | PunctureProof | DrivingAce
 type distance_card = D25 | D50 | D75 | D100 | D200
 
 type card =
+  | Safety of safety_card
   | Remedy of remedy_card
   | Hazard of hazard_card
-  | Safety of safety_card
   | Distance of distance_card
 
 type deck_of_card = card list

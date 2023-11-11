@@ -24,3 +24,11 @@ let draw_card (b : board) (t : team) =
     let new_team = replace_player_in t new_player in
     let new_teams = replace_team_in b.teams new_team in
     { b with draw_pile = new_draw_pile; teams = new_teams }
+
+let is_draw_pile_empty b = is_empty b.draw_pile
+let is_discard_pile_empty b = is_empty b.discard_pile
+
+let swap_draw_and_shuffled_discard_pile b =
+  let new_draw_pile = b.discard_pile |> shuffle_pile in
+  let new_discard_pile = b.draw_pile in
+  { b with draw_pile = new_draw_pile; discard_pile = new_discard_pile }

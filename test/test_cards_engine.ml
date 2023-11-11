@@ -105,7 +105,7 @@ let test_sort_card_list2 =
         "same result" true
         (equal_deck_of_card
            (sort_card_list exemple_list_to_sort2)
-           [ Safety DrivingAce; Hazard Accident; Remedy Gas; Distance D200 ]))
+           [ Safety DrivingAce; Remedy Gas; Hazard Accident; Distance D200 ]))
 
 let test_sort_card_list3 =
   Alcotest.test_case "test sort_card_list on exemple_list_to_sort3" `Quick
@@ -117,12 +117,12 @@ let test_sort_card_list3 =
            [
              Safety EmergencyVehicle;
              Safety FuelTruck;
-             Hazard OutOfGas;
-             Hazard FlatTire;
-             Hazard Accident;
              Remedy Drive;
              Remedy Drive;
              Remedy SpareTire;
+             Hazard OutOfGas;
+             Hazard FlatTire;
+             Hazard Accident;
              Distance D25;
              Distance D25;
              Distance D100;
@@ -143,12 +143,12 @@ let test_sort_card_list4 =
            [
              Safety EmergencyVehicle;
              Safety FuelTruck;
-             Hazard OutOfGas;
-             Hazard FlatTire;
-             Hazard Accident;
              Remedy Drive;
              Remedy Drive;
              Remedy SpareTire;
+             Hazard OutOfGas;
+             Hazard FlatTire;
+             Hazard Accident;
              Distance D25;
              Distance D25;
              Distance D100;
@@ -219,11 +219,11 @@ let test_add_card_to_deck3 =
         (equal_deck_of_card
            [
              Safety FuelTruck;
-             Hazard OutOfGas;
-             Hazard FlatTire;
              Remedy Drive;
              Remedy EndOfSpeedLimit;
              Remedy SpareTire;
+             Hazard OutOfGas;
+             Hazard FlatTire;
              Distance D25;
              Distance D100;
              Distance D100;

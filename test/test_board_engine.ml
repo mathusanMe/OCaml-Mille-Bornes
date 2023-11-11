@@ -64,6 +64,40 @@ let test_draw_card_from_non_empty_draw_pile =
          && List.length board_with_draw_pile.draw_pile
             = List.length new_board_with_draw_pile.draw_pile + 1))
 
+let test_switch_draw_and_discard_pile_from_empty_draw_pile =
+  Alcotest.test_case "switch empty draw pile and discard pile" `Quick (fun () ->
+      Alcotest.(check bool)
+        "test if the discard_pile of new board and draw pile of the tested \
+         board are the same and the draw pile of the new board and the discard \
+         pile of the tested board are the same on content"
+        true
+        (let new_board =
+           swap_draw_and_shuffled_discard_pile board_with_empty_draw_pile
+         in
+         is_discard_pile_empty new_board
+         && equal_pile_of_card
+              (sort_card_list new_board.draw_pile)
+              (sort_card_list board_with_empty_draw_pile.discard_pile)))
+
+let test_switch_draw_and_discard_pile_from_empty_draw_pile_and_heavy_discard_pile
+    =
+  Alcotest.test_case "switch empty draw pile and discard pile from board" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "test if the discard_pile of new board and draw pile of the tested \
+         board are the same and the draw pile of the new board and the discard \
+         pile of the tested board are the same on content"
+        true
+        (let new_board =
+           swap_draw_and_shuffled_discard_pile
+             board_with_empty_draw_pile_and_heavy_discard_pile
+         in
+         is_discard_pile_empty new_board
+         && equal_pile_of_card
+              (sort_card_list new_board.draw_pile)
+              (sort_card_list
+                 board_with_empty_draw_pile_and_heavy_discard_pile.discard_pile)))
+
 let () =
   let open Alcotest in
   run "Board_engine"
@@ -73,5 +107,7 @@ let () =
           test_draw_card_from_empty_draw_pile;
           test_draw_card_from_draw_pile_for_team_not_in_game;
           test_draw_card_from_non_empty_draw_pile;
+          test_switch_draw_and_discard_pile_from_empty_draw_pile;
+          test_switch_draw_and_discard_pile_from_empty_draw_pile_and_heavy_discard_pile;
         ] );
     ]

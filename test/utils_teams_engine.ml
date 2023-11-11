@@ -1,25 +1,35 @@
 open Mille_bornes.Teams_engine
 
-let team_with_one_computer = init_team_with_one_player "Computer" true
-let team_with_one_human = init_team_with_one_player "Thomas" false
+let strat =
+  {
+    name = "strat";
+    choose_card_to_play = (fun _ _ _ -> (0, None));
+    want_to_peek_discard_pile = (fun _ _ _ _ -> false);
+    want_to_play_coup_fourre = (fun _ _ _ _ -> true);
+  }
+
+let team_with_one_computer = init_team_with_one_computer "Computer" strat 7
+let team_with_one_human = init_team_with_one_human "Thomas" 8
 
 let team_with_two_computers =
-  init_team_with_two_players "Computer1" true "Computer2" true
+  init_team_with_two_computer "Computer1" strat "Computer2" strat 9
 
-let team_with_two_humans =
-  init_team_with_two_players "Gabin" false "Mathusan" false
+let team_with_two_humans = init_team_with_two_human "Gabin" "Mathusan" 10
 
 let team_with_computer_human =
-  init_team_with_two_players "Computer" true "Mathusan" false
+  init_team_with_one_human_and_one_computer "Computer" true "Mathusan" false
+    strat 11
 
 let team_with_human_computer =
-  init_team_with_two_players "Gabin" false "Computer" true
+  init_team_with_one_human_and_one_computer "Gabin" false "Computer" true strat
+    12
 
 open Mille_bornes.Cards_engine
 
 let team1 =
   let public_informations =
     {
+      id = 1;
       speed_limit_pile = [];
       drive_pile = [];
       distance_cards = [];
@@ -40,6 +50,7 @@ let team1 =
 let team2 =
   let public_informations =
     {
+      id = 2;
       speed_limit_pile = [ Hazard SpeedLimit ];
       drive_pile = [ Hazard OutOfGas; Remedy Drive ];
       distance_cards = [];
@@ -60,6 +71,7 @@ let team2 =
 let team3 =
   let public_informations =
     {
+      id = 3;
       speed_limit_pile = [ Hazard SpeedLimit ];
       drive_pile = [ Hazard Accident; Hazard Stop ];
       distance_cards = [];
@@ -80,6 +92,7 @@ let team3 =
 let team4 =
   let public_informations =
     {
+      id = 4;
       speed_limit_pile = [ Hazard SpeedLimit ];
       drive_pile = [ Hazard Stop ];
       distance_cards = [];
@@ -100,6 +113,7 @@ let team4 =
 let team5 =
   let public_informations =
     {
+      id = 5;
       speed_limit_pile = [ Remedy EndOfSpeedLimit; Hazard SpeedLimit ];
       drive_pile = [ Remedy Drive; Hazard Stop; Remedy Drive ];
       distance_cards = [];
@@ -120,6 +134,7 @@ let team5 =
 let team6 =
   let public_informations =
     {
+      id = 6;
       speed_limit_pile = [ Hazard SpeedLimit; Remedy EndOfSpeedLimit ];
       drive_pile =
         [ Remedy Drive; Hazard OutOfGas; Remedy Gas; Hazard Accident ];
@@ -166,3 +181,34 @@ let team6 =
     shared_public_informations = public_informations;
     current_player_index = 0;
   }
+
+let human1 =
+  Human
+    {
+      name = "Thomas";
+      hand =
+        [
+          Safety EmergencyVehicle;
+          Safety FuelTruck;
+          Safety PunctureProof;
+          Safety DrivingAce;
+        ];
+    }
+
+let human2 = Human { name = "Thomas"; hand = [] }
+
+let computer1 =
+  Computer
+    ( {
+        name = "Computer";
+        hand =
+          [
+            Safety EmergencyVehicle;
+            Safety FuelTruck;
+            Safety PunctureProof;
+            Safety DrivingAce;
+          ];
+      },
+      strat )
+
+let computer2 = Computer ({ name = "Computer"; hand = [] }, strat)
