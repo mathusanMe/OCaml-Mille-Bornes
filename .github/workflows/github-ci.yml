@@ -1,0 +1,59 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  push:
+  pull_request:
+  schedule:
+    # Prime the caches every Monday
+    - cron: '0 1 * * MON'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+        ocaml-compiler:
+          - "5.1"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout tree
+        uses: actions/checkout@v4
+
+      - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+      - name: Cache Opam Dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.opam
+          key: ${{ runner.os }}-opam-${{ matrix.ocaml-compiler }}-${{ hashFiles('**/opam.locked') }}
+          restore-keys: |
+            ${{ runner.os }}-opam-${{ matrix.ocaml-compiler }}-
+      - name: Install Dependencies
+        run: opam install . --deps-only --with-test
+
+      - name: Check OCaml Formatting with Dune
+        run: |
+          if [ -n "$(dune build @fmt --auto-promote)" ]; then
+            echo "The code is not properly formatted."
+            exit 1
+          fi
+      - name: Build Project
+        run: opam exec -- dune build
+
+      - name: Run Tests
+        run: opam exec -- dune runtest
