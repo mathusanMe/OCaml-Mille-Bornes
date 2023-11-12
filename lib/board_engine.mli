@@ -37,3 +37,12 @@ val place_card : board -> team -> card -> team -> board
  * on team [t1] and places it on the driving zone of team [t2]. If the card is
  * not in the hand of the current player, raise CardNotFound. If the team is
  * not found, raise TeamNotFound. *)
+
+exception Player_not_found
+
+val place_coup_fouree : board -> team -> player -> safety_card -> board
+(* [place_coup_fouree b t p c] places safety card [c] from the hand of the 
+ * [p] player on team [t] and places it on the driving zone of team [t]. 
+ * If the card is not in the hand of the current player, raise CardNotFound. 
+ * If the team is not found, raise TeamNotFound. If the player is
+ * not found on the team, raise PlayerNotFound*)

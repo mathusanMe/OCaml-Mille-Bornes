@@ -327,7 +327,52 @@ let try_place_card (b : board) (current_team : team) (card_used : card)
       in
       raise Place_card_error
   in
-  Some new_board
+  match card_used with
+  | Hazard hazard -> (
+      let player_have_counter =
+        try
+          Some
+            (List.find
+               (fun p -> has_safety_to_counter_hazard_on_his_hand p hazard)
+               target_team.players)
+        with Not_found -> None
+      in
+      match player_have_counter with
+      | None -> Some new_board
+      | Some player_have_counter ->
+          let necessary_safety =
+            match hazard with
+            | Stop | SpeedLimit -> EmergencyVehicle
+            | OutOfGas -> FuelTruck
+            | FlatTire -> PunctureProof
+            | Accident -> DrivingAce
+          in
+          if
+            match player_have_counter with
+            | Computer (_, p_strat) ->
+                p_strat.want_to_play_coup_fourre player_have_counter hazard
+                  target_team.shared_public_informations
+                  (get_list_of_other_public_information_than
+                     target_team.shared_public_informations b)
+            | Human _ ->
+                player_teletype_want_to_play_coup_fourre player_have_counter
+                  hazard target_team.shared_public_informations
+                  (get_list_of_other_public_information_than
+                     target_team.shared_public_informations b)
+          then
+            let new_board =
+              try
+                place_coup_fouree b target_team player_have_counter
+                  necessary_safety
+              with
+              | Team_not_found | Player_not_found | Card_not_found
+              | Unusable_card | Empty_deck
+              ->
+                raise Place_card_error
+            in
+            Some new_board
+          else Some new_board)
+  | _ -> Some new_board
 
 let rec play_move_player b =
   let retry_play_move_player (b : board) (current_player : player) =
