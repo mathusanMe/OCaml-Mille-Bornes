@@ -266,5 +266,14 @@ let player_teletype_want_to_play_coup_fourre p h pi _ =
   request_yes_or_no
     "Do you want to play your safety and do a coup fourre to earn 200 points ?"
 
+let get_list_of_other_public_information_than (p_info : public_informations)
+    (b : board) =
+  List.rev
+    (List.fold_left
+       (fun acc t ->
+         let t_p_info = t.shared_public_informations in
+         if p_info = t_p_info then acc else t_p_info :: acc)
+       [] b.teams)
+
 let play_move_player b = (* TODO *) Some b
 let arena () = (* TODO *) ()
