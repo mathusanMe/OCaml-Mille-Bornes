@@ -121,6 +121,16 @@ let same_player (p1 : player) (p2 : player) =
   let e2 = get_player_struct_from p2 in
   e1.name = e2.name
 
+let does_player_have_this_name_in_team_list name team_list =
+  List.exists
+    (fun t ->
+      List.exists
+        (fun p ->
+          let p_struct = get_player_struct_from p in
+          p_struct.name = name)
+        t.players)
+    team_list
+
 let same_team (t1 : team) (t2 : team) =
   List.for_all2 same_player t1.players t2.players
   && t1.shared_public_informations.id = t2.shared_public_informations.id
@@ -202,6 +212,22 @@ let pp_public_informations_list fmt pinfo_list =
         List.iteri (fun i e ->
             Format.fprintf fmt "%d. @[<v>%a@]@;" i pp_public_informations e))
      |> Format.fprintf fmt "@[<v>%a@]")
+
+let pp_names_of_team_list fmt teams =
+  let pp_print_name_team fmt t =
+    List.iter
+      (fun p ->
+        let p_struct = get_player_struct_from p in
+        Format.fprintf fmt "%s;" p_struct.name)
+      t.players
+  in
+  let pp_print_team_with_id fmt t i =
+    Format.fprintf fmt "Team %d : %a@;" i pp_print_name_team t
+  in
+  let pp_print_teams_with_id fmt teams =
+    List.iteri (fun i t -> pp_print_team_with_id fmt t i) teams
+  in
+  Format.fprintf fmt "@[<v>%a@]@;" pp_print_teams_with_id teams
 
 let has_already_used_safety_card (p_info : public_informations)
     (c : safety_card) =

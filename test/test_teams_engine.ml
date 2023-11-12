@@ -93,6 +93,45 @@ let test_get_current_player_from =
                  (set_next_player_from team_with_computer_human)))
              .name = "Mathusan"))
 
+let test_does_player_have_this_name_in_team_list1 =
+  Alcotest.test_case
+    "test does_player_have_this_name_in_team_list with empty list" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" false
+        (does_player_have_this_name_in_team_list "name" []
+        || does_player_have_this_name_in_team_list "" []))
+
+let test_does_player_have_this_name_in_team_list2 =
+  Alcotest.test_case
+    "test does_player_have_this_name_in_team_list with not existing name on \
+     team list"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" false
+        (does_player_have_this_name_in_team_list "test"
+           [ team1; team2; team3; team4; team5; team6 ]
+        || does_player_have_this_name_in_team_list ""
+             [ team1; team2; team3; team4; team5; team6 ]
+        || does_player_have_this_name_in_team_list "another test"
+             [ team1; team6 ]))
+
+let test_does_player_have_this_name_in_team_list3 =
+  Alcotest.test_case
+    "test does_player_have_this_name_in_team_list with existing name on team \
+     list"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (does_player_have_this_name_in_team_list "name1"
+           [ team1; team2; team3; team4; team5; team6 ]
+        && does_player_have_this_name_in_team_list "name2"
+             [ team1; team2; team3; team4; team5; team6 ]
+        && does_player_have_this_name_in_team_list "Thomas"
+             [ team1; team2; team3; team4; team5; team6 ]
+        && does_player_have_this_name_in_team_list "Mathusan"
+             [ team1; team2; team3; team4; team5; team6 ]))
+
 let test_pp_team1 =
   Alcotest.test_case "test pp_team on team_with_computer_human without hand"
     `Quick (fun () ->
@@ -354,6 +393,20 @@ let test_pp_public_informations_list =
            (List.map
               (fun t -> t.shared_public_informations)
               [ team1; team2; team3; team4; team5; team6 ])))
+
+let test_pp_names_of_team_list =
+  Alcotest.test_case "test pp_names_of_team_list on a list with team1-6" `Quick
+    (fun () ->
+      Alcotest.(check string)
+        "same result"
+        "Team 0 : name1;name2;\n\
+         Team 1 : name1;name2;\n\
+         Team 2 : name1;name2;\n\
+         Team 3 : name1;name2;\n\
+         Team 4 : name1;name2;\n\
+         Team 5 : Thomas;Mathusan;\n\n"
+        (Format.asprintf "%a" pp_names_of_team_list
+           [ team1; team2; team3; team4; team5; team6 ]))
 
 let public_informations_is_clear public_informations =
   public_informations.speed_limit_pile = []
@@ -1191,6 +1244,12 @@ let () =
           test_set_next_player2;
           test_get_current_player_from;
         ] );
+      ( "test_does_player_have_this_name_in_team_list",
+        [
+          test_does_player_have_this_name_in_team_list1;
+          test_does_player_have_this_name_in_team_list2;
+          test_does_player_have_this_name_in_team_list3;
+        ] );
       ( "test pp_team",
         [
           test_pp_team1;
@@ -1202,6 +1261,7 @@ let () =
       ( "test pp_team_with_hand_of",
         [ test_pp_team_with_hand_of1; test_pp_team_with_hand_of2 ] );
       ("test_pp_public_informations_list", [ test_pp_public_informations_list ]);
+      ("test_pp_names_of_team_list", [ test_pp_names_of_team_list ]);
       ( "init teams, players and public_informations function tests",
         [
           test_init_team_with_one_computer_player;

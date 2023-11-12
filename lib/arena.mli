@@ -63,7 +63,7 @@ val initial_bot_want_to_play_coup_fourre :
    its public_information, and pi_list that of the others. *)
 
 val pp_strategy_list : Format.formatter -> strategy list -> unit
-val init_teams : unit -> team list
+val init_teams : unit -> team list option
 (* [init_teams] initializes all team of the board with the terminal I/O commands *)
 
 val init_board : unit -> board option

@@ -66,6 +66,7 @@ val get_current_player_from : team -> player
 val get_player_struct_from : player -> player_struct
 val set_next_player_from : team -> team
 val same_player : player -> player -> bool
+val does_player_have_this_name_in_team_list : string -> team list -> bool
 val same_team : team -> team -> bool
 val replace_player_struct_in : player -> player_struct -> player
 val replace_player_in : team -> player -> team
@@ -77,6 +78,7 @@ val pp_team_with_hand_of : player -> Format.formatter -> team -> unit
 val pp_public_informations_list :
   Format.formatter -> public_informations list -> unit
 
+val pp_names_of_team_list : Format.formatter -> team list -> unit
 val init_team_with_one_human : string -> int -> team
 val init_team_with_one_computer : string -> strategy -> int -> team
 val init_team_with_two_human : string -> string -> int -> team
