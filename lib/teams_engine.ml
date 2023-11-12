@@ -441,3 +441,7 @@ let use_card (t : team) (c : card) =
   | Remedy remedy -> use_remedy_card t remedy
   | Safety safety -> use_safety_card t safety
   | Distance distance_card -> use_distance_card t distance_card
+
+let nth_hand_player (p : player) (i : int) =
+  match p with
+  | Human p_struct | Computer (p_struct, _) -> List.nth p_struct.hand i

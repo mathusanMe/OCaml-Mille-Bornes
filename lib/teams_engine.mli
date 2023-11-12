@@ -94,3 +94,4 @@ val use_card : team -> card -> team
 val use_coup_fouree : team -> safety_card -> team
 val has_safety_to_counter_hazard_on_his_hand : player -> hazard_card -> bool
 val is_usable_card : public_informations -> card -> bool
+val nth_hand_player : player -> int -> card
