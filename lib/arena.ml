@@ -5,7 +5,7 @@ open Cards_engine
 type endplay = Win of team | GiveUpInGame of team | GiveUpInit
 
 let pp_endplay _ _ = (* TODO *) ()
-let initial_bot_choose_card_to_play _ _ _ = (* TODO *) (0, None)
+let initial_bot_choose_card_to_play _ _ _ = (* TODO *) Some (0, None)
 let initial_bot_want_to_peek_discard_pile _ _ _ _ = (* TODO *) true
 let initial_bot_want_to_play_coup_fourre _ _ _ _ = (* TODO *) true
 

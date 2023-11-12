@@ -12,7 +12,7 @@ let is_computer = function Computer _ -> true | Human _ -> false
 let strat =
   {
     name = "strat";
-    choose_card_to_play = (fun _ _ _ -> (0, None));
+    choose_card_to_play = (fun _ _ _ -> Some (0, None));
     want_to_peek_discard_pile = (fun _ _ _ _ -> false);
     want_to_play_coup_fourre = (fun _ _ _ _ -> true);
   }

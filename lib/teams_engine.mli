@@ -22,7 +22,7 @@ and strategy = {
     player ->
     public_informations ->
     public_informations list ->
-    int * int option;
+    (int * int option) option;
       (*Method that takes the player who will play (the computer),
         the public_information of the team of the same player, as well
         as a list with public_information of all other teams that play.

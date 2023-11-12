@@ -42,7 +42,10 @@ val player_teletype_want_to_play_coup_fourre :
    others. *)
 
 val initial_bot_choose_card_to_play :
-  player -> public_informations -> public_informations list -> int * int option
+  player ->
+  public_informations ->
+  public_informations list ->
+  (int * int option) option
 (* [initial_bot_choose_card_to_play p pi pi_list] is an example of a bot function for the
    initial strategy, to know which card the bot is going to play and on whom, with
    pi its public information, pi_list that of the others, and returns an integer pair

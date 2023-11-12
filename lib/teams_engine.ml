@@ -21,7 +21,7 @@ and strategy = {
     player ->
     public_informations ->
     public_informations list ->
-    int * int option;
+    (int * int option) option;
   want_to_peek_discard_pile :
     player -> card -> public_informations -> public_informations list -> bool;
   want_to_play_coup_fourre :
