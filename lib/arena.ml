@@ -288,5 +288,40 @@ let play_move (current_player : player) (current_team : team) (b : board) =
         (get_list_of_other_public_information_than
            current_team.shared_public_informations b)
 
+exception Invalid_id_public_information
+(*the player played a prohibited move*)
+
+exception Discard_card_error
+exception Place_card_error
+(*The game is broken*)
+
+let try_get_team_corresponding_public_information (id : int) (l : team list) =
+  try List.find (fun t -> t.shared_public_informations.id = id) l
+  with Not_found -> raise Invalid_id_public_information
+
+let try_discard_card (b : board) (current_team : team) (card_used : card) =
+  let new_board =
+    try discard_card b current_team card_used
+    with Team_not_found | Empty_deck | Card_not_found ->
+      raise Discard_card_error
+  in
+  Some new_board
+
+let try_place_card (b : board) (current_team : team) (card_used : card)
+    (id_of_target_public_informations : int) =
+  let target_team =
+    try_get_team_corresponding_public_information
+      id_of_target_public_informations b.teams
+  in
+  let new_board =
+    try place_card b current_team card_used target_team
+    with
+    | Team_not_found | Empty_deck | Card_not_found | Invalid_move
+    | Unusable_card
+    ->
+      raise Place_card_error
+  in
+  Some new_board
+
 let play_move_player b = (* TODO *) Some b
 let arena () = (* TODO *) ()
