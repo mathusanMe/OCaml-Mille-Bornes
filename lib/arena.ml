@@ -289,6 +289,7 @@ let play_move (current_player : player) (current_team : team) (b : board) =
            current_team.shared_public_informations b)
 
 exception Invalid_id_public_information
+exception Computer_invalid_move
 (*the player played a prohibited move*)
 
 exception Discard_card_error
@@ -297,12 +298,17 @@ exception Place_card_error
 
 let try_get_team_corresponding_public_information (id : int) (l : team list) =
   try List.find (fun t -> t.shared_public_informations.id = id) l
-  with Not_found -> raise Invalid_id_public_information
+  with Not_found ->
+    let () = Format.printf "Target public information is not valid.@ " in
+    raise Invalid_id_public_information
 
 let try_discard_card (b : board) (current_team : team) (card_used : card) =
   let new_board =
     try discard_card b current_team card_used
     with Team_not_found | Empty_deck | Card_not_found ->
+      let () =
+        Format.printf "An error occurs when try you to discard the card.@ "
+      in
       raise Discard_card_error
   in
   Some new_board
@@ -315,13 +321,56 @@ let try_place_card (b : board) (current_team : team) (card_used : card)
   in
   let new_board =
     try place_card b current_team card_used target_team
-    with
-    | Team_not_found | Empty_deck | Card_not_found | Invalid_move
-    | Unusable_card
-    ->
+    with Team_not_found | Empty_deck | Card_not_found ->
+      let () =
+        Format.printf "An error occurs when try you to place the card.@ "
+      in
       raise Place_card_error
   in
   Some new_board
 
-let play_move_player b = (* TODO *) Some b
+let rec play_move_player b =
+  let retry_play_move_player (b : board) (current_player : player) =
+    match current_player with
+    | Computer (p_struct, _) ->
+        let () =
+          Format.printf "Computer %s have try an invalid move@ " p_struct.name
+        in
+        if
+          request_yes_or_no "Do you still want to keep playing the computer?"
+          = Some true
+        then play_move_player b
+        else raise Computer_invalid_move
+    | Human p_struct ->
+        let () =
+          Format.printf "Human %s have try an invalid move.@ " p_struct.name
+        in
+        play_move_player b
+  in
+  let current_team = get_current_team_from b in
+  let current_player = get_current_player_from current_team in
+  let move = play_move current_player current_team b in
+  match move with
+  | None -> None (*give up case*)
+  | Some (id_card_on_deck_of_current_player, id_of_target_public_informations)
+    -> (
+      match id_card_on_deck_of_current_player with
+      | id when 0 <= id && id < 7 -> (
+          let card_used =
+            nth_hand_player current_player id_card_on_deck_of_current_player
+          in
+          match id_of_target_public_informations with
+          | None ->
+              (*disard card case*)
+              try_discard_card b current_team card_used
+          | Some id_of_target_public_informations -> (
+              (*place card case*)
+              try
+                try_place_card b current_team card_used
+                  id_of_target_public_informations
+              with
+              | Invalid_id_public_information | Invalid_move | Unusable_card ->
+                retry_play_move_player b current_player))
+      | _ -> retry_play_move_player b current_player)
+
 let arena () = (* TODO *) ()
