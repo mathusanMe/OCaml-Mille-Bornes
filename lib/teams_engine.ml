@@ -150,13 +150,25 @@ let pp_player with_hand fmt p =
       Format.fprintf fmt "%s@ " p_struct.name;
       pp_hand with_hand p_struct.hand
 
-let pp_player_list with_hands fmt players =
+let pp_player_list_with_all_hands fmt players =
   let pp_iter fmt =
-    List.iter (fun p -> Format.fprintf fmt "%a" (pp_player with_hands) p)
+    List.iter (fun p -> Format.fprintf fmt "%a" (pp_player true) p)
   in
-  if with_hands then
-    Format.fprintf fmt "Name(s) with deck :@ %a" pp_iter players
-  else Format.fprintf fmt "Name(s) :@ %a" pp_iter players
+  Format.fprintf fmt "Name(s) with deck :@ %a" pp_iter players
+
+let pp_player_list_with_no_hand fmt players =
+  let pp_iter fmt =
+    List.iter (fun p -> Format.fprintf fmt "%a" (pp_player false) p)
+  in
+  Format.fprintf fmt "Name(s) :@ %a" pp_iter players
+
+let pp_player_list_with_one_player_hand player fmt players =
+  let pp_iter fmt =
+    List.iter (fun p ->
+        Format.fprintf fmt "%a" (pp_player (same_player p player)) p)
+  in
+  Format.fprintf fmt "Name(s) with deck of %s :@ %a"
+    (get_player_struct_from player).name pp_iter players
 
 let pp_public_informations fmt dz =
   Format.fprintf fmt "Driving Zone : @ %a@;%a@;%a%a%a"
@@ -172,8 +184,24 @@ let pp_public_informations fmt dz =
     dz.coup_fouree_cards
 
 let pp_team with_hand fmt team =
-  Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;" (pp_player_list with_hand)
+  let pp_player_list =
+    if with_hand then pp_player_list_with_all_hands
+    else pp_player_list_with_no_hand
+  in
+  Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;" pp_player_list team.players
+    pp_public_informations team.shared_public_informations
+
+let pp_team_with_hand_of player fmt team =
+  Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;"
+    (pp_player_list_with_one_player_hand player)
     team.players pp_public_informations team.shared_public_informations
+
+let pp_public_informations_list fmt pinfo_list =
+  pinfo_list
+  |> ((fun fmt ->
+        List.iteri (fun i e ->
+            Format.fprintf fmt "%d. @[<v>%a@]@;" i pp_public_informations e))
+     |> Format.fprintf fmt "@[<v>%a@]")
 
 let has_already_used_safety_card (p_info : public_informations)
     (c : safety_card) =

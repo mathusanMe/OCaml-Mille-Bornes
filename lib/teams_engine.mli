@@ -72,6 +72,11 @@ val replace_player_in : team -> player -> team
 val replace_team_in : team list -> team -> team list
 val pp_player : bool -> Format.formatter -> player -> unit
 val pp_team : bool -> Format.formatter -> team -> unit
+val pp_team_with_hand_of : player -> Format.formatter -> team -> unit
+
+val pp_public_informations_list :
+  Format.formatter -> public_informations list -> unit
+
 val init_team_with_one_human : string -> int -> team
 val init_team_with_one_computer : string -> strategy -> int -> team
 val init_team_with_two_human : string -> string -> int -> team

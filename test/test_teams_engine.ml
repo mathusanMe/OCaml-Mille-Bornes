@@ -213,6 +213,148 @@ let test_pp_team5 =
         \                     \n\n"
         (Format.asprintf "%a" (pp_team true) team6))
 
+let test_pp_team_with_hand_of1 =
+  Alcotest.test_case "test pp_team_with_hand_of on team3 with hand of name2"
+    `Quick (fun () ->
+      Alcotest.(check string)
+        "same result"
+        "Name(s) with deck of name1 :\n\
+         name1\n\
+         hand : (empty);\n\
+        \       \n\
+         name2\n\
+         Driving Zone : \n\
+         Top of speed limit pile : Speed limit;\n\n\
+         Top of drive pile : Accident;\n\n\
+         Distance cards : (empty);\n\
+        \                 \n\
+         Safety cards : 0. Fuel truck;\n\
+        \               \n\
+         Coup fourree cards : 0. Emergency vehicle;\n\
+        \                     \n\n"
+        (Format.asprintf "%a"
+           (pp_team_with_hand_of (List.hd team3.players))
+           team3))
+
+let test_pp_team_with_hand_of2 =
+  Alcotest.test_case "test pp_team_with_hand_of on team6 with hand of Mathusan"
+    `Quick (fun () ->
+      Alcotest.(check string)
+        "same result"
+        "Name(s) with deck of Mathusan :\n\
+         Thomas\n\
+         Mathusan\n\
+         hand : 0. Drive;\n\
+        \       1. Gas;\n\
+        \       2. 25;\n\
+        \       3. 75;\n\
+        \       4. 100;\n\
+        \       5. 200;\n\
+        \       \n\
+         Driving Zone : \n\
+         Top of speed limit pile : Speed limit;\n\n\
+         Top of drive pile : Drive;\n\n\
+         Distance cards : 0. 25;\n\
+        \                 1. 100;\n\
+        \                 2. 100;\n\
+        \                 3. 200;\n\
+        \                 \n\
+         Safety cards : 0. Fuel truck;\n\
+        \               1. Driving ace;\n\
+        \               \n\
+         Coup fourree cards : 0. Emergency vehicle;\n\
+        \                     \n\n"
+        (Format.asprintf "%a"
+           (pp_team_with_hand_of (List.hd (List.tl team6.players)))
+           team6))
+
+let test_pp_public_informations_list =
+  Alcotest.test_case
+    "test pp_public_informations_list on a list containing team1-6" `Quick
+    (fun () ->
+      Alcotest.(check string)
+        "same result"
+        "0. Driving Zone : \n\
+        \   Top of speed limit pile : (empty);\n\
+        \   \n\
+        \   Top of drive pile : (empty);\n\
+        \   \n\
+        \   Distance cards : (empty);\n\
+        \                    \n\
+        \   Safety cards : (empty);\n\
+        \                  \n\
+        \   Coup fourree cards : (empty);\n\
+        \                        \n\
+        \   \n\
+         1. Driving Zone : \n\
+        \   Top of speed limit pile : Speed limit;\n\
+        \   \n\
+        \   Top of drive pile : Out of gas;\n\
+        \   \n\
+        \   Distance cards : (empty);\n\
+        \                    \n\
+        \   Safety cards : 0. Fuel truck;\n\
+        \                  \n\
+        \   Coup fourree cards : (empty);\n\
+        \                        \n\
+        \   \n\
+         2. Driving Zone : \n\
+        \   Top of speed limit pile : Speed limit;\n\
+        \   \n\
+        \   Top of drive pile : Accident;\n\
+        \   \n\
+        \   Distance cards : (empty);\n\
+        \                    \n\
+        \   Safety cards : 0. Fuel truck;\n\
+        \                  \n\
+        \   Coup fourree cards : 0. Emergency vehicle;\n\
+        \                        \n\
+        \   \n\
+         3. Driving Zone : \n\
+        \   Top of speed limit pile : Speed limit;\n\
+        \   \n\
+        \   Top of drive pile : Stop;\n\
+        \   \n\
+        \   Distance cards : (empty);\n\
+        \                    \n\
+        \   Safety cards : (empty);\n\
+        \                  \n\
+        \   Coup fourree cards : 0. Emergency vehicle;\n\
+        \                        \n\
+        \   \n\
+         4. Driving Zone : \n\
+        \   Top of speed limit pile : End of speed limit;\n\
+        \   \n\
+        \   Top of drive pile : Drive;\n\
+        \   \n\
+        \   Distance cards : (empty);\n\
+        \                    \n\
+        \   Safety cards : (empty);\n\
+        \                  \n\
+        \   Coup fourree cards : (empty);\n\
+        \                        \n\
+        \   \n\
+         5. Driving Zone : \n\
+        \   Top of speed limit pile : Speed limit;\n\
+        \   \n\
+        \   Top of drive pile : Drive;\n\
+        \   \n\
+        \   Distance cards : 0. 25;\n\
+        \                    1. 100;\n\
+        \                    2. 100;\n\
+        \                    3. 200;\n\
+        \                    \n\
+        \   Safety cards : 0. Fuel truck;\n\
+        \                  1. Driving ace;\n\
+        \                  \n\
+        \   Coup fourree cards : 0. Emergency vehicle;\n\
+        \                        \n\
+        \   \n"
+        (Format.asprintf "%a" pp_public_informations_list
+           (List.map
+              (fun t -> t.shared_public_informations)
+              [ team1; team2; team3; team4; team5; team6 ])))
+
 let public_informations_is_clear public_informations =
   public_informations.speed_limit_pile = []
   && public_informations.drive_pile = []
@@ -1057,6 +1199,9 @@ let () =
           test_pp_team4;
           test_pp_team5;
         ] );
+      ( "test pp_team_with_hand_of",
+        [ test_pp_team_with_hand_of1; test_pp_team_with_hand_of2 ] );
+      ("test_pp_public_informations_list", [ test_pp_public_informations_list ]);
       ( "init teams, players and public_informations function tests",
         [
           test_init_team_with_one_computer_player;
