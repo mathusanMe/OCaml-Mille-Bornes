@@ -275,5 +275,18 @@ let get_list_of_other_public_information_than (p_info : public_informations)
          if p_info = t_p_info then acc else t_p_info :: acc)
        [] b.teams)
 
+let play_move (current_player : player) (current_team : team) (b : board) =
+  match current_player with
+  | Computer (_, p_strat) ->
+      p_strat.choose_card_to_play current_player
+        current_team.shared_public_informations
+        (get_list_of_other_public_information_than
+           current_team.shared_public_informations b)
+  | Human _ ->
+      player_teletype_choose_card_to_play_card current_player
+        current_team.shared_public_informations
+        (get_list_of_other_public_information_than
+           current_team.shared_public_informations b)
+
 let play_move_player b = (* TODO *) Some b
 let arena () = (* TODO *) ()
