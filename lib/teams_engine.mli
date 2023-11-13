@@ -72,6 +72,7 @@ val replace_player_struct_in : player -> player_struct -> player
 val replace_player_in : team -> player -> team
 val replace_team_in : team list -> team -> team list
 val pp_player : bool -> Format.formatter -> player -> unit
+val pp_public_informations : Format.formatter -> public_informations -> unit
 val pp_team : bool -> Format.formatter -> team -> unit
 val pp_team_with_hand_of : player -> Format.formatter -> team -> unit
 

@@ -5,9 +5,6 @@ open Cards_engine
 type endplay = Win of team | GiveUpInGame of team | GiveUpInit
 
 let pp_endplay _ _ = (* TODO *) ()
-let player_teletype_choose_card_to_play_card _ _ _ = (* TODO *) (0, None)
-let player_teletype_want_to_peek_discard_pile _ _ _ _ = (* TODO *) true
-let player_teletype_want_to_play_coup_fourre _ _ _ _ = (* TODO *) true
 let initial_bot_choose_card_to_play _ _ _ = (* TODO *) (0, None)
 let initial_bot_want_to_peek_discard_pile _ _ _ _ = (* TODO *) true
 let initial_bot_want_to_play_coup_fourre _ _ _ _ = (* TODO *) true
@@ -40,7 +37,7 @@ let rec request_id request max =
   match request_number request with
   | None -> None
   | Some i ->
-      if i < 0 || i > max then (
+      if i > max || i < 0 then (
         Format.printf "Invalid entry : the number is not correct.@;";
         request_id request max)
       else Some i
@@ -212,6 +209,62 @@ let init_board () =
               teams = teams_of_board;
               current_team_index = id;
             })
+
+let player_teletype_choose_card_to_play p pi pi_list =
+  let p_struct = get_player_struct_from p in
+  Format.printf
+    "%s of team %d, your score is %d, your hand and your driving zone are :@;\
+     %a@ @[<v>%a@]@;"
+    p_struct.name pi.id pi.score (pp_deck_of_card "Hand") p_struct.hand
+    pp_public_informations pi;
+  match
+    request_id
+      "Choose the id of the card you want to play, or discard, in your hand \
+       (the number in front of it)"
+      (List.length p_struct.hand - 1)
+  with
+  | None -> None
+  | Some id_card -> (
+      match request_yes_or_no "Do you want to discard it ?" with
+      | None -> None
+      | Some true -> Some (id_card, None)
+      | Some false -> (
+          match List.nth p_struct.hand id_card with
+          | Hazard _ -> (
+              Format.printf "Here are all the existing zones : @ %a"
+                pp_public_informations_list pi_list;
+              match
+                request_id "Choose the id of the one you want to attack."
+                  (List.length pi_list - 1)
+              with
+              | None -> None
+              | Some id_pi -> Some (id_card, Some (List.nth pi_list id_pi).id))
+          | _ -> Some (id_card, Some pi.id)))
+
+let player_teletype_want_to_peek_discard_pile p c pi _ =
+  let p_struct = get_player_struct_from p in
+  Format.printf
+    "%s of team %d, your score is %d, your hand and your driving zone are :@;\
+     %a@ @[<v>%a@]@;"
+    p_struct.name pi.id pi.score (pp_deck_of_card "Hand") p_struct.hand
+    pp_public_informations pi;
+  request_yes_or_no
+    (Format.asprintf
+       "Do you want to pick the card %a of the discard pile ? If not you'll \
+        take a random card in draw pile "
+       pp_card c)
+
+let player_teletype_want_to_play_coup_fourre p h pi _ =
+  let p_struct = get_player_struct_from p in
+  Format.printf
+    "%s of team %d, your team is attacked by the card %a, your score is %d, \
+     your hand and your driving zone are :@;\
+     %a\n\
+    \      @ @[<v>%a@]@;"
+    p_struct.name pi.id pp_card (Hazard h) pi.score (pp_deck_of_card "Hand")
+    p_struct.hand pp_public_informations pi;
+  request_yes_or_no
+    "Do you want to play your safety and do a coup fourre to earn 200 points ?"
 
 let play_move_player b = (* TODO *) Some b
 let arena () = (* TODO *) ()

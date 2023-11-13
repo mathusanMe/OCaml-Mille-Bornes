@@ -6,8 +6,11 @@ type endplay = Win of team | GiveUpInGame of team | GiveUpInit
 
 val pp_endplay : Format.formatter -> endplay -> unit
 
-val player_teletype_choose_card_to_play_card :
-  player -> public_informations -> public_informations list -> int * int option
+val player_teletype_choose_card_to_play :
+  player ->
+  public_informations ->
+  public_informations list ->
+  (int * int option) option
 (* [player_teletype_choose_card_to_play_card p pi pi_list] delegates the choice
    of move to the player from the I/O terminal with pi its public information,
    pi_list that of the others, and returns an integer pair with the 1st being the
@@ -16,7 +19,11 @@ val player_teletype_choose_card_to_play_card :
    instead). *)
 
 val player_teletype_want_to_peek_discard_pile :
-  player -> card -> public_informations -> public_informations list -> bool
+  player ->
+  card ->
+  public_informations ->
+  public_informations list ->
+  bool option
 (* [player_teletype_want_to_peek_discard_pile p c pi pi_list] delegates the choice
    of whether the player wants to draw the discard pile card if true, or the draw
    pile card if false with c the card on
@@ -28,7 +35,7 @@ val player_teletype_want_to_play_coup_fourre :
   hazard_card ->
   public_informations ->
   public_informations list ->
-  bool
+  bool option
 (* [player_teletype_want_to_play_coup_fourre p h pi pi_list] delegates the choice
    of wheter or not the player wants to play the coup fourre from the I/O terminal
    with h the card attacking it, pi its public_information, and pi_list that of the
