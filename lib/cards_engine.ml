@@ -153,6 +153,21 @@ let get_hazard_corresponding_to_the_remedy (c : remedy_card) =
   | SpareTire -> FlatTire
   | Repairs -> Accident
 
+let get_remedy_corresponding_to_the_hazard (c : hazard_card) =
+  match c with
+  | Stop -> Drive
+  | SpeedLimit -> EndOfSpeedLimit
+  | OutOfGas -> Gas
+  | FlatTire -> SpareTire
+  | Accident -> Repairs
+
+let get_safety_corresponding_to_the_hazard (c : hazard_card) =
+  match c with
+  | Stop | SpeedLimit -> EmergencyVehicle
+  | OutOfGas -> FuelTruck
+  | FlatTire -> PunctureProof
+  | Accident -> DrivingAce
+
 let add_card_to_pile (p : pile_of_card) (c : card) = c :: p
 let add_card_to_deck (d : deck_of_card) (c : card) = sort_card_list (c :: d)
 

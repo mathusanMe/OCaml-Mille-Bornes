@@ -328,13 +328,7 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
   match player_have_counter with
   | None -> Some new_board_after_place_hazard_card
   | Some player_have_counter -> (
-      let necessary_safety =
-        match hazard with
-        | Stop | SpeedLimit -> EmergencyVehicle
-        | OutOfGas -> FuelTruck
-        | FlatTire -> PunctureProof
-        | Accident -> DrivingAce
-      in
+      let necessary_safety = get_safety_corresponding_to_the_hazard hazard in
       match
         match player_have_counter with
         | Computer (_, p_strat) ->

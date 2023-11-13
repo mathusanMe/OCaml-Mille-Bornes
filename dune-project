@@ -17,7 +17,7 @@
  (name mille_bornes)
  (synopsis "An interesting french board game")
  (description "An interesting french board game like le bon vin you know the french traditional drink")
- (depends ocaml dune (odoc :with-doc) ppx_deriving (alcotest :with-test) js_of_ocaml js_of_ocaml-lwt)
+ (depends ocaml dune (odoc :with-doc) ppx_deriving (alcotest :with-test) js_of_ocaml js_of_ocaml-lwt (qcheck :with-test))
  (tags
   ("addictive" "french" "game" "best")))
 

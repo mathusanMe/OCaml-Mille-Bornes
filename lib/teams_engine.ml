@@ -151,6 +151,14 @@ let replace_player_in (t : team) (p : player) =
 let replace_team_in (teams : team list) (t : team) =
   List.map (fun x -> if same_team x t then t else x) teams
 
+exception Speed_limit_on_the_drive_pile
+exception Hazard_not_speed_limit_on_the_speed_pile
+
+let is_card_in_player_hand (p : player) (c : card) =
+  let p_struct = get_player_struct_from p in
+  let hand = p_struct.hand in
+  List.mem c hand
+
 let pp_player with_hand fmt p =
   let pp_hand b hand = if b then pp_deck_of_card "hand" fmt hand in
   match p with
@@ -238,23 +246,11 @@ let has_already_used_safety_card (p_info : public_informations)
 
 let has_safety_to_counter_hazard_on_public_informations
     (p_info : public_informations) (c : hazard_card) =
-  let necessary_safety =
-    match c with
-    | Stop | SpeedLimit -> EmergencyVehicle
-    | OutOfGas -> FuelTruck
-    | FlatTire -> PunctureProof
-    | Accident -> DrivingAce
-  in
+  let necessary_safety = get_safety_corresponding_to_the_hazard c in
   has_already_used_safety_card p_info necessary_safety
 
 let has_safety_to_counter_hazard_on_his_hand (p : player) (c : hazard_card) =
-  let necessary_safety =
-    match c with
-    | Stop | SpeedLimit -> EmergencyVehicle
-    | OutOfGas -> FuelTruck
-    | FlatTire -> PunctureProof
-    | Accident -> DrivingAce
-  in
+  let necessary_safety = get_safety_corresponding_to_the_hazard c in
   let p_hand =
     match p with
     | Computer (p_struct, _) -> p_struct.hand
