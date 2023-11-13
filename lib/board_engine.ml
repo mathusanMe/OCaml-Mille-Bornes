@@ -12,33 +12,6 @@ let get_current_team_from (b : board) = List.nth b.teams b.current_team_index
 
 exception Team_not_found
 
-let find_index (f : team -> bool) (teamlist : team list) =
-  let rec aux_find_index (indexe : int) (f : team -> bool)
-      (teamlist : team list) =
-    match teamlist with
-    | h :: t -> if f h then Some indexe else aux_find_index (indexe + 1) f t
-    | [] -> None
-  in
-  aux_find_index 0 f teamlist
-
-let set_previous_current_team_from (b : board) (t : team) =
-  let new_current_team_index =
-    find_index
-      (fun x ->
-        x.shared_public_informations.id = t.shared_public_informations.id)
-      b.teams
-  in
-  let previous_new_current_team_index =
-    match new_current_team_index with
-    | None -> raise Team_not_found
-    | Some i -> i - 1
-  in
-  let previous_new_current_team_index =
-    if previous_new_current_team_index = -1 then List.length b.teams - 1
-    else previous_new_current_team_index
-  in
-  { b with current_team_index = previous_new_current_team_index }
-
 let update_hand_for_player_in_team (b : board) (t : team) (p : player)
     (new_hand : deck_of_card) =
   let player_struct = get_player_struct_from p in
@@ -77,8 +50,23 @@ let discard_card (b : board) (t : team) (c : card) =
     else
       let new_hand = remove_card_from_deck player_struct.hand c in
       let new_teams = update_hand_for_player_in_team b t player new_hand in
-      let discard_pile = add_card_to_pile b.discard_pile c in
-      { b with discard_pile; teams = new_teams }
+      let new_discard_pile = add_card_to_pile b.discard_pile c in
+      { b with discard_pile = new_discard_pile; teams = new_teams }
+
+exception Player_not_found
+
+let discard_card_from_player (b : board) (t : team) (p : player) (c : card) =
+  if not (List.mem t b.teams) then raise Team_not_found
+  else if not (List.mem p t.players) then raise Player_not_found
+  else
+    let player_struct = get_player_struct_from p in
+    if player_struct.hand = [] then raise Empty_deck
+    else if not (List.mem c player_struct.hand) then raise Card_not_found
+    else
+      let new_hand = remove_card_from_deck player_struct.hand c in
+      let new_teams = update_hand_for_player_in_team b t p new_hand in
+      let new_discard_pile = add_card_to_pile b.discard_pile c in
+      { b with discard_pile = new_discard_pile; teams = new_teams }
 
 exception Invalid_move
 exception Unusable_card
@@ -125,7 +113,32 @@ let place_card (b : board) (t_from : team) (c : card) (t_to : team) =
             let new_teams_to = replace_team_in new_teams_from new_team_to in
             { b with teams = new_teams_to }
 
-exception Player_not_found
+let find_index (f : team -> bool) (teamlist : team list) =
+  let rec aux_find_index (index : int) (f : team -> bool) (teamlist : team list)
+      =
+    match teamlist with
+    | h :: t -> if f h then Some index else aux_find_index (index + 1) f t
+    | [] -> None
+  in
+  aux_find_index 0 f teamlist
+
+let set_previous_current_team_from (b : board) (t : team) =
+  let new_current_team_index =
+    find_index
+      (fun x ->
+        x.shared_public_informations.id = t.shared_public_informations.id)
+      b.teams
+  in
+  let previous_new_current_team_index =
+    match new_current_team_index with
+    | None -> raise Team_not_found
+    | Some i -> i - 1
+  in
+  let previous_new_current_team_index =
+    if previous_new_current_team_index = -1 then List.length b.teams - 1
+    else previous_new_current_team_index
+  in
+  { b with current_team_index = previous_new_current_team_index }
 
 let draw_card_with_hand (b : board) (hand : deck_of_card) =
   let card, new_draw_pile = draw_card_from_pile b.draw_pile in

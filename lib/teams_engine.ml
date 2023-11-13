@@ -10,7 +10,6 @@ type public_informations = {
   safety_area : deck_of_card;
   coup_fouree_cards : deck_of_card;
   score : int;
-  can_drive : bool;
 }
 
 type player = Computer of (player_struct * strategy) | Human of player_struct
@@ -23,13 +22,17 @@ and strategy = {
     public_informations list ->
     (int * int option) option;
   want_to_peek_discard_pile :
-    player -> card -> public_informations -> public_informations list -> bool;
+    player ->
+    card ->
+    public_informations ->
+    public_informations list ->
+    bool option;
   want_to_play_coup_fourre :
     player ->
     hazard_card ->
     public_informations ->
     public_informations list ->
-    bool;
+    bool option;
 }
 
 type team = {
@@ -55,7 +58,6 @@ let init_public_informations (i : int) =
     safety_area = [];
     coup_fouree_cards = [];
     score = 0;
-    can_drive = false;
   }
 
 let init_team_with_one_player (p : player) (id : int) =
@@ -294,30 +296,28 @@ let add_card_to_drive_pile (t : team) (c : card) =
       };
   }
 
-let set_can_drive (t : team) (set_can_drive : bool) =
-  {
-    t with
-    shared_public_informations =
-      { t.shared_public_informations with can_drive = set_can_drive };
-  }
-
-let is_usable_hazard_card (p_info : public_informations) = function
-  | SpeedLimit ->
-      (not
-         (has_safety_to_counter_hazard_on_public_informations p_info SpeedLimit))
-      && not (is_attacked_by_speed_limit p_info)
-  | hazard ->
-      (not (has_safety_to_counter_hazard_on_public_informations p_info hazard))
-      && not (is_attacked_by_hazard_on_drive_pile p_info)
+let is_usable_hazard_card (p_info : public_informations) (c : hazard_card) =
+  if is_empty p_info.drive_pile then false
+  else
+    match c with
+    | SpeedLimit ->
+        (not
+           (has_safety_to_counter_hazard_on_public_informations p_info
+              SpeedLimit))
+        && not (is_attacked_by_speed_limit p_info)
+    | hazard ->
+        (not
+           (has_safety_to_counter_hazard_on_public_informations p_info hazard))
+        && not (is_attacked_by_hazard_on_drive_pile p_info)
 
 let use_hazard_card (t : team) = function
   | SpeedLimit -> add_card_to_speed_limit_pile t (Hazard SpeedLimit)
-  | Stop -> set_can_drive (add_card_to_drive_pile t (Hazard Stop)) false
+  | Stop -> add_card_to_drive_pile t (Hazard Stop)
   | hazard -> add_card_to_drive_pile t (Hazard hazard)
 
 let is_usable_distance_card (p_info : public_informations) (c : distance_card) =
-  if (not p_info.can_drive) || is_attacked_by_hazard_on_drive_pile p_info then
-    false
+  if is_empty p_info.drive_pile || is_attacked_by_hazard_on_drive_pile p_info
+  then false
   else
     match c with
     | D200 ->
@@ -361,14 +361,7 @@ let add_card_to_safety_area (t : team) (s : safety_card) =
   }
 
 let use_safety_card (t : team) = function
-  | EmergencyVehicle ->
-      add_card_to_safety_area
-        {
-          t with
-          shared_public_informations =
-            { t.shared_public_informations with can_drive = true };
-        }
-        EmergencyVehicle
+  | EmergencyVehicle -> add_card_to_safety_area t EmergencyVehicle
   | safety -> add_card_to_safety_area t safety
 
 let add_card_to_coup_fouree (t : team) (s : safety_card) =
@@ -391,7 +384,6 @@ let use_coup_fouree (t : team) = function
           shared_public_informations =
             {
               t.shared_public_informations with
-              can_drive = true;
               score = t.shared_public_informations.score + 200;
             };
         }
@@ -410,7 +402,7 @@ let use_coup_fouree (t : team) = function
 
 let is_usable_remedy_card (p_info : public_informations) = function
   | Drive ->
-      (not p_info.can_drive)
+      is_empty p_info.drive_pile
       &&
       if is_attacked_by_hazard_on_drive_pile p_info then
         peek_card_from_pile p_info.drive_pile = Hazard Stop
@@ -425,7 +417,7 @@ let is_usable_remedy_card (p_info : public_informations) = function
 
 let use_remedy_card (t : team) = function
   | EndOfSpeedLimit -> add_card_to_speed_limit_pile t (Remedy EndOfSpeedLimit)
-  | Drive -> set_can_drive (add_card_to_drive_pile t (Remedy Drive)) true
+  | Drive -> add_card_to_drive_pile t (Remedy Drive)
   | remedy -> add_card_to_drive_pile t (Remedy remedy)
 
 let is_usable_card (p_info : public_informations) (c : card) =

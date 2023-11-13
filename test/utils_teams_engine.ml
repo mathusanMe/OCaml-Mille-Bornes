@@ -13,8 +13,8 @@ let strat =
   {
     name = "strat";
     choose_card_to_play = (fun _ _ _ -> Some (0, None));
-    want_to_peek_discard_pile = (fun _ _ _ _ -> false);
-    want_to_play_coup_fourre = (fun _ _ _ _ -> true);
+    want_to_peek_discard_pile = (fun _ _ _ _ -> Some false);
+    want_to_play_coup_fourre = (fun _ _ _ _ -> Some true);
   }
 
 let team_with_one_computer = init_team_with_one_computer "Computer" strat 7
@@ -45,7 +45,6 @@ let team1 =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = false;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
@@ -66,7 +65,6 @@ let team2 =
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
@@ -87,7 +85,6 @@ let team3 =
       safety_area = [ Safety FuelTruck ];
       coup_fouree_cards = [ Safety EmergencyVehicle ];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
@@ -108,7 +105,6 @@ let team4 =
       safety_area = [];
       coup_fouree_cards = [ Safety EmergencyVehicle ];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
@@ -129,7 +125,6 @@ let team5 =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 = Human { name = "name1"; hand = [] } in
@@ -152,7 +147,6 @@ let team6 =
       safety_area = [ Safety FuelTruck; Safety DrivingAce ];
       coup_fouree_cards = [ Safety EmergencyVehicle ];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 =

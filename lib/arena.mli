@@ -54,7 +54,11 @@ val initial_bot_choose_card_to_play :
    instead). *)
 
 val initial_bot_want_to_peek_discard_pile :
-  player -> card -> public_informations -> public_informations list -> bool
+  player ->
+  card ->
+  public_informations ->
+  public_informations list ->
+  bool option
 (* [initial_bot_want_to_peek_discard_pile p c pi pi_list] is an example of a bot
    function for the initial strategy, to know if the player wants to pick the
    discard pile card if true or the draw pile card if false, with c the card on
@@ -66,7 +70,7 @@ val initial_bot_want_to_play_coup_fourre :
   hazard_card ->
   public_informations ->
   public_informations list ->
-  bool
+  bool option
 (* [initial_bot_want_to_play_coup_fourre p h pi pi_list] is an example of a bot
    function for the initial strategy, to know whether the bot will play a coup
    fourre or not, depending on the situation with h the card attacking it, pi

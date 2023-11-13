@@ -44,7 +44,6 @@ let draw_card_team1 =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 = Human { name = "draw_card_team1_name1"; hand = [] } in
@@ -65,7 +64,6 @@ let draw_card_team2 =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 = Human { name = "draw_card_team2_name1"; hand = [] } in
@@ -86,7 +84,6 @@ let draw_card_team_not_in_board =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 =
@@ -135,7 +132,6 @@ let discard_card_team_with_current_player_with_empty_hand =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 =
@@ -160,7 +156,6 @@ let discard_card_team_with_current_player_with_non_empty_hand =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 =
@@ -188,7 +183,6 @@ let discard_card_team_not_in_board =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 =
@@ -229,7 +223,6 @@ let place_card_team_with_current_player_with_empty_hand =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 = Human { name = "place_card_team1_name1"; hand = [] } in
@@ -250,7 +243,6 @@ let place_card_team_with_current_player_with_non_empty_hand =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 =
@@ -278,7 +270,6 @@ let place_card_team_not_in_board =
       safety_area = [];
       coup_fouree_cards = [];
       score = 0;
-      can_drive = true;
     }
   in
   let player1 =

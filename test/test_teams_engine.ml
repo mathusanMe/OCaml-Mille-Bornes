@@ -428,7 +428,6 @@ let test_init_team_with_one_computer_player =
         player_struct.hand = []
         && player_struct.name = "Computer"
         && team_with_one_computer.shared_public_informations.score = 0
-        && team_with_one_computer.shared_public_informations.can_drive = false
         && team_with_one_computer.current_player_index = 0
         && public_informations_is_clear
              team_with_one_computer.shared_public_informations))
@@ -446,7 +445,6 @@ let test_init_team_with_one_human_player =
         player_struct.hand = []
         && player_struct.name = "Thomas"
         && team_with_one_computer.shared_public_informations.score = 0
-        && team_with_one_computer.shared_public_informations.can_drive = false
         && team_with_one_human.current_player_index = 0
         && public_informations_is_clear
              team_with_one_human.shared_public_informations))
@@ -468,7 +466,6 @@ let test_init_team_with_two_computer_players =
         && player1_struct.name = "Computer1"
         && player2_struct.name = "Computer2"
         && team_with_two_computers.shared_public_informations.score = 0
-        && team_with_two_computers.shared_public_informations.can_drive = false
         && team_with_two_computers.current_player_index = 0
         && public_informations_is_clear
              team_with_two_computers.shared_public_informations))
@@ -490,7 +487,6 @@ let test_init_team_with_two_human_players =
         && player1_struct.name = "Gabin"
         && player2_struct.name = "Mathusan"
         && team_with_two_humans.shared_public_informations.score = 0
-        && team_with_two_humans.shared_public_informations.can_drive = false
         && team_with_two_humans.current_player_index = 0
         && public_informations_is_clear
              team_with_two_humans.shared_public_informations))
@@ -513,7 +509,6 @@ let test_init_team_with_one_computer_player_and_one_human_player =
         && player1_struct.name = "Computer"
         && player2_struct.name = "Mathusan"
         && team_with_computer_human.shared_public_informations.score = 0
-        && team_with_computer_human.shared_public_informations.can_drive = false
         && team_with_computer_human.current_player_index = 0
         && public_informations_is_clear
              team_with_computer_human.shared_public_informations))
@@ -536,7 +531,6 @@ let test_init_team_with_one_human_player_and_one_computer_player =
         && player1_struct.name = "Gabin"
         && player2_struct.name = "Computer"
         && team_with_human_computer.shared_public_informations.score = 0
-        && team_with_human_computer.shared_public_informations.can_drive = false
         && team_with_human_computer.current_player_index = 0
         && public_informations_is_clear
              team_with_human_computer.shared_public_informations))
@@ -598,7 +592,7 @@ let test_is_usable_hazard_card1 =
            Hazard Accident;
          ]
         |> List.for_all (fun card ->
-               is_usable_card team1.shared_public_informations card)))
+               not (is_usable_card team1.shared_public_informations card))))
 
 let test_is_usable_hazard_card2 =
   Alcotest.test_case
@@ -744,7 +738,6 @@ let test_use_hazard_card =
                      Hazard FlatTire;
                      Hazard OutOfGas;
                    ];
-                 can_drive = false;
                };
            }
            = team
@@ -752,8 +745,9 @@ let test_use_hazard_card =
          res1 && res2 && res3 && res4 && res5 && res6))
 
 let test_is_usable_distance_card1 =
-  Alcotest.test_case "checks if a team cannot advance because can_drive = false"
-    `Quick (fun () ->
+  Alcotest.test_case
+    "checks if a team cannot advance because the team can't drive" `Quick
+    (fun () ->
       Alcotest.(check bool)
         "same result" true
         ([
@@ -976,7 +970,6 @@ let test_use_safety_card =
                {
                  team.shared_public_informations with
                  safety_area = [ Safety EmergencyVehicle; Safety FuelTruck ];
-                 can_drive = true;
                };
            }
            = team
@@ -994,7 +987,6 @@ let test_use_safety_card =
                      Safety FuelTruck;
                      Safety DrivingAce;
                    ];
-                 can_drive = true;
                };
            }
            = team
@@ -1028,7 +1020,6 @@ let test_use_coup_fouree =
                  coup_fouree_cards =
                    [ Safety EmergencyVehicle; Safety FuelTruck ];
                  score = 400;
-                 can_drive = true;
                };
            }
            = team
@@ -1047,7 +1038,6 @@ let test_use_coup_fouree =
                      Safety DrivingAce;
                    ];
                  score = 600;
-                 can_drive = true;
                };
            }
            = team
@@ -1217,7 +1207,6 @@ let test_use_remedy_card =
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
            && team.shared_public_informations.drive_pile
               = [ Remedy Drive; Remedy Repairs; Remedy SpareTire; Remedy Gas ]
-           && team.shared_public_informations.can_drive
            && {
                 team with
                 shared_public_informations =
@@ -1225,7 +1214,6 @@ let test_use_remedy_card =
                     team.shared_public_informations with
                     speed_limit_pile = [];
                     drive_pile = [];
-                    can_drive = false;
                   };
               }
               = team1

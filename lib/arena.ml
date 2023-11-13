@@ -6,8 +6,8 @@ type endplay = Win of team | GiveUpInGame of team | GiveUpInit
 
 let pp_endplay _ _ = (* TODO *) ()
 let initial_bot_choose_card_to_play _ _ _ = (* TODO *) Some (0, None)
-let initial_bot_want_to_peek_discard_pile _ _ _ _ = (* TODO *) true
-let initial_bot_want_to_play_coup_fourre _ _ _ _ = (* TODO *) true
+let initial_bot_want_to_peek_discard_pile _ _ _ _ = (* TODO *) Some true
+let initial_bot_want_to_play_coup_fourre _ _ _ _ = (* TODO *) Some true
 
 let initial_strategy =
   {
@@ -283,7 +283,7 @@ let play_move (current_player : player) (current_team : team) (b : board) =
         (get_list_of_other_public_information_than
            current_team.shared_public_informations b)
   | Human _ ->
-      player_teletype_choose_card_to_play_card current_player
+      player_teletype_choose_card_to_play current_player
         current_team.shared_public_informations
         (get_list_of_other_public_information_than
            current_team.shared_public_informations b)
@@ -339,7 +339,7 @@ let try_place_card (b : board) (current_team : team) (card_used : card)
       in
       match player_have_counter with
       | None -> Some new_board
-      | Some player_have_counter ->
+      | Some player_have_counter -> (
           let necessary_safety =
             match hazard with
             | Stop | SpeedLimit -> EmergencyVehicle
@@ -347,7 +347,7 @@ let try_place_card (b : board) (current_team : team) (card_used : card)
             | FlatTire -> PunctureProof
             | Accident -> DrivingAce
           in
-          if
+          match
             match player_have_counter with
             | Computer (_, p_strat) ->
                 p_strat.want_to_play_coup_fourre player_have_counter hazard
@@ -359,19 +359,30 @@ let try_place_card (b : board) (current_team : team) (card_used : card)
                   hazard target_team.shared_public_informations
                   (get_list_of_other_public_information_than
                      target_team.shared_public_informations b)
-          then
-            let new_board =
-              try
-                place_coup_fouree b target_team player_have_counter
-                  necessary_safety
-              with
-              | Team_not_found | Player_not_found | Card_not_found
-              | Unusable_card | Empty_deck
-              ->
-                raise Place_card_error
-            in
-            Some new_board
-          else Some new_board)
+          with
+          | Some true ->
+              let new_board =
+                try
+                  place_coup_fouree b target_team player_have_counter
+                    necessary_safety
+                with
+                | Team_not_found | Player_not_found | Card_not_found
+                | Unusable_card | Empty_deck
+                ->
+                  raise Place_card_error
+              in
+              Some
+                (try
+                   discard_card_from_player new_board current_team
+                     (get_current_player_from current_team)
+                     card_used
+                 with
+                 | Team_not_found | Player_not_found | Empty_deck
+                 | Card_not_found
+                 ->
+                   raise Place_card_error)
+          | Some false -> Some new_board
+          | None -> None))
   | _ -> Some new_board
 
 let rec play_move_player b =
@@ -379,10 +390,12 @@ let rec play_move_player b =
     match current_player with
     | Computer (p_struct, _) ->
         let () =
-          Format.printf "Computer %s have try an invalid move@ " p_struct.name
+          Format.printf "Computer %s has try an invalid move@ " p_struct.name
         in
         if
-          request_yes_or_no "Do you still want to keep playing the computer?"
+          request_yes_or_no
+            "The bot was unable to make a move due to an error on its part. \
+             Should the game be stopped?"
           = Some true
         then play_move_player b
         else raise Computer_invalid_move

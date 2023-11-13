@@ -29,6 +29,12 @@ val discard_card : board -> team -> card -> board
  * of the current player, raise CardNotFound. If the team is not found, raise
  * TeamNotFound. *)
 
+val discard_card_from_player : board -> team -> player -> card -> board
+(* [discard_card b t p c] discards card [c] from the hand of [p] player
+ * on team [t] and adds it to the discard pile. If the card is not in the hand
+ * of the [p] player, raise CardNotFound. If the team is not found, raise
+ * TeamNotFound. If the player is not found on the team, raise PlayerNotFound*)
+
 exception Invalid_move
 exception Unusable_card
 
