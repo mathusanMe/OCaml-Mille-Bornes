@@ -113,14 +113,13 @@ let place_card (b : board) (t_from : team) (c : card) (t_to : team) =
             let new_teams_to = replace_team_in new_teams_from new_team_to in
             { b with teams = new_teams_to }
 
-let find_index (f : team -> bool) (teamlist : team list) =
-  let rec aux_find_index (index : int) (f : team -> bool) (teamlist : team list)
-      =
-    match teamlist with
-    | h :: t -> if f h then Some index else aux_find_index (index + 1) f t
+let find_index f l =
+  let rec aux_find_index i l =
+    match l with
+    | h :: t -> if f h then Some i else aux_find_index (i + 1) t
     | [] -> None
   in
-  aux_find_index 0 f teamlist
+  aux_find_index 0 l
 
 let set_previous_current_team_from (b : board) (t : team) =
   let new_current_team_index =

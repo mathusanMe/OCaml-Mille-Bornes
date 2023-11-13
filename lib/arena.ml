@@ -313,8 +313,84 @@ let try_discard_card (b : board) (current_team : team) (card_used : card) =
   in
   Some new_board
 
-let try_place_card (b : board) (current_team : team) (card_used : card)
+let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
+    (new_board_after_place_hazard_card : board) (current_team : team)
+    (card_used : card) (hazard : hazard_card) (target_team : team)
     (id_of_target_public_informations : int) =
+  let player_have_counter =
+    try
+      Some
+        (List.find
+           (fun p -> has_safety_to_counter_hazard_on_his_hand p hazard)
+           target_team.players)
+    with Not_found -> None
+  in
+  match player_have_counter with
+  | None -> Some new_board_after_place_hazard_card
+  | Some player_have_counter -> (
+      let necessary_safety =
+        match hazard with
+        | Stop | SpeedLimit -> EmergencyVehicle
+        | OutOfGas -> FuelTruck
+        | FlatTire -> PunctureProof
+        | Accident -> DrivingAce
+      in
+      match
+        match player_have_counter with
+        | Computer (_, p_strat) ->
+            p_strat.want_to_play_coup_fourre player_have_counter hazard
+              target_team.shared_public_informations
+              (get_list_of_other_public_information_than
+                 target_team.shared_public_informations
+                 previous_board_befor_place_hazard_card)
+        | Human _ ->
+            player_teletype_want_to_play_coup_fourre player_have_counter hazard
+              target_team.shared_public_informations
+              (get_list_of_other_public_information_than
+                 target_team.shared_public_informations
+                 previous_board_befor_place_hazard_card)
+      with
+      | Some true ->
+          let new_board =
+            try
+              place_coup_fouree previous_board_befor_place_hazard_card
+                target_team player_have_counter necessary_safety
+            with
+            | Team_not_found | Player_not_found | Card_not_found | Unusable_card
+            | Empty_deck
+            ->
+              raise Place_card_error
+          in
+          let new_board =
+            try
+              discard_card_from_player new_board current_team
+                (get_current_player_from current_team)
+                card_used
+            with
+            | Team_not_found | Player_not_found | Empty_deck | Card_not_found ->
+              raise Place_card_error
+          in
+          let () =
+            Format.printf
+              "Player %s on team %d has used %a on coup fouree. The card %a go \
+               on discard pile.@ "
+              (get_player_struct_from player_have_counter).name
+              id_of_target_public_informations pp_card (Safety necessary_safety)
+              pp_card card_used
+          in
+          Some new_board
+      | Some false ->
+          let () =
+            Format.printf
+              "Player %s on team %d has decide to not use %a on coup fouree.@ "
+              (get_player_struct_from player_have_counter).name
+              id_of_target_public_informations pp_card (Safety necessary_safety)
+          in
+          Some new_board_after_place_hazard_card
+      | None -> None)
+
+let try_place_card (b : board) (current_team : team) (current_player : player)
+    (card_used : card) (id_of_target_public_informations : int) =
   let target_team =
     try_get_team_corresponding_public_information
       id_of_target_public_informations b.teams
@@ -327,62 +403,15 @@ let try_place_card (b : board) (current_team : team) (card_used : card)
       in
       raise Place_card_error
   in
+  let () =
+    Format.printf "Player %s has use %a on team %d@ "
+      (get_player_struct_from current_player).name pp_card card_used
+      id_of_target_public_informations
+  in
   match card_used with
-  | Hazard hazard -> (
-      let player_have_counter =
-        try
-          Some
-            (List.find
-               (fun p -> has_safety_to_counter_hazard_on_his_hand p hazard)
-               target_team.players)
-        with Not_found -> None
-      in
-      match player_have_counter with
-      | None -> Some new_board
-      | Some player_have_counter -> (
-          let necessary_safety =
-            match hazard with
-            | Stop | SpeedLimit -> EmergencyVehicle
-            | OutOfGas -> FuelTruck
-            | FlatTire -> PunctureProof
-            | Accident -> DrivingAce
-          in
-          match
-            match player_have_counter with
-            | Computer (_, p_strat) ->
-                p_strat.want_to_play_coup_fourre player_have_counter hazard
-                  target_team.shared_public_informations
-                  (get_list_of_other_public_information_than
-                     target_team.shared_public_informations b)
-            | Human _ ->
-                player_teletype_want_to_play_coup_fourre player_have_counter
-                  hazard target_team.shared_public_informations
-                  (get_list_of_other_public_information_than
-                     target_team.shared_public_informations b)
-          with
-          | Some true ->
-              let new_board =
-                try
-                  place_coup_fouree b target_team player_have_counter
-                    necessary_safety
-                with
-                | Team_not_found | Player_not_found | Card_not_found
-                | Unusable_card | Empty_deck
-                ->
-                  raise Place_card_error
-              in
-              Some
-                (try
-                   discard_card_from_player new_board current_team
-                     (get_current_player_from current_team)
-                     card_used
-                 with
-                 | Team_not_found | Player_not_found | Empty_deck
-                 | Card_not_found
-                 ->
-                   raise Place_card_error)
-          | Some false -> Some new_board
-          | None -> None))
+  | Hazard hazard ->
+      try_use_coup_fouree b new_board current_team card_used hazard target_team
+        id_of_target_public_informations
   | _ -> Some new_board
 
 let rec play_move_player b =
@@ -413,7 +442,10 @@ let rec play_move_player b =
   | Some (id_card_on_deck_of_current_player, id_of_target_public_informations)
     -> (
       match id_card_on_deck_of_current_player with
-      | id when 0 <= id && id < 7 -> (
+      | id
+        when 0 <= id
+             && id < List.length (get_player_struct_from current_player).hand
+        -> (
           let card_used =
             nth_hand_player current_player id_card_on_deck_of_current_player
           in
@@ -424,11 +456,18 @@ let rec play_move_player b =
           | Some id_of_target_public_informations -> (
               (*place card case*)
               try
-                try_place_card b current_team card_used
+                try_place_card b current_team current_player card_used
                   id_of_target_public_informations
               with
-              | Invalid_id_public_information | Invalid_move | Unusable_card ->
-                retry_play_move_player b current_player))
+              | Invalid_id_public_information ->
+                  Format.printf "Invalid_id_public_information@ ";
+                  retry_play_move_player b current_player
+              | Invalid_move ->
+                  Format.printf "Invalid_move@ ";
+                  retry_play_move_player b current_player
+              | Unusable_card ->
+                  Format.printf "Unusable_card@ ";
+                  retry_play_move_player b current_player))
       | _ -> retry_play_move_player b current_player)
 
 let arena () = (* TODO *) ()

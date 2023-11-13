@@ -358,6 +358,66 @@ let test_place_distance_card_from_team_with_current_player_with_card_within_hand
          && (not (List.mem card new_player_struct.hand))
          && List.mem card new_team.shared_public_informations.distance_cards))
 
+let test_place_coup_fouree1 =
+  Alcotest.test_case "test place_coup_fouree in simple case" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (place_coup_fouree board1 team1 player11 EmergencyVehicle
+        = {
+            board1 with
+            teams =
+              [
+                {
+                  team1 with
+                  shared_public_informations =
+                    {
+                      team1.shared_public_informations with
+                      score = 200;
+                      coup_fouree_cards = [ Safety EmergencyVehicle ];
+                      drive_pile = [ Remedy Drive ];
+                    };
+                  players =
+                    [
+                      Human
+                        {
+                          name = "player_team1_name1";
+                          hand = [ Distance D200 ];
+                        };
+                      player12;
+                    ];
+                };
+                team2;
+              ];
+            draw_pile = [ Remedy Drive ];
+            current_team_index = 1;
+          }))
+
+let test_place_coup_fouree2 =
+  Alcotest.test_case "raise Player_not_found" `Quick (fun () ->
+      Alcotest.check_raises "Expected Player_not_found" Player_not_found
+        (fun () ->
+          ignore (place_coup_fouree board1 team1 player21 EmergencyVehicle)))
+
+let test_place_coup_fouree3 =
+  Alcotest.test_case "raise Team_not_found" `Quick (fun () ->
+      Alcotest.check_raises "Expected Team_not_found" Team_not_found (fun () ->
+          ignore (place_coup_fouree board1 team3 player31 EmergencyVehicle)))
+
+let test_place_coup_fouree4 =
+  Alcotest.test_case "raise Empty_deck" `Quick (fun () ->
+      Alcotest.check_raises "Expected Empty_deck" Empty_deck (fun () ->
+          ignore (place_coup_fouree board1 team2 player21 EmergencyVehicle)))
+
+let test_place_coup_fouree5 =
+  Alcotest.test_case "raise Card_not_found" `Quick (fun () ->
+      Alcotest.check_raises "Expected Card_not_found" Card_not_found (fun () ->
+          ignore (place_coup_fouree board1 team1 player11 FuelTruck)))
+
+let test_place_coup_fouree6 =
+  Alcotest.test_case "raise Unusable_card" `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore (place_coup_fouree board1 team2 player22 FuelTruck)))
+
 let () =
   let open Alcotest in
   run "Board_engine"
@@ -389,5 +449,14 @@ let () =
           test_place_attack_card_from_team_with_current_player_with_card_within_hand_to_another_team;
           test_place_defend_card_from_team_with_current_player_with_card_within_hand_to_same_team;
           test_place_distance_card_from_team_with_current_player_with_card_within_hand_to_same_team;
+        ] );
+      ( "place coup fouree from team",
+        [
+          test_place_coup_fouree1;
+          test_place_coup_fouree2;
+          test_place_coup_fouree3;
+          test_place_coup_fouree4;
+          test_place_coup_fouree5;
+          test_place_coup_fouree6;
         ] );
     ]

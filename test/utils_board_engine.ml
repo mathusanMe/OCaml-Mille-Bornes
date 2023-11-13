@@ -311,3 +311,78 @@ let place_card_board_with_teams =
       ];
     current_team_index = 0;
   }
+
+let player11 =
+  Human { name = "player_team1_name1"; hand = [ Safety EmergencyVehicle ] }
+
+let player12 = Human { name = "player_team1_name2"; hand = [] }
+
+let team1 =
+  let public_informations =
+    {
+      id = 0;
+      speed_limit_pile = [];
+      drive_pile = [ Remedy Drive ];
+      distance_cards = [];
+      safety_area = [];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ player11; player12 ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
+
+let player21 = Human { name = "player_team2_name1"; hand = [] }
+
+let player22 =
+  Human { name = "player_team2_name2"; hand = [ Safety FuelTruck ] }
+
+let team2 =
+  let public_informations =
+    {
+      id = 1;
+      speed_limit_pile = [];
+      drive_pile = [];
+      distance_cards = [];
+      safety_area = [ Safety FuelTruck ];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ player21; player22 ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
+
+let board1 =
+  {
+    draw_pile = [ Distance D200; Remedy Drive ];
+    discard_pile = [ Hazard Accident; Remedy Repairs ];
+    teams = [ team1; team2 ];
+    current_team_index = 0;
+  }
+
+let player31 = Human { name = "player_team3_name1"; hand = [] }
+let player32 = Human { name = "player_team3_name2"; hand = [] }
+
+let team3 =
+  let public_informations =
+    {
+      id = 2;
+      speed_limit_pile = [];
+      drive_pile = [];
+      distance_cards = [];
+      safety_area = [];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ player31; player32 ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
