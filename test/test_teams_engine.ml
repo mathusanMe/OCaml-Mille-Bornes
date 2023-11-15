@@ -584,15 +584,12 @@ let test_is_usable_hazard_card1 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ([
-           Hazard Stop;
-           Hazard SpeedLimit;
-           Hazard OutOfGas;
-           Hazard FlatTire;
-           Hazard Accident;
-         ]
-        |> List.for_all (fun card ->
-               not (is_usable_card team1.shared_public_informations card))))
+        ([ Hazard Stop; Hazard OutOfGas; Hazard FlatTire; Hazard Accident ]
+         |> List.for_all (fun card ->
+                not (is_usable_card team1.shared_public_informations card))
+        && [ Hazard SpeedLimit ]
+           |> List.for_all (fun card ->
+                  is_usable_card team1.shared_public_informations card)))
 
 let test_is_usable_hazard_card2 =
   Alcotest.test_case

@@ -301,6 +301,11 @@ let try_discard_card (b : board) (current_team : team) (card_used : card) =
       in
       raise Discard_card_error
   in
+  let () =
+    Format.printf "The player %s has discard the card %a.@ "
+      (get_player_struct_from (get_current_player_from current_team)).name
+      pp_card card_used
+  in
   Some new_board
 
 let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
@@ -343,6 +348,10 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
             | Team_not_found | Player_not_found | Card_not_found | Unusable_card
             | Empty_deck
             ->
+              let () =
+                Format.printf
+                  "An error occurs when try you to place_coup_fouree.@ "
+              in
               raise Place_card_error
           in
           let new_board =
@@ -352,6 +361,11 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
                 card_used
             with
             | Team_not_found | Player_not_found | Empty_deck | Card_not_found ->
+              let () =
+                Format.printf
+                  "An error occurs when try you to discard_card_from_player \
+                   after the coup fouree.@ "
+              in
               raise Place_card_error
           in
           let () =
@@ -396,6 +410,7 @@ let try_place_card (b : board) (current_team : team) (current_player : player)
   | Hazard hazard ->
       try_use_coup_fouree b new_board current_team card_used hazard target_team
         id_of_target_public_informations
+  | Safety _ -> Some (set_previous_current_team_from new_board current_team)
   | _ -> Some new_board
 
 let rec play_move_player b =

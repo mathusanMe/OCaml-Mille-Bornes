@@ -50,6 +50,11 @@ val place_card : board -> team -> card -> team -> board
 
 exception Player_not_found
 
+val set_previous_current_team_from : board -> team -> board
+(* [set_previous_current_team_from b t] take a board [b] and a team [t]
+ * and return a new board with the team that normally precedes [t] as 
+ * current team index*)
+
 val place_coup_fouree : board -> team -> player -> safety_card -> board
 (* [place_coup_fouree b t p c] places safety card [c] from the hand of the 
  * [p] player on team [t] and places it on the driving zone of team [t]. 

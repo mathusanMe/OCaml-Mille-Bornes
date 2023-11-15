@@ -290,26 +290,30 @@ let add_card_to_drive_pile (t : team) (c : card) =
   }
 
 let is_usable_hazard_card (p_info : public_informations) (c : hazard_card) =
-  if is_empty p_info.drive_pile then false
-  else
-    match c with
-    | SpeedLimit ->
-        (not
-           (has_safety_to_counter_hazard_on_public_informations p_info
-              SpeedLimit))
-        && not (is_attacked_by_speed_limit p_info)
-    | hazard ->
+  match c with
+  | SpeedLimit ->
+      (not
+         (has_safety_to_counter_hazard_on_public_informations p_info SpeedLimit))
+      && not (is_attacked_by_speed_limit p_info)
+  | hazard ->
+      if
+        is_empty p_info.drive_pile
+        && not (has_already_used_safety_card p_info EmergencyVehicle)
+      then false
+      else
         (not
            (has_safety_to_counter_hazard_on_public_informations p_info hazard))
         && not (is_attacked_by_hazard_on_drive_pile p_info)
 
 let use_hazard_card (t : team) = function
   | SpeedLimit -> add_card_to_speed_limit_pile t (Hazard SpeedLimit)
-  | Stop -> add_card_to_drive_pile t (Hazard Stop)
   | hazard -> add_card_to_drive_pile t (Hazard hazard)
 
 let is_usable_distance_card (p_info : public_informations) (c : distance_card) =
-  if is_empty p_info.drive_pile || is_attacked_by_hazard_on_drive_pile p_info
+  if
+    is_empty p_info.drive_pile
+    && not (has_already_used_safety_card p_info EmergencyVehicle)
+    || is_attacked_by_hazard_on_drive_pile p_info
   then false
   else
     match c with
@@ -394,15 +398,16 @@ let use_coup_fouree (t : team) = function
         safety
 
 let is_usable_remedy_card (p_info : public_informations) = function
+  | EndOfSpeedLimit ->
+      is_attacked_by_speed_limit p_info
+      && not (has_already_used_safety_card p_info EmergencyVehicle)
   | Drive ->
-      is_empty p_info.drive_pile
-      &&
-      if is_attacked_by_hazard_on_drive_pile p_info then
-        peek_card_from_pile p_info.drive_pile = Hazard Stop
-      else true
-  | EndOfSpeedLimit -> is_attacked_by_speed_limit p_info
+      (not (has_already_used_safety_card p_info EmergencyVehicle))
+      && (is_empty p_info.drive_pile
+         || is_attacked_by_hazard_on_drive_pile p_info
+            && peek_card_from_pile p_info.drive_pile = Hazard Stop)
   | remedy ->
-      (not (is_empty p_info.drive_pile))
+      is_attacked_by_hazard_on_drive_pile p_info
       &&
       let hazard = get_hazard_corresponding_to_the_remedy remedy in
       peek_card_from_pile p_info.drive_pile = Hazard hazard
