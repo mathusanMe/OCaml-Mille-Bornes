@@ -109,6 +109,13 @@ let get_current_player_from (t : team) =
 let get_player_struct_from (p : player) =
   match p with Human p_struct -> p_struct | Computer (p_struct, _) -> p_struct
 
+let get_names_from (t : team) =
+  List.map
+    (fun p ->
+      let p_struct = get_player_struct_from p in
+      p_struct.name)
+    t.players
+
 let set_next_player_from (t : team) =
   if List.length t.players = 2 then
     {
@@ -187,11 +194,13 @@ let pp_player_list_with_one_player_hand player fmt players =
   Format.fprintf fmt "Name(s) with deck of %s :@ %a"
     (get_player_struct_from player).name pp_iter players
 
-let pp_public_informations fmt dz =
+let pp_public_informations with_entirely_pi fmt dz =
   Format.fprintf fmt "Driving Zone : @ %a@;%a@;%a%a%a"
-    (pp_top_pile_of_card "Top of speed limit pile")
+    (if with_entirely_pi then pp_pile_of_card "Speed limit pile"
+     else pp_top_pile_of_card "Top of speed limit pile")
     dz.speed_limit_pile
-    (pp_top_pile_of_card "Top of drive pile")
+    (if with_entirely_pi then pp_pile_of_card "Drive pile"
+     else pp_top_pile_of_card "Top of drive pile")
     dz.drive_pile
     (pp_deck_of_card "Distance cards")
     dz.distance_cards
@@ -200,24 +209,30 @@ let pp_public_informations fmt dz =
     (pp_deck_of_card "Coup fourree cards")
     dz.coup_fouree_cards
 
-let pp_team with_hand fmt team =
+let pp_team with_hand with_entirely_pi fmt team =
   let pp_player_list =
     if with_hand then pp_player_list_with_all_hands
     else pp_player_list_with_no_hand
   in
-  Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;" pp_player_list team.players
-    pp_public_informations team.shared_public_informations
+  Format.fprintf fmt "@[<v>%a@]Score : %d@ @[<v>%a@]@;" pp_player_list
+    team.players team.shared_public_informations.score
+    (pp_public_informations with_entirely_pi)
+    team.shared_public_informations
 
 let pp_team_with_hand_of player fmt team =
-  Format.fprintf fmt "@[<v>%a@]@[<v>%a@]@;"
+  Format.fprintf fmt "@[<v>%a@]Score : %d@ @[<v>%a@]@;"
     (pp_player_list_with_one_player_hand player)
-    team.players pp_public_informations team.shared_public_informations
+    team.players team.shared_public_informations.score
+    (pp_public_informations false)
+    team.shared_public_informations
 
 let pp_public_informations_list fmt pinfo_list =
   pinfo_list
   |> ((fun fmt ->
         List.iteri (fun i e ->
-            Format.fprintf fmt "%d. @[<v>%a@]@;" i pp_public_informations e))
+            Format.fprintf fmt "%d. @[<v>%a@]@;" i
+              (pp_public_informations false)
+              e))
      |> Format.fprintf fmt "@[<v>%a@]")
 
 let pp_names_of_team_list fmt teams =

@@ -2,9 +2,15 @@ open Cards_engine
 open Teams_engine
 open Board_engine
 
-type endplay = Win of team | GiveUpInGame of team | GiveUpInit
+type endplay =
+  | Win of string list
+  | GiveUpInGame of string list
+  | GiveUpInit
+  | Error of string
 
 val pp_endplay : Format.formatter -> endplay -> unit
+val has_win : team -> bool
+val get_strategy_list : unit -> strategy list
 
 val player_teletype_choose_card_to_play :
   player ->
@@ -53,6 +59,6 @@ val play_move_player : board -> board option
 (* [play_move_player b] simulates the current player's move on a board, and returns
    the changed board. *)
 
-val arena : unit -> unit
+val arena : unit -> endplay
 (* [arena] simulates a game for a player initialized at the start of the
    function, and returns the result of the game. *)

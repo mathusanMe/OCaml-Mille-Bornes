@@ -234,6 +234,7 @@ let test_add_card_to_deck3 =
            (add_card_to_deck exemple_deck3 (Remedy EndOfSpeedLimit))))
 
 let () =
+  Random.self_init ();
   let open Alcotest in
   run "Cards_engine"
     [

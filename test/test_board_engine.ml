@@ -3,6 +3,61 @@ open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
 open Utils_board_engine
 
+let test_switch_current_player_of_current_team_from =
+  Alcotest.test_case "test switch_current_player_of_current_team_from" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let board2_with_idx_of_current_team_changed1 =
+           switch_current_player_of_current_team_from board2
+         in
+         let board2_with_idx_of_current_team_changed0 =
+           switch_current_player_of_current_team_from
+             board2_with_idx_of_current_team_changed1
+         in
+         let current_team_initital = get_current_team_from board2 in
+         let current_team_1 =
+           get_current_team_from board2_with_idx_of_current_team_changed1
+         in
+         let current_team_0 =
+           get_current_team_from board2_with_idx_of_current_team_changed0
+         in
+         current_team_initital.current_player_index = 0
+         && current_team_1.current_player_index = 1
+         && current_team_0.current_player_index = 0))
+
+let test_switch_current_team_from =
+  Alcotest.test_case "test switch_current_team_from on board2" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let board2_with_idx1 = switch_current_team_from board2 in
+         let board2_with_idx2 = switch_current_team_from board2_with_idx1 in
+         let board2_with_idx_return_to_0 =
+           switch_current_team_from board2_with_idx2
+         in
+         board2.current_team_index = 0
+         && board2_with_idx1.current_team_index = 1
+         && board2_with_idx2.current_team_index = 2
+         && board2_with_idx_return_to_0.current_team_index = 0))
+
+let test_draw_initial_hand_to_teams =
+  Alcotest.test_case "test_draw_initial_hand_to_teams" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let new_board = draw_initial_hand_to_teams board3 in
+         let test =
+           List.fold_left
+             (fun acc t ->
+               List.fold_left
+                 (fun acc p ->
+                   let p_struct = get_player_struct_from p in
+                   List.length p_struct.hand = 6 && acc)
+                 true t.players
+               && acc)
+             true new_board.teams
+         in
+         test && List.length new_board.draw_pile = 106 - (2 * 3 * 6)))
+
 let test_draw_card_from_draw_pile_for_team_not_in_game =
   Alcotest.test_case
     "raise Team_not_found on draw from draw pile for team not in game" `Quick
@@ -10,7 +65,7 @@ let test_draw_card_from_draw_pile_for_team_not_in_game =
       Alcotest.check_raises "Expected Team_not_found" Team_not_found (fun () ->
           ignore
             (draw_card draw_card_board_with_draw_pile
-               draw_card_team_not_in_board)))
+               draw_card_team_not_in_board false)))
 
 let test_draw_card_from_empty_draw_pile =
   Alcotest.test_case "raise Empty_pile on draw from empty draw pile" `Quick
@@ -18,7 +73,8 @@ let test_draw_card_from_empty_draw_pile =
       Alcotest.check_raises "Expected Empty_pile" Empty_pile (fun () ->
           ignore
             (draw_card draw_card_board_with_empty_draw_pile
-               (get_current_team_from draw_card_board_with_empty_draw_pile))))
+               (get_current_team_from draw_card_board_with_empty_draw_pile)
+               false)))
 
 let test_draw_card_from_non_empty_draw_pile =
   Alcotest.test_case "draw card from non empty draw pile" `Quick (fun () ->
@@ -33,7 +89,7 @@ let test_draw_card_from_non_empty_draw_pile =
          let current_player_struct = get_player_struct_from current_player in
          let current_player_hand = current_player_struct.hand in
          let new_board_with_draw_pile =
-           draw_card draw_card_board_with_draw_pile current_team
+           draw_card draw_card_board_with_draw_pile current_team false
          in
          compare_all_hands_except_player draw_card_board_with_draw_pile
            new_board_with_draw_pile current_player
@@ -54,6 +110,65 @@ let test_draw_card_from_non_empty_draw_pile =
          && List.length new_hand = List.length current_player_hand + 1
          && List.length draw_card_board_with_draw_pile.draw_pile
             = List.length new_board_with_draw_pile.draw_pile + 1))
+
+let test_draw_card_from_empty_discard_pile =
+  Alcotest.test_case "raise Empty_pile on draw from empty discard pile" `Quick
+    (fun () ->
+      Alcotest.check_raises "Expected Empty_pile" Empty_pile (fun () ->
+          ignore
+            (draw_card draw_card_board_with_empty_discard_pile
+               (get_current_team_from draw_card_board_with_empty_discard_pile)
+               true)))
+
+let test_draw_card_from_discard_pile_for_team_not_in_game =
+  Alcotest.test_case
+    "raise Team_not_found on draw from discard pile for team not in game" `Quick
+    (fun () ->
+      Alcotest.check_raises "Expected Team_not_found" Team_not_found (fun () ->
+          ignore
+            (draw_card board_with_empty_draw_pile_and_heavy_discard_pile
+               draw_card_team_not_in_board true)))
+
+let test_draw_card_from_non_empty_discard_pile =
+  Alcotest.test_case "draw card from non empty discard pile" `Quick (fun () ->
+      Alcotest.(check bool)
+        "draw and add card to current team's current player's hand" true
+        (let discard_pile =
+           board_with_empty_draw_pile_and_heavy_discard_pile.discard_pile
+         in
+         let card = peek_card_from_pile discard_pile in
+         let current_team =
+           get_current_team_from
+             board_with_empty_draw_pile_and_heavy_discard_pile
+         in
+         let current_player = get_current_player_from current_team in
+         let current_player_struct = get_player_struct_from current_player in
+         let current_player_hand = current_player_struct.hand in
+         let new_board_with_discard_pile =
+           draw_card board_with_empty_draw_pile_and_heavy_discard_pile
+             current_team true
+         in
+         compare_all_hands_except_player
+           board_with_empty_draw_pile_and_heavy_discard_pile
+           new_board_with_discard_pile current_player
+         &&
+         let new_team =
+           List.find
+             (fun team -> same_team team current_team)
+             new_board_with_discard_pile.teams
+         in
+         let new_player =
+           List.find
+             (fun player -> same_player player current_player)
+             new_team.players
+         in
+         let new_player_struct = get_player_struct_from new_player in
+         let new_hand = new_player_struct.hand in
+         List.mem card new_hand
+         && List.length new_hand = List.length current_player_hand + 1
+         && List.length
+              board_with_empty_draw_pile_and_heavy_discard_pile.discard_pile
+            = List.length new_board_with_discard_pile.discard_pile + 1))
 
 let test_switch_draw_and_discard_pile_from_empty_draw_pile =
   Alcotest.test_case "switch empty draw pile and discard pile" `Quick (fun () ->
@@ -419,14 +534,28 @@ let test_place_coup_fouree6 =
           ignore (place_coup_fouree board1 team2 player22 FuelTruck)))
 
 let () =
+  Random.self_init ();
   let open Alcotest in
   run "Board_engine"
     [
+      ("switch current team from", [ test_switch_current_team_from ]);
+      ( "switch current player from current team",
+        [ test_switch_current_player_of_current_team_from ] );
+      ("draw initial hand to teams", [ test_draw_initial_hand_to_teams ]);
       ( "draw card from draw pile",
         [
           test_draw_card_from_empty_draw_pile;
           test_draw_card_from_draw_pile_for_team_not_in_game;
           test_draw_card_from_non_empty_draw_pile;
+        ] );
+      ( "draw card from discard pile",
+        [
+          test_draw_card_from_empty_discard_pile;
+          test_draw_card_from_discard_pile_for_team_not_in_game;
+          test_draw_card_from_non_empty_discard_pile;
+        ] );
+      ( "switch draw and discard pile",
+        [
           test_switch_draw_and_discard_pile_from_empty_draw_pile;
           test_switch_draw_and_discard_pile_from_empty_draw_pile_and_heavy_discard_pile;
         ] );

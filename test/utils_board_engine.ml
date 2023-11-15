@@ -114,6 +114,14 @@ let draw_card_board_with_empty_draw_pile =
     current_team_index = 1;
   }
 
+let draw_card_board_with_empty_discard_pile =
+  {
+    draw_pile = [ Hazard Accident; Remedy Repairs; Distance D25 ];
+    discard_pile = [];
+    teams = [ draw_card_team1; draw_card_team2 ];
+    current_team_index = 1;
+  }
+
 let board_with_empty_draw_pile_and_heavy_discard_pile =
   {
     draw_pile = [];
@@ -385,4 +393,24 @@ let team3 =
     players = [ player31; player32 ];
     shared_public_informations = public_informations;
     current_player_index = 0;
+  }
+
+let board2 = { board1 with teams = [ team1; team2; team3 ] }
+
+let board3 =
+  {
+    board1 with
+    draw_pile = generate_initial_pile ();
+    teams =
+      [
+        {
+          team3 with
+          shared_public_informations = team1.shared_public_informations;
+        };
+        {
+          team3 with
+          shared_public_informations = team2.shared_public_informations;
+        };
+        team3;
+      ];
   }

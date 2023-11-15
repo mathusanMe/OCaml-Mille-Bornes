@@ -135,7 +135,6 @@ let draw_card_from_pile (p : pile_of_card) =
 let sort_card_list l = List.sort compare l
 
 let shuffle_pile (p : pile_of_card) =
-  let _ = Random.self_init () in
   let rec aux_shuffle_pile = function
     | [] -> []
     | [ card ] -> [ card ]

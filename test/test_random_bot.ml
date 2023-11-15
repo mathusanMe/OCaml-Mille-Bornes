@@ -51,6 +51,7 @@ let test_random_bot_want_to_peek_discard_pile =
       | _ -> false)
 
 let _ =
+  Random.self_init ();
   QCheck_runner.run_tests ~verbose:true
     [
       test_random_bot_choose_card_to_play;

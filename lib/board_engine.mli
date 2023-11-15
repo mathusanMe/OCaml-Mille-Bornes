@@ -13,12 +13,18 @@ val find_index : ('a -> bool) -> 'a list -> int option
 
 val get_index_of_card_on_hand : card -> player -> int
 val get_current_team_from : board -> team
+val switch_current_player_of_current_team_from : board -> board
+val switch_current_team_from : board -> board
 
 exception Team_not_found
+exception Draw_pile_too_small
 
-val draw_card : board -> team -> board
-(* [draw_card b t] draws a card from the draw pile and adds it to the hand of
- * the current player on team [t]. If the draw pile is empty, raise Empty_pile. *)
+val draw_initial_hand_to_teams : board -> board
+(* [draw_initial_hand_to_teams b] gives each player in every team on the board six cards in their hand draw from the draw_pile *)
+
+val draw_card : board -> team -> bool -> board
+(* [draw_card b t from_discard_pile] draws a card from the pile depending on from_discard_pile and adds it to the hand of
+ * the current player on team [t]. If the pile is empty, raise Empty_pile. *)
 
 val is_draw_pile_empty : board -> bool
 val is_discard_pile_empty : board -> bool

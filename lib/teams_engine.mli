@@ -67,6 +67,7 @@ type team = {
 
 val get_current_player_from : team -> player
 val get_player_struct_from : player -> player_struct
+val get_names_from : team -> string list
 val set_next_player_from : team -> team
 val same_player : player -> player -> bool
 val does_player_have_this_name_in_team_list : string -> team list -> bool
@@ -75,8 +76,11 @@ val replace_player_struct_in : player -> player_struct -> player
 val replace_player_in : team -> player -> team
 val replace_team_in : team list -> team -> team list
 val pp_player : bool -> Format.formatter -> player -> unit
-val pp_public_informations : Format.formatter -> public_informations -> unit
-val pp_team : bool -> Format.formatter -> team -> unit
+
+val pp_public_informations :
+  bool -> Format.formatter -> public_informations -> unit
+
+val pp_team : bool -> bool -> Format.formatter -> team -> unit
 val pp_team_with_hand_of : player -> Format.formatter -> team -> unit
 
 val pp_public_informations_list :

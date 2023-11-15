@@ -2,6 +2,13 @@ open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
 open Utils_teams_engine
 
+let test_get_names =
+  Alcotest.test_case "test get_names on team1 and team6" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (get_names_from team1 = [ "name1"; "name2" ]
+        && get_names_from team6 = [ "Thomas"; "Mathusan" ]))
+
 let test_set_next_player_and_get_current_player1 =
   Alcotest.test_case
     "test set_next_player and get_current_player on team with one computer \
@@ -140,6 +147,7 @@ let test_pp_team1 =
         "Name(s) :\n\
          Computer (computer with strategy strat)\n\
          Mathusan\n\
+         Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : (empty);\n\n\
          Top of drive pile : (empty);\n\n\
@@ -149,7 +157,7 @@ let test_pp_team1 =
         \               \n\
          Coup fourree cards : (empty);\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team false) team_with_computer_human))
+        (Format.asprintf "%a" (pp_team false false) team_with_computer_human))
 
 let test_pp_team2 =
   Alcotest.test_case "test pp_team on team_with_computer_human with hand" `Quick
@@ -163,6 +171,7 @@ let test_pp_team2 =
          Mathusan\n\
          hand : (empty);\n\
         \       \n\
+         Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : (empty);\n\n\
          Top of drive pile : (empty);\n\n\
@@ -172,7 +181,7 @@ let test_pp_team2 =
         \               \n\
          Coup fourree cards : (empty);\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team true) team_with_computer_human))
+        (Format.asprintf "%a" (pp_team true false) team_with_computer_human))
 
 let test_pp_team3 =
   Alcotest.test_case "test pp_team on team_with_one_human and with hand" `Quick
@@ -183,6 +192,7 @@ let test_pp_team3 =
          Thomas\n\
          hand : (empty);\n\
         \       \n\
+         Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : (empty);\n\n\
          Top of drive pile : (empty);\n\n\
@@ -192,7 +202,7 @@ let test_pp_team3 =
         \               \n\
          Coup fourree cards : (empty);\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team true) team_with_one_human))
+        (Format.asprintf "%a" (pp_team true false) team_with_one_human))
 
 let test_pp_team4 =
   Alcotest.test_case "test pp_team on team3 with hand" `Quick (fun () ->
@@ -205,6 +215,7 @@ let test_pp_team4 =
          name2\n\
          hand : (empty);\n\
         \       \n\
+         Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : Speed limit;\n\n\
          Top of drive pile : Accident;\n\n\
@@ -214,7 +225,7 @@ let test_pp_team4 =
         \               \n\
          Coup fourree cards : 0. Emergency vehicle;\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team true) team3))
+        (Format.asprintf "%a" (pp_team true false) team3))
 
 let test_pp_team5 =
   Alcotest.test_case "test pp_team on team6 with hand" `Quick (fun () ->
@@ -237,6 +248,7 @@ let test_pp_team5 =
         \       4. 100;\n\
         \       5. 200;\n\
         \       \n\
+         Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : Speed limit;\n\n\
          Top of drive pile : Drive;\n\n\
@@ -250,7 +262,7 @@ let test_pp_team5 =
         \               \n\
          Coup fourree cards : 0. Emergency vehicle;\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team true) team6))
+        (Format.asprintf "%a" (pp_team true false) team6))
 
 let test_pp_team_with_hand_of1 =
   Alcotest.test_case "test pp_team_with_hand_of on team3 with hand of name2"
@@ -262,6 +274,7 @@ let test_pp_team_with_hand_of1 =
          hand : (empty);\n\
         \       \n\
          name2\n\
+         Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : Speed limit;\n\n\
          Top of drive pile : Accident;\n\n\
@@ -290,6 +303,7 @@ let test_pp_team_with_hand_of2 =
         \       4. 100;\n\
         \       5. 200;\n\
         \       \n\
+         Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : Speed limit;\n\n\
          Top of drive pile : Drive;\n\n\
@@ -1221,6 +1235,7 @@ let () =
   let open Alcotest in
   run "Teams_engine"
     [
+      ("test get_names", [ test_get_names ]);
       ( "test get_current_player_from and set_next_player_from",
         [
           test_set_next_player_and_get_current_player1;

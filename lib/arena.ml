@@ -4,11 +4,31 @@ open Cards_engine
 open Random_bot
 open Sad_bot
 
-type endplay = Win of team | GiveUpInGame of team | GiveUpInit
+type endplay =
+  | Win of string list
+  | GiveUpInGame of string list
+  | GiveUpInit
+  | Error of string
 
-let pp_endplay _ _ = (* TODO *) ()
-let strategy_list = [ random_strategy; sad_strategy ]
-let pp_strategy_list _ _ = ()
+let pp_endplay fmt result =
+  match result with
+  | Win names ->
+      Format.fprintf fmt "Winner(s) : %a@ "
+        (fun fmt lst -> List.iter (fun e -> Format.fprintf fmt "%s@ " e) lst)
+        names
+  | GiveUpInGame names ->
+      Format.fprintf fmt "Give up of : %a@ "
+        (fun fmt lst -> List.iter (fun e -> Format.fprintf fmt "%s@ " e) lst)
+        names
+  | GiveUpInit ->
+      Format.fprintf fmt "Give up during initialization of the game@ "
+  | Error message -> Format.fprintf fmt "%s" message
+
+let has_win t = t.shared_public_informations.score >= 1000
+let get_strategy_list () = [ random_strategy; sad_strategy ]
+
+let pp_strategy_list fmt strategy_list =
+  List.iteri (fun i s -> Format.fprintf fmt "%d.%s@ " i s.name) strategy_list
 
 let rec request_number request =
   Format.printf "%s (write `exit` to quit):@ " request;
@@ -88,15 +108,21 @@ let rec request_number_of_player () =
       else Some (i, true)
 
 let request_strategy_for_bot id num =
+  let strategy_list = get_strategy_list () in
   let strategy_list_length = List.length strategy_list in
-  if strategy_list_length = 0 then None
+  if strategy_list_length = 0 then (
+    Format.printf
+      "There is no existant strategy, please add it into the game and come \
+       back again !";
+    None)
   else if strategy_list_length = 1 then (
     let strategy = List.hd strategy_list in
     Format.printf
       "As it is alone, the strategy chosen for the bot %d of the team %d is %s@;"
       num id strategy.name;
     Some strategy)
-  else
+  else (
+    Format.printf "%a@ " pp_strategy_list strategy_list;
     match
       request_id
         (Format.asprintf
@@ -106,7 +132,7 @@ let request_strategy_for_bot id num =
         (List.length strategy_list)
     with
     | None -> None
-    | Some i -> Some (List.nth strategy_list i)
+    | Some i -> Some (List.nth strategy_list i))
 
 let rec ask_player_info id num already_created_team =
   let max_name_length = 15 in
@@ -192,13 +218,15 @@ let init_board () =
       with
       | None -> None
       | Some id ->
-          Some
+          let board =
             {
               draw_pile = generate_initial_pile () |> shuffle_pile;
               discard_pile = [];
               teams = teams_of_board;
               current_team_index = id;
-            })
+            }
+          in
+          Some (draw_initial_hand_to_teams board))
 
 let player_teletype_choose_card_to_play p pi pi_list =
   let p_struct = get_player_struct_from p in
@@ -206,7 +234,8 @@ let player_teletype_choose_card_to_play p pi pi_list =
     "%s of team %d, your score is %d, your hand and your driving zone are :@;\
      %a@ @[<v>%a@]@;"
     p_struct.name pi.id pi.score (pp_deck_of_card "Hand") p_struct.hand
-    pp_public_informations pi;
+    (pp_public_informations false)
+    pi;
   match
     request_id
       "Choose the id of the card you want to play, or discard, in your hand \
@@ -237,7 +266,8 @@ let player_teletype_want_to_peek_discard_pile p c pi _ =
     "%s of team %d, your score is %d, your hand and your driving zone are :@;\
      %a@ @[<v>%a@]@;"
     p_struct.name pi.id pi.score (pp_deck_of_card "Hand") p_struct.hand
-    pp_public_informations pi;
+    (pp_public_informations false)
+    pi;
   request_yes_or_no
     (Format.asprintf
        "Do you want to pick the card %a of the discard pile ? If not you'll \
@@ -252,7 +282,9 @@ let player_teletype_want_to_play_coup_fourre p h pi _ =
      %a\n\
     \      @ @[<v>%a@]@;"
     p_struct.name pi.id pp_card (Hazard h) pi.score (pp_deck_of_card "Hand")
-    p_struct.hand pp_public_informations pi;
+    p_struct.hand
+    (pp_public_informations false)
+    pi;
   request_yes_or_no
     "Do you want to play your safety and do a coup fourre to earn 200 points ?"
 
@@ -370,11 +402,11 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
           in
           let () =
             Format.printf
-              "Player %s on team %d has used %a on coup fouree. The card %a go \
-               on discard pile.@ "
+              "Player %s on team %d has used %a on coup fouree. The team %d \
+               earn 200 points and the card %a go on discard pile.@ "
               (get_player_struct_from player_have_counter).name
               id_of_target_public_informations pp_card (Safety necessary_safety)
-              pp_card card_used
+              id_of_target_public_informations pp_card card_used
           in
           Some new_board
       | Some false ->
@@ -402,9 +434,16 @@ let try_place_card (b : board) (current_team : team) (current_player : player)
       raise Place_card_error
   in
   let () =
-    Format.printf "Player %s has use %a on team %d@ "
+    Format.printf "Player %s has use a card %a on team %d@ "
       (get_player_struct_from current_player).name pp_card card_used
-      id_of_target_public_informations
+      id_of_target_public_informations;
+    match card_used with
+    | Distance _ ->
+        let new_current_team = get_current_team_from new_board in
+        Format.printf "and the team %d is now at %d distance.@ "
+          new_current_team.shared_public_informations.id
+          new_current_team.shared_public_informations.score
+    | _ -> ()
   in
   match card_used with
   | Hazard hazard ->
@@ -418,7 +457,7 @@ let rec play_move_player b =
     match current_player with
     | Computer (p_struct, _) ->
         let () =
-          Format.printf "Computer %s has try an invalid move@ " p_struct.name
+          Format.printf "Computer %s tried an invalid move@ " p_struct.name
         in
         if
           request_yes_or_no
@@ -429,7 +468,7 @@ let rec play_move_player b =
         else raise Computer_invalid_move
     | Human p_struct ->
         let () =
-          Format.printf "Human %s have try an invalid move.@ " p_struct.name
+          Format.printf "Human %s tried an invalid move.@ " p_struct.name
         in
         play_move_player b
   in
@@ -469,4 +508,81 @@ let rec play_move_player b =
                   retry_play_move_player b current_player))
       | _ -> retry_play_move_player b current_player)
 
-let arena () = (* TODO *) ()
+let get_result_to_peek_inside_discard_pile board =
+  if is_empty board.discard_pile then (
+    Format.printf
+      "The discard pile is empty, so the player draw from the draw pile.@ ";
+    Some false)
+  else
+    let last_discard_card = peek_card_from_pile board.discard_pile in
+    let current_team = get_current_team_from board in
+    let current_player = get_current_player_from current_team in
+    let other_public_informations =
+      get_list_of_other_public_information_than
+        current_team.shared_public_informations board
+    in
+
+    match current_player with
+    | Computer (_, strategy) ->
+        strategy.want_to_peek_discard_pile current_player last_discard_card
+          current_team.shared_public_informations other_public_informations
+    | Human _ ->
+        player_teletype_want_to_peek_discard_pile current_player
+          last_discard_card current_team.shared_public_informations
+          other_public_informations
+
+let arena () =
+  match init_board () with
+  | None -> GiveUpInit
+  | Some board -> (
+      let rec round board =
+        let current_team = get_current_team_from board in
+        let board =
+          if is_empty board.draw_pile then
+            swap_draw_and_shuffled_discard_pile board
+          else board
+        in
+        match get_result_to_peek_inside_discard_pile board with
+        | None -> GiveUpInGame (get_names_from current_team)
+        | Some get_card_from_discard_pile -> (
+            let name_current_player =
+              (get_current_team_from board
+              |> get_current_player_from |> get_player_struct_from)
+                .name
+            in
+            if get_card_from_discard_pile then
+              Format.printf
+                "The player %s of the team %d took the card from the discard \
+                 pile@ "
+                name_current_player board.current_team_index
+            else
+              Format.printf
+                "The player %s of team %d took the card from the draw pile@ "
+                name_current_player board.current_team_index;
+            let new_board_with_card_peeked =
+              draw_card board current_team get_card_from_discard_pile
+            in
+            match play_move_player new_board_with_card_peeked with
+            | None -> GiveUpInGame (get_names_from current_team)
+            | Some new_board ->
+                let new_current_team = get_current_team_from new_board in
+                if has_win new_current_team then (
+                  Format.printf "End of the game, all teams :@ %a@ "
+                    (fun fmt team_list ->
+                      List.iter (fun t -> pp_team true true fmt t) team_list)
+                    new_board.teams;
+                  Win (get_names_from current_team))
+                else
+                  let new_board_with_current_player_change =
+                    switch_current_player_of_current_team_from new_board
+                  in
+                  let new_board_with_current_team_changed =
+                    switch_current_team_from
+                      new_board_with_current_player_change
+                  in
+                  round new_board_with_current_team_changed)
+      in
+      try round board with
+      | Computer_invalid_move ->
+          Error "A computer doesn't work well, maybe you should refactor it."
+      | _ -> Error "The game is broken.")

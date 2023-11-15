@@ -53,5 +53,6 @@ let test_sad_bot_want_to_draw_discard_pile =
       | _ -> false)
 
 let _ =
+  Random.self_init ();
   QCheck_runner.run_tests ~verbose:true
     [ test_sad_bot_choose_card_to_play; test_sad_bot_want_to_draw_discard_pile ]

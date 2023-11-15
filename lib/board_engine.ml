@@ -10,7 +10,16 @@ type board = {
 
 let get_current_team_from (b : board) = List.nth b.teams b.current_team_index
 
-exception Team_not_found
+let switch_current_player_of_current_team_from (b : board) =
+  let current_team = get_current_team_from b in
+  let new_team = set_next_player_from current_team in
+  { b with teams = replace_team_in b.teams new_team }
+
+let switch_current_team_from (b : board) =
+  {
+    b with
+    current_team_index = (b.current_team_index + 1) mod List.length b.teams;
+  }
 
 let update_hand_for_player_in_team (b : board) (t : team) (p : player)
     (new_hand : deck_of_card) =
@@ -20,15 +29,60 @@ let update_hand_for_player_in_team (b : board) (t : team) (p : player)
   let new_team = replace_player_in t new_player in
   replace_team_in b.teams new_team (* Returns `team list` *)
 
-let draw_card (b : board) (t : team) =
-  let card, new_draw_pile = draw_card_from_pile b.draw_pile in
+exception Draw_pile_too_small
+
+let draw_initial_hand_to_team team draw_pile =
+  let rec aux_draw_to_team team draw_pile acc =
+    if acc >= 6 then (team, draw_pile)
+    else
+      let players = team.players in
+      let new_draw_pile, new_players =
+        List.fold_left
+          (fun (pile, p_list) p ->
+            let c, new_pile = draw_card_from_pile pile in
+            let p_struct = get_player_struct_from p in
+            let new_p_struct =
+              { p_struct with hand = add_card_to_deck p_struct.hand c }
+            in
+            let new_p = replace_player_struct_in p new_p_struct in
+            (new_pile, new_p :: p_list))
+          (draw_pile, []) players
+      in
+      let new_team = { team with players = List.rev new_players } in
+      aux_draw_to_team new_team new_draw_pile (acc + 1)
+  in
+  try aux_draw_to_team team draw_pile 0
+  with Empty_pile -> raise Draw_pile_too_small
+
+let draw_initial_hand_to_teams (b : board) =
+  let rec aux_draw_initial_hand_to_teams team_list acc_team_list draw_pile =
+    match team_list with
+    | [] -> (List.rev acc_team_list, draw_pile)
+    | hd :: tl ->
+        let new_team, new_pile = draw_initial_hand_to_team hd draw_pile in
+        aux_draw_initial_hand_to_teams tl (new_team :: acc_team_list) new_pile
+  in
+  let new_team_list, new_draw_pile =
+    aux_draw_initial_hand_to_teams b.teams [] b.draw_pile
+  in
+  { b with draw_pile = new_draw_pile; teams = new_team_list }
+
+exception Team_not_found
+
+let draw_card (b : board) (t : team) (from_discard_pile : bool) =
+  let card, new_pile =
+    if from_discard_pile then draw_card_from_pile b.discard_pile
+    else draw_card_from_pile b.draw_pile
+  in
   if not (List.mem t b.teams) then raise Team_not_found
   else
     let player = get_current_player_from t in
     let player_struct = get_player_struct_from player in
     let new_hand = add_card_to_deck player_struct.hand card in
     let new_teams = update_hand_for_player_in_team b t player new_hand in
-    { b with draw_pile = new_draw_pile; teams = new_teams }
+    if from_discard_pile then
+      { b with discard_pile = new_pile; teams = new_teams }
+    else { b with draw_pile = new_pile; teams = new_teams }
 
 let is_draw_pile_empty b = is_empty b.draw_pile
 let is_discard_pile_empty b = is_empty b.discard_pile

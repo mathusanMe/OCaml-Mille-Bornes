@@ -38,8 +38,10 @@ let get_unprotected_opponent_with_highest_mileage (p : player)
           match hazard_card_on_hand_list with
           | [] -> loop_p_info_list t1
           | hazard_card :: t2 ->
-              if is_usable_card p_info hazard_card then
-                Some (get_index_of_card_on_hand hazard_card p, Some p_info.id)
+              if
+                List.mem hazard_card (get_player_struct_from p).hand
+                && is_usable_card p_info hazard_card
+              then Some (get_index_of_card_on_hand hazard_card p, Some p_info.id)
               else loop_hazard_card_on_hand_list t2
         in
         loop_hazard_card_on_hand_list hazard_card_list
