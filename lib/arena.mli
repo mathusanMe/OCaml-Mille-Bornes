@@ -41,41 +41,6 @@ val player_teletype_want_to_play_coup_fourre :
    with h the card attacking it, pi its public_information, and pi_list that of the
    others. *)
 
-val initial_bot_choose_card_to_play :
-  player ->
-  public_informations ->
-  public_informations list ->
-  (int * int option) option
-(* [initial_bot_choose_card_to_play p pi pi_list] is an example of a bot function for the
-   initial strategy, to know which card the bot is going to play and on whom, with
-   pi its public information, pi_list that of the others, and returns an integer pair
-   with the 1st being the position of its card in its hand, and the 2nd the player it
-   is going to attack (returns None if it doesn't use it against a player, but discard
-   instead). *)
-
-val initial_bot_want_to_peek_discard_pile :
-  player ->
-  card ->
-  public_informations ->
-  public_informations list ->
-  bool option
-(* [initial_bot_want_to_peek_discard_pile p c pi pi_list] is an example of a bot
-   function for the initial strategy, to know if the player wants to pick the
-   discard pile card if true or the draw pile card if false, with c the card on
-   top of the discard pile, pi its public information and pi_list that of the other
-   players. *)
-
-val initial_bot_want_to_play_coup_fourre :
-  player ->
-  hazard_card ->
-  public_informations ->
-  public_informations list ->
-  bool option
-(* [initial_bot_want_to_play_coup_fourre p h pi pi_list] is an example of a bot
-   function for the initial strategy, to know whether the bot will play a coup
-   fourre or not, depending on the situation with h the card attacking it, pi
-   its public_information, and pi_list that of the others. *)
-
 val pp_strategy_list : Format.formatter -> strategy list -> unit
 val init_teams : unit -> team list option
 (* [init_teams] initializes all team of the board with the terminal I/O commands *)

@@ -121,6 +121,12 @@ let find_index f l =
   in
   aux_find_index 0 l
 
+let get_index_of_card_on_hand (c : card) (p : player) =
+  let p_struct = get_player_struct_from p in
+  let hand = p_struct.hand in
+  let index = find_index (fun x -> equal_card x c) hand in
+  match index with Some i -> i | None -> raise Card_not_found
+
 let set_previous_current_team_from (b : board) (t : team) =
   let new_current_team_index =
     find_index

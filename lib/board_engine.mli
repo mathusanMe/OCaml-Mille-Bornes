@@ -11,6 +11,7 @@ type board = {
 val find_index : ('a -> bool) -> 'a list -> int option
 (* [find_index a l] returns the index of [a] in [l]. If [a] is not in [l], returns None *)
 
+val get_index_of_card_on_hand : card -> player -> int
 val get_current_team_from : board -> team
 
 exception Team_not_found

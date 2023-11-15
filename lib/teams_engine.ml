@@ -151,9 +151,6 @@ let replace_player_in (t : team) (p : player) =
 let replace_team_in (teams : team list) (t : team) =
   List.map (fun x -> if same_team x t then t else x) teams
 
-exception Speed_limit_on_the_drive_pile
-exception Hazard_not_speed_limit_on_the_speed_pile
-
 let is_card_in_player_hand (p : player) (c : card) =
   let p_struct = get_player_struct_from p in
   let hand = p_struct.hand in

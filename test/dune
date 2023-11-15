@@ -1,3 +1,8 @@
 (tests
- (names test_cards_engine test_teams_engine test_board_engine test_sad_bot)
+ (names
+  test_cards_engine
+  test_teams_engine
+  test_board_engine
+  test_sad_bot
+  test_random_bot)
  (libraries mille_bornes alcotest lwt.unix qcheck))

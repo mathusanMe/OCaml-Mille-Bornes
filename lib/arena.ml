@@ -1,23 +1,13 @@
 open Teams_engine
 open Board_engine
 open Cards_engine
+open Random_bot
+open Sad_bot
 
 type endplay = Win of team | GiveUpInGame of team | GiveUpInit
 
 let pp_endplay _ _ = (* TODO *) ()
-let initial_bot_choose_card_to_play _ _ _ = (* TODO *) Some (0, None)
-let initial_bot_want_to_peek_discard_pile _ _ _ _ = (* TODO *) Some true
-let initial_bot_want_to_play_coup_fourre _ _ _ _ = (* TODO *) Some true
-
-let initial_strategy =
-  {
-    name = "Initial strategy";
-    choose_card_to_play = initial_bot_choose_card_to_play;
-    want_to_peek_discard_pile = initial_bot_want_to_peek_discard_pile;
-    want_to_play_coup_fourre = initial_bot_want_to_play_coup_fourre;
-  }
-
-let strategy_list = [ initial_strategy ]
+let strategy_list = [ random_strategy; sad_strategy ]
 let pp_strategy_list _ _ = ()
 
 let rec request_number request =

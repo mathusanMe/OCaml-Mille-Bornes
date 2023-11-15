@@ -3,10 +3,8 @@ open Cards_engine
 open Teams_engine
 
 exception Hazard_on_the_drive_pile_missing
-
-let random_boolean () =
-  let _ = Random.self_init () in
-  Random.bool ()
+exception Speed_limit_on_the_drive_pile
+exception Hazard_not_speed_limit_on_the_speed_pile
 
 let rec get_maximum_playable_distance_card (p : player)
     (p_info : public_informations) (distance_card_list : card list) =
@@ -15,12 +13,6 @@ let rec get_maximum_playable_distance_card (p : player)
   | d :: h ->
       if is_card_in_player_hand p d && is_usable_card p_info d then Some d
       else get_maximum_playable_distance_card p p_info h
-
-let get_index_of_card_on_hand (c : card) (p : player) =
-  let p_struct = get_player_struct_from p in
-  let hand = p_struct.hand in
-  let index = find_index (fun x -> equal_card x c) hand in
-  match index with Some i -> i | None -> raise Card_not_found
 
 let have_any_hazard_card_for_drive_pile_on_hand (p : player) =
   List.filter
@@ -111,7 +103,7 @@ let branch (p : player) (p_info : public_informations)
 
 let sad_bot_choose_card_to_play (p : player) (p_info : public_informations)
     (p_info_list : public_informations list) =
-  if is_attacked_by_hazard_on_drive_pile p_info && random_boolean () then
+  if is_attacked_by_hazard_on_drive_pile p_info then
     let hazard_card = peek_card_from_pile p_info.drive_pile in
     let corresponding_safety_card =
       match hazard_card with
@@ -137,7 +129,7 @@ let sad_bot_choose_card_to_play (p : player) (p_info : public_informations)
         Some
           (get_index_of_card_on_hand corresponding_remedy_card p, Some p_info.id)
       else branch p p_info p_info_list
-  else if is_attacked_by_speed_limit p_info && random_boolean () then
+  else if is_attacked_by_speed_limit p_info then
     let end_of_speed_limit_card = Remedy EndOfSpeedLimit in
     if is_card_in_player_hand p end_of_speed_limit_card then
       Some (get_index_of_card_on_hand end_of_speed_limit_card p, Some p_info.id)
@@ -158,7 +150,7 @@ let sad_bot_choose_card_to_play (p : player) (p_info : public_informations)
     | Some c -> Some (get_index_of_card_on_hand c p, Some p_info.id)
     | None -> branch p p_info p_info_list
 
-let sad_bot_want_to_draw_discard_pile (p : player) (c : card)
+let sad_bot_want_to_peek_discard_pile (p : player) (c : card)
     (p_info : public_informations) (p_info_list : public_informations list) =
   let speed_limit_pile = p_info.speed_limit_pile in
   let drive_pile = p_info.drive_pile in
@@ -198,3 +190,11 @@ let sad_bot_want_to_draw_discard_pile (p : player) (c : card)
 let sad_bot_want_to_play_coup_fourre (_ : player) (_ : hazard_card)
     (_ : public_informations) (_ : public_informations list) =
   Some true
+
+let sad_strategy =
+  {
+    name = "Sad strategy";
+    choose_card_to_play = sad_bot_choose_card_to_play;
+    want_to_peek_discard_pile = sad_bot_want_to_peek_discard_pile;
+    want_to_play_coup_fourre = sad_bot_want_to_play_coup_fourre;
+  }

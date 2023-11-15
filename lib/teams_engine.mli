@@ -93,9 +93,6 @@ val init_team_with_one_human_and_one_computer :
 val init_team_with_two_computer :
   string -> strategy -> string -> strategy -> int -> team
 
-exception Speed_limit_on_the_drive_pile
-exception Hazard_not_speed_limit_on_the_speed_pile
-
 val is_attacked_by_hazard_on_drive_pile : public_informations -> bool
 val is_attacked_by_speed_limit : public_informations -> bool
 val is_card_in_player_hand : player -> card -> bool
