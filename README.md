@@ -103,5 +103,5 @@ $ dune build @doc-private
 The resulting document is available with
 
 ```
-$ open _build/default/_doc/_html/tictactoe@*/Tictactoe/index.html
+$ open _build/default/_doc/_html/mille_bornes@*/Mille_bornes/index.html
 ```
