@@ -67,12 +67,28 @@ let draw_initial_hand_to_teams (b : board) =
   in
   { b with draw_pile = new_draw_pile; teams = new_team_list }
 
+let is_draw_pile_empty b = is_empty b.draw_pile
+let is_discard_pile_empty b = is_empty b.discard_pile
+
+exception No_more_card
+
+let swap_draw_and_shuffled_discard_pile b =
+  let new_draw_pile = b.discard_pile |> shuffle_pile in
+  let new_discard_pile = b.draw_pile in
+  if is_empty new_draw_pile && is_empty new_discard_pile then raise No_more_card
+  else { b with draw_pile = new_draw_pile; discard_pile = new_discard_pile }
+
 exception Team_not_found
 
 let draw_card (b : board) (t : team) (from_discard_pile : bool) =
   let card, new_pile =
     if from_discard_pile then draw_card_from_pile b.discard_pile
-    else draw_card_from_pile b.draw_pile
+    else
+      let new_board =
+        if is_draw_pile_empty b then swap_draw_and_shuffled_discard_pile b
+        else b
+      in
+      draw_card_from_pile new_board.draw_pile
   in
   if not (List.mem t b.teams) then raise Team_not_found
   else
@@ -83,14 +99,6 @@ let draw_card (b : board) (t : team) (from_discard_pile : bool) =
     if from_discard_pile then
       { b with discard_pile = new_pile; teams = new_teams }
     else { b with draw_pile = new_pile; teams = new_teams }
-
-let is_draw_pile_empty b = is_empty b.draw_pile
-let is_discard_pile_empty b = is_empty b.discard_pile
-
-let swap_draw_and_shuffled_discard_pile b =
-  let new_draw_pile = b.discard_pile |> shuffle_pile in
-  let new_discard_pile = b.draw_pile in
-  { b with draw_pile = new_draw_pile; discard_pile = new_discard_pile }
 
 exception Card_not_found
 
@@ -230,7 +238,7 @@ let place_coup_fouree (b : board) (t_from : team) (player_from : player)
         let new_hand =
           remove_card_from_deck new_player_struct.hand (Safety safety)
         in
-        let new_draw_pile, new_hand = draw_card_with_hand b new_hand in
+        let new_draw_pile, new_hand = draw_card_with_hand new_board new_hand in
         let new_teams =
           update_hand_for_player_in_team new_board new_team new_player new_hand
         in

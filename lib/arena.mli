@@ -5,6 +5,7 @@ open Board_engine
 (** This type represents the end result of a game, with a winning [team] composed of their names,
     a [team] dropping out with their name, a dropout during game initialization, or an error in the code. *)
 type endplay =
+  | Equality
   | Win of string list
   | GiveUpInGame of string list
   | GiveUpInit

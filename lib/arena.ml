@@ -2,9 +2,9 @@ open Teams_engine
 open Board_engine
 open Cards_engine
 open Random_bot
-open Sad_bot
 
 type endplay =
+  | Equality
   | Win of string list
   | GiveUpInGame of string list
   | GiveUpInit
@@ -12,6 +12,10 @@ type endplay =
 
 let pp_endplay fmt result =
   match result with
+  | Equality ->
+      Format.printf
+        "There are no more cards and no one has reached 1000 miles. You have \
+         all lost!@ "
   | Win names ->
       Format.fprintf fmt "Winner(s) : %a@ "
         (fun fmt lst -> List.iter (fun e -> Format.fprintf fmt "%s@ " e) lst)
@@ -25,7 +29,7 @@ let pp_endplay fmt result =
   | Error message -> Format.fprintf fmt "%s" message
 
 let has_win t = t.shared_public_informations.score >= 1000
-let get_strategy_list () = [ random_strategy; sad_strategy ]
+let get_strategy_list () = [ random_strategy ]
 
 let pp_strategy_list fmt strategy_list =
   List.iteri (fun i s -> Format.fprintf fmt "%d.%s@ " i s.name) strategy_list
@@ -193,7 +197,11 @@ let init_teams () =
       let rec aux_init_teams acc_team acc_id =
         if acc_id >= nb_player then Some (List.rev acc_team)
         else
-          let new_team = init_team acc_id is_team_of_two acc_team in
+          let new_team =
+            if is_team_of_two then
+              init_team (acc_id / 2) is_team_of_two acc_team
+            else init_team acc_id is_team_of_two acc_team
+          in
           match new_team with
           | None -> None
           | Some t ->
@@ -297,13 +305,17 @@ let get_list_of_other_public_information_than (p_info : public_informations)
          if p_info = t_p_info then acc else t_p_info :: acc)
        [] b.teams)
 
+exception Error_bot
+
 let play_move (current_player : player) (current_team : team) (b : board) =
   match current_player with
-  | Computer (_, p_strat) ->
-      p_strat.choose_card_to_play current_player
-        current_team.shared_public_informations
-        (get_list_of_other_public_information_than
-           current_team.shared_public_informations b)
+  | Computer (_, p_strat) -> (
+      try
+        p_strat.choose_card_to_play current_player
+          current_team.shared_public_informations
+          (get_list_of_other_public_information_than
+             current_team.shared_public_informations b)
+      with _ -> raise Error_bot)
   | Human _ ->
       player_teletype_choose_card_to_play current_player
         current_team.shared_public_informations
@@ -358,12 +370,14 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
       let necessary_safety = get_safety_corresponding_to_the_hazard hazard in
       match
         match player_have_counter with
-        | Computer (_, p_strat) ->
-            p_strat.want_to_play_coup_fourre player_have_counter hazard
-              target_team.shared_public_informations
-              (get_list_of_other_public_information_than
-                 target_team.shared_public_informations
-                 previous_board_befor_place_hazard_card)
+        | Computer (_, p_strat) -> (
+            try
+              p_strat.want_to_play_coup_fourre player_have_counter hazard
+                target_team.shared_public_informations
+                (get_list_of_other_public_information_than
+                   target_team.shared_public_informations
+                   previous_board_befor_place_hazard_card)
+            with _ -> raise Error_bot)
         | Human _ ->
             player_teletype_want_to_play_coup_fourre player_have_counter hazard
               target_team.shared_public_informations
@@ -402,8 +416,8 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
           in
           let () =
             Format.printf
-              "Player %s on team %d has used %a on coup fouree. The team %d \
-               earn 200 points and the card %a go on discard pile.@ "
+              "The player %s on team %d has used %a on coup fouree. The team \
+               %d earn 200 points and the card %a go on discard pile.@ "
               (get_player_struct_from player_have_counter).name
               id_of_target_public_informations pp_card (Safety necessary_safety)
               id_of_target_public_informations pp_card card_used
@@ -412,7 +426,8 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
       | Some false ->
           let () =
             Format.printf
-              "Player %s on team %d has decide to not use %a on coup fouree.@ "
+              "The player %s on team %d has decide to not use %a on coup \
+               fouree.@ "
               (get_player_struct_from player_have_counter).name
               id_of_target_public_informations pp_card (Safety necessary_safety)
           in
@@ -434,7 +449,7 @@ let try_place_card (b : board) (current_team : team) (current_player : player)
       raise Place_card_error
   in
   let () =
-    Format.printf "Player %s has use a card %a on team %d@ "
+    Format.printf "The player %s has use a card %a on team %d@ "
       (get_player_struct_from current_player).name pp_card card_used
       id_of_target_public_informations;
     match card_used with
@@ -449,7 +464,15 @@ let try_place_card (b : board) (current_team : team) (current_player : player)
   | Hazard hazard ->
       try_use_coup_fouree b new_board current_team card_used hazard target_team
         id_of_target_public_informations
-  | Safety _ -> Some (set_previous_current_team_from new_board current_team)
+  | Safety _ ->
+      let () =
+        Format.printf "As you played a safety card, you can play again!@ "
+      in
+      let new_board =
+        try set_previous_current_team_from new_board current_team
+        with Team_not_found -> raise Place_card_error
+      in
+      Some new_board
   | _ -> Some new_board
 
 let rec play_move_player b =
@@ -463,7 +486,7 @@ let rec play_move_player b =
           request_yes_or_no
             "The bot was unable to make a move due to an error on its part. \
              Should the game be stopped?"
-          = Some true
+          = Some false
         then play_move_player b
         else raise Computer_invalid_move
     | Human p_struct ->
@@ -523,9 +546,11 @@ let get_result_to_peek_inside_discard_pile board =
     in
 
     match current_player with
-    | Computer (_, strategy) ->
-        strategy.want_to_peek_discard_pile current_player last_discard_card
-          current_team.shared_public_informations other_public_informations
+    | Computer (_, strategy) -> (
+        try
+          strategy.want_to_peek_discard_pile current_player last_discard_card
+            current_team.shared_public_informations other_public_informations
+        with _ -> raise Error_bot)
     | Human _ ->
         player_teletype_want_to_peek_discard_pile current_player
           last_discard_card current_team.shared_public_informations
@@ -585,4 +610,6 @@ let arena () =
       try round board with
       | Computer_invalid_move ->
           Error "A computer doesn't work well, maybe you should refactor it."
+      | Error_bot -> Error "An error was raised by the bot."
+      | No_more_card -> Equality
       | _ -> Error "The game is broken.")

@@ -24,6 +24,9 @@ val switch_current_player_of_current_team_from : board -> board
 val switch_current_team_from : board -> board
 (** [switch_current_team_from b] changes the current [team] to the next in the [team] list of [b]. *)
 
+exception No_more_card
+(* Raised when draw pile and discard pile is empty *)
+
 exception Draw_pile_too_small
 (** Raised when a draw pile is too small to distribute a deck to all [player] on a [board]. *)
 

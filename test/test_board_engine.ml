@@ -67,15 +67,6 @@ let test_draw_card_from_draw_pile_for_team_not_in_game =
             (draw_card draw_card_board_with_draw_pile
                draw_card_team_not_in_board false)))
 
-let test_draw_card_from_empty_draw_pile =
-  Alcotest.test_case "raise Empty_pile on draw from empty draw pile" `Quick
-    (fun () ->
-      Alcotest.check_raises "Expected Empty_pile" Empty_pile (fun () ->
-          ignore
-            (draw_card draw_card_board_with_empty_draw_pile
-               (get_current_team_from draw_card_board_with_empty_draw_pile)
-               false)))
-
 let test_draw_card_from_non_empty_draw_pile =
   Alcotest.test_case "draw card from non empty draw pile" `Quick (fun () ->
       Alcotest.(check bool)
@@ -544,7 +535,6 @@ let () =
       ("draw initial hand to teams", [ test_draw_initial_hand_to_teams ]);
       ( "draw card from draw pile",
         [
-          test_draw_card_from_empty_draw_pile;
           test_draw_card_from_draw_pile_for_team_not_in_game;
           test_draw_card_from_non_empty_draw_pile;
         ] );
