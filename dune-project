@@ -15,10 +15,10 @@
 
 (package
  (name mille_bornes)
- (synopsis "An interesting french board game")
- (description "An interesting french board game like le bon vin you know the french traditional drink")
- (depends ocaml dune (odoc :with-doc) ppx_deriving (alcotest :with-test) js_of_ocaml js_of_ocaml-lwt)
+ (synopsis "French board game")
+ (description "An interesting french board game where you can play with your friends, it is understandable quite easily and nice to play.")
+ (depends ocaml dune (odoc :with-doc) ppx_deriving (alcotest :with-test) js_of_ocaml js_of_ocaml-lwt (qcheck :with-test))
  (tags
-  ("addictive" "french" "game" "best")))
+  ("card game" "french" "mille bornes" "ocaml project")))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
