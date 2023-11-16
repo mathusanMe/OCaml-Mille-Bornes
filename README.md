@@ -91,3 +91,17 @@ This can be combined with continuous build & test, using
 ```
 $ dune runtest --watch
 ```
+
+## Documentation
+
+The internal project documentation can be compiled to HTML through
+
+```
+$ dune build @doc-private
+```
+
+The resulting document is available with
+
+```
+$ open _build/default/_doc/_html/tictactoe@*/Tictactoe/index.html
+```
