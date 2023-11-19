@@ -1,5 +1,5 @@
 # Mille bornes
-
+[![OCaml CI](https://github.com/mathusanMe/OCaml-Mille-Bornes/actions/workflows/github-ci.yml/badge.svg)](https://github.com/mathusanMe/OCaml-Mille-Bornes/actions/workflows/github-ci.yml)
 ## Members
 
 | Name                | Gaufre username |
