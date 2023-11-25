@@ -414,3 +414,6 @@ let board3 =
         team3;
       ];
   }
+
+let board4 = { board3 with current_team_index = 3 }
+let board5 = { board3 with current_team_index = -1 }

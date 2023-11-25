@@ -15,6 +15,9 @@ val find_index : ('a -> bool) -> 'a list -> int option
 val get_index_of_card_on_hand : card -> player -> int
 (** [get_index_of_card_on_hand c p] returns the index of the first [card] in the hand deck of [p] corresponding to [c]. *)
 
+exception Current_team_index_out_of_bound
+(** Raised when the index of the current team in board is outside the limits of the team list.  *)
+
 val get_current_team_from : board -> team
 (** [get_current_team_from b] returns the [team] with the [current_team_index] id of [b]. *)
 

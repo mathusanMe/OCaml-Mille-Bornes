@@ -8,7 +8,12 @@ type board = {
   current_team_index : int;
 }
 
-let get_current_team_from (b : board) = List.nth b.teams b.current_team_index
+exception Current_team_index_out_of_bound
+
+let get_current_team_from (b : board) =
+  if b.current_team_index < 0 || b.current_team_index >= List.length b.teams
+  then raise Current_team_index_out_of_bound
+  else List.nth b.teams b.current_team_index
 
 let switch_current_player_of_current_team_from (b : board) =
   let current_team = get_current_team_from b in
