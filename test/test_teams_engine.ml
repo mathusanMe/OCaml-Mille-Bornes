@@ -100,6 +100,33 @@ let test_get_current_player_from =
                  (set_next_player_from team_with_computer_human)))
              .name = "Mathusan"))
 
+let test_get_current_player_from_bad_input =
+  Alcotest.test_case "Check if test_get_current_player_from raise an exception"
+    `Quick (fun () ->
+      Alcotest.check_raises "same result" Current_player_index_out_of_bound
+        (fun () ->
+          ignore
+            (let player = Human { name = "Nova"; hand = [] } in
+             let public_informations =
+               {
+                 id = 0;
+                 speed_limit_pile = [];
+                 drive_pile = [];
+                 distance_cards = [];
+                 safety_area = [];
+                 coup_fouree_cards = [];
+                 score = 0;
+               }
+             in
+             let team =
+               {
+                 players = [ player ];
+                 shared_public_informations = public_informations;
+                 current_player_index = 2;
+               }
+             in
+             get_current_player_from team)))
+
 let test_does_player_have_this_name_in_team_list1 =
   Alcotest.test_case
     "test does_player_have_this_name_in_team_list with empty list" `Quick
@@ -1231,6 +1258,37 @@ let test_use_remedy_card =
          in
          res1 && res2 && res3 && res4 && res5 && res6))
 
+let test_nth_hand_player =
+  Alcotest.test_case "test nth_hand_player with good input" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let player =
+           Human
+             {
+               name = "test";
+               hand =
+                 [
+                   Safety EmergencyVehicle;
+                   Remedy EndOfSpeedLimit;
+                   Hazard OutOfGas;
+                   Distance D200;
+                 ];
+             }
+         in
+         nth_hand_player player 0 = Safety EmergencyVehicle
+         && nth_hand_player player 1 = Remedy EndOfSpeedLimit
+         && nth_hand_player player 2 = Hazard OutOfGas
+         && nth_hand_player player 3 = Distance D200))
+
+let test_nth_hand_player_bad_input =
+  Alcotest.test_case "Check if nth_hand_player raise the good exception" `Quick
+    (fun () ->
+      Alcotest.check_raises "same exception" Index_of_hand_out_of_bound
+        (fun () ->
+          ignore
+            (let player = Human { name = "Nova"; hand = [] } in
+             nth_hand_player player 17)))
+
 let () =
   let open Alcotest in
   run "Teams_engine"
@@ -1243,6 +1301,7 @@ let () =
           test_set_next_player1;
           test_set_next_player2;
           test_get_current_player_from;
+          test_get_current_player_from_bad_input;
         ] );
       ( "test_does_player_have_this_name_in_team_list",
         [
@@ -1309,4 +1368,6 @@ let () =
           test_is_usable_remedy_card5;
         ] );
       ("use_remedy_card", [ test_use_remedy_card ]);
+      ( "test nth_hand_player",
+        [ test_nth_hand_player; test_nth_hand_player_bad_input ] );
     ]
