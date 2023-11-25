@@ -3,6 +3,28 @@ open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
 open Utils_board_engine
 
+let test_get_current_team_from_valid =
+  Alcotest.test_case "test get_current_team_from doesn't crash" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let _ = get_current_team_from board3 in
+         true))
+
+let test_get_current_team_from_out_of_bound1 =
+  Alcotest.test_case "test get_current_team_from raises a good exception" `Quick
+    (fun () ->
+      Alcotest.check_raises "raise Current_team_index_out_of_bound"
+        Current_team_index_out_of_bound (fun () ->
+          ignore (get_current_team_from board4)))
+
+let test_get_current_team_from_out_of_bound2 =
+  Alcotest.test_case "test get_current_team_from raises a good exception" `Quick
+    (fun () ->
+      Alcotest.check_raises "raise Current_team_index_out_of_bound"
+        Current_team_index_out_of_bound (fun () ->
+          ignore (get_current_team_from board5)))
+
 let test_switch_current_player_of_current_team_from =
   Alcotest.test_case "test switch_current_player_of_current_team_from" `Quick
     (fun () ->
@@ -529,6 +551,12 @@ let () =
   let open Alcotest in
   run "Board_engine"
     [
+      ( "get current team from",
+        [
+          test_get_current_team_from_valid;
+          test_get_current_team_from_out_of_bound1;
+          test_get_current_team_from_out_of_bound2;
+        ] );
       ("switch current team from", [ test_switch_current_team_from ]);
       ( "switch current player from current team",
         [ test_switch_current_player_of_current_team_from ] );
