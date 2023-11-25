@@ -70,6 +70,9 @@ type team = {
 (** The [team] type is a representation of a game member, with 1 or 2 players in this implementation,
     its [public_informations] that they share between players, and the id of the [player] who must play the round. *)
 
+exception Current_player_index_out_of_bound
+(** Raised when the index of the current player in the team is outside the limits of the team list. *)
+
 val get_current_player_from : team -> player
 (** [get_current_player_from t] returns the [t] [player] with the same id as the [current_player_id] in [team]. *)
 
@@ -153,6 +156,9 @@ val has_safety_to_counter_hazard_on_his_hand : player -> hazard_card -> bool
 
 val is_usable_card : public_informations -> card -> bool
 (** [is_usable_card pi c] returns true if [c] can be used on the [pi]'s driving zone, according to the game rules. *)
+
+exception Index_of_hand_out_of_bound
+(** Raised when the card index given for the hand is outside its limits. *)
 
 val nth_hand_player : player -> int -> card
 (** [nth_hand_player p i] returns the [card] to position [i] in the [p]'s hand. *)

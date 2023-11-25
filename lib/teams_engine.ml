@@ -103,8 +103,14 @@ let init_team_with_two_computer (name1 : string) (strat1 : strategy)
   let player2 = init_computer name2 strat2 in
   init_team_with_two_players player1 player2 id
 
+exception Current_player_index_out_of_bound
+
 let get_current_player_from (t : team) =
-  List.nth t.players t.current_player_index
+  if
+    t.current_player_index < 0
+    || t.current_player_index >= List.length t.players
+  then raise Current_player_index_out_of_bound
+  else List.nth t.players t.current_player_index
 
 let get_player_struct_from (p : player) =
   match p with Human p_struct -> p_struct | Computer (p_struct, _) -> p_struct
@@ -447,6 +453,11 @@ let use_card (t : team) (c : card) =
   | Safety safety -> use_safety_card t safety
   | Distance distance_card -> use_distance_card t distance_card
 
+exception Index_of_hand_out_of_bound
+
 let nth_hand_player (p : player) (i : int) =
   match p with
-  | Human p_struct | Computer (p_struct, _) -> List.nth p_struct.hand i
+  | Human p_struct | Computer (p_struct, _) ->
+      if i < 0 || i > List.length p_struct.hand then
+        raise Index_of_hand_out_of_bound
+      else List.nth p_struct.hand i
