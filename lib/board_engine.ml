@@ -105,8 +105,6 @@ let draw_card (b : board) (t : team) (from_discard_pile : bool) =
       { b with discard_pile = new_pile; teams = new_teams }
     else { b with draw_pile = new_pile; teams = new_teams }
 
-exception Card_not_found
-
 let discard_card (b : board) (t : team) (c : card) =
   if not (List.mem t b.teams) then raise Team_not_found
   else
