@@ -180,6 +180,28 @@ let test_get_hazard_corresponding_to_the_remedy =
         && get_hazard_corresponding_to_the_remedy SpareTire = FlatTire
         && get_hazard_corresponding_to_the_remedy Repairs = Accident))
 
+let test_get_remedy_corresponding_to_the_hazard =
+  Alcotest.test_case "test get_remedy_corresponding_to_the_hazard" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (get_remedy_corresponding_to_the_hazard Stop = Drive
+        && get_remedy_corresponding_to_the_hazard SpeedLimit = EndOfSpeedLimit
+        && get_remedy_corresponding_to_the_hazard OutOfGas = Gas
+        && get_remedy_corresponding_to_the_hazard FlatTire = SpareTire
+        && get_remedy_corresponding_to_the_hazard Accident = Repairs))
+
+let test_get_safety_corresponding_to_the_hazard =
+  Alcotest.test_case "test get_safety_corresponding_to_the_hazard" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (get_safety_corresponding_to_the_hazard Stop = EmergencyVehicle
+        && get_safety_corresponding_to_the_hazard SpeedLimit = EmergencyVehicle
+        && get_safety_corresponding_to_the_hazard OutOfGas = FuelTruck
+        && get_safety_corresponding_to_the_hazard FlatTire = PunctureProof
+        && get_safety_corresponding_to_the_hazard Accident = DrivingAce))
+
 let test_add_card_to_pile1 =
   Alcotest.test_case "test add_card_to_pile on empty pile" `Quick (fun () ->
       Alcotest.(check bool)
@@ -262,6 +284,10 @@ let () =
       ("shuffle_pile", [ test_shuffle_pile ]);
       ( "test get_hazard_corresponding_to_the_remedy",
         [ test_get_hazard_corresponding_to_the_remedy ] );
+      ( "test get_remedy_corresponding_to_the_hazard",
+        [ test_get_remedy_corresponding_to_the_hazard ] );
+      ( "test get_safety_corresponding_to_the_hazard",
+        [ test_get_safety_corresponding_to_the_hazard ] );
       ( "add_card to_deck and to_pile",
         [
           test_add_card_to_pile1;
