@@ -255,6 +255,27 @@ let test_add_card_to_deck3 =
            ]
            (add_card_to_deck exemple_deck3 (Remedy EndOfSpeedLimit))))
 
+let test_remove_non_mem_card_from_deck =
+  let deck =
+    [
+      Safety FuelTruck;
+      Remedy Drive;
+      Remedy EndOfSpeedLimit;
+      Remedy SpareTire;
+      Hazard OutOfGas;
+      Hazard FlatTire;
+      Distance D25;
+      Distance D100;
+      Distance D100;
+      Distance D100;
+    ]
+  in
+  let to_remove = Distance D200 in
+  Alcotest.test_case "test remove_card_from_deck when card is not in deck"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Card_not_found" Card_not_found (fun () ->
+          ignore (remove_card_from_deck deck to_remove)))
+
 let () =
   Random.self_init ();
   let open Alcotest in
@@ -296,4 +317,6 @@ let () =
           test_add_card_to_deck2;
           test_add_card_to_deck3;
         ] );
+      ( "test_remove_non_mem_card_from_deck",
+        [ test_remove_non_mem_card_from_deck ] );
     ]

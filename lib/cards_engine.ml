@@ -170,7 +170,14 @@ let get_safety_corresponding_to_the_hazard (c : hazard_card) =
 let add_card_to_pile (p : pile_of_card) (c : card) = c :: p
 let add_card_to_deck (d : deck_of_card) (c : card) = sort_card_list (c :: d)
 
-let rec remove_card_from_deck (d : deck_of_card) (c : card) =
-  match d with
-  | [] -> raise Empty_deck
-  | h :: t -> if h = c then t else h :: remove_card_from_deck t c
+exception Card_not_found
+
+let remove_card_from_deck (d : deck_of_card) (c : card) =
+  if is_empty d then raise Empty_deck
+  else
+    let rec aux_remove_card_from_deck d c =
+      match d with
+      | [] -> raise Card_not_found
+      | h :: t -> if h = c then t else h :: aux_remove_card_from_deck t c
+    in
+    aux_remove_card_from_deck d c

@@ -78,6 +78,9 @@ val add_card_to_pile : pile_of_card -> card -> pile_of_card
 val add_card_to_deck : deck_of_card -> card -> deck_of_card
 (** [add_card_to_deck d c] adds [c] at [d] which is then sorted by [sort_card_list] after that. *)
 
+exception Card_not_found
+(** Raised when a given card is not in a particular player's hand. *)
+
 val remove_card_from_deck : deck_of_card -> card -> deck_of_card
 (** [remove_card_from_deck d c] removes [c] from [d].
     [raise Empty_deck] if deck_of_card is empty. *)

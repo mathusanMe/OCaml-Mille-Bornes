@@ -1,5 +1,4 @@
 open QCheck
-open Mille_bornes.Board_engine
 open Mille_bornes.Cards_engine
 open Mille_bornes.Teams_engine
 open Mille_bornes.Random_bot

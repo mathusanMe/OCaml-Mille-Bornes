@@ -47,9 +47,6 @@ val is_discard_pile_empty : board -> bool
 val swap_draw_and_shuffled_discard_pile : board -> board
 (** [switch_draw_and_discard_pile b] returns [b] with the draw pile and discard pile swapped, and the draw pile shuffled. *)
 
-exception Card_not_found
-(** Raised when a given card is not in a particular player's hand. *)
-
 exception Team_not_found
 (** Raised when a wrong team not belonging to a given [board]. *)
 
