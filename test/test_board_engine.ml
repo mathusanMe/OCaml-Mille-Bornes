@@ -546,6 +546,56 @@ let test_place_coup_fouree6 =
       Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
           ignore (place_coup_fouree board1 team2 player22 FuelTruck)))
 
+let test_place_OutOfGas_to_empty_zone =
+  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board6
+               (get_current_team_from board6)
+               (Hazard OutOfGas)
+               discard_card_team_with_current_player_with_empty_hand)))
+
+let test_place_FlatTire_to_empty_zone =
+  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board6
+               (get_current_team_from board6)
+               (Hazard FlatTire)
+               discard_card_team_with_current_player_with_empty_hand)))
+
+let test_place_Stop_to_empty_zone =
+  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board6
+               (get_current_team_from board6)
+               (Hazard Stop)
+               discard_card_team_with_current_player_with_empty_hand)))
+
+let test_place_Accident_to_empty_zone =
+  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board6
+               (get_current_team_from board6)
+               (Hazard Accident)
+               discard_card_team_with_current_player_with_empty_hand)))
+
+let test_place_SpeedLimit_to_empty_zone =
+  Alcotest.test_case "SpeedLimit on empty zone" `Quick (fun () ->
+      Alcotest.(check bool)
+        "allowed" true
+        (let b =
+           place_card board6
+             (get_current_team_from board6)
+             (Hazard SpeedLimit)
+             discard_card_team_with_current_player_with_empty_hand
+         in
+         let b = switch_current_team_from b in
+         is_attacked_by_speed_limit
+           (get_current_team_from b).shared_public_informations))
+
 let () =
   Random.self_init ();
   let open Alcotest in
@@ -605,5 +655,13 @@ let () =
           test_place_coup_fouree4;
           test_place_coup_fouree5;
           test_place_coup_fouree6;
+        ] );
+      ( "place hazard card on empty zone",
+        [
+          test_place_OutOfGas_to_empty_zone;
+          test_place_Accident_to_empty_zone;
+          test_place_FlatTire_to_empty_zone;
+          test_place_Stop_to_empty_zone;
+          test_place_SpeedLimit_to_empty_zone;
         ] );
     ]
