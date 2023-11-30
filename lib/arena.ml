@@ -2,6 +2,7 @@ open Teams_engine
 open Board_engine
 open Cards_engine
 open Random_bot
+open Sad_bot
 
 type endplay =
   | Equality
@@ -29,7 +30,7 @@ let pp_endplay fmt result =
   | Error message -> Format.fprintf fmt "%s" message
 
 let has_win t = t.shared_public_informations.score >= 1000
-let get_strategy_list () = [ random_strategy ]
+let get_strategy_list () = [ random_strategy; sad_strategy ]
 
 let pp_strategy_list fmt strategy_list =
   List.iteri (fun i s -> Format.fprintf fmt "%d.%s@ " i s.name) strategy_list
