@@ -4,4 +4,4 @@
   test_teams_engine
   test_board_engine
   test_random_bot)
- (libraries mille_bornes alcotest lwt.unix qcheck))
+ (libraries mille_bornes alcotest lwt.unix qcheck qcheck-alcotest))
