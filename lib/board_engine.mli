@@ -19,7 +19,8 @@ exception Current_team_index_out_of_bound
 (** Raised when the index of the current team in board is outside the limits of the team list.  *)
 
 val get_current_team_from : board -> team
-(** [get_current_team_from b] returns the [team] with the [current_team_index] id of [b]. *)
+(** [get_current_team_from b] returns the [team] with the [current_team_index] id of [b].
+    [raise Current_team_index_out_of_bound] if [current_team_index] is not valid. *)
 
 val switch_current_player_of_current_team_from : board -> board
 (** [switch_current_player_of_current_team_from] changes the current [player] in the current [team] to the next current [player] in the same [team]. *)
