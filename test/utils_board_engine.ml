@@ -417,3 +417,29 @@ let board3 =
 
 let board4 = { board3 with current_team_index = 3 }
 let board5 = { board3 with current_team_index = -1 }
+
+let playerH =
+  Human
+    {
+      name = "Attacker";
+      hand =
+        [
+          Hazard Stop;
+          Hazard SpeedLimit;
+          Hazard OutOfGas;
+          Hazard FlatTire;
+          Hazard Accident;
+        ];
+    }
+
+let board6 =
+  {
+    draw_pile = [];
+    discard_pile = [];
+    teams =
+      [
+        { draw_card_team1 with players = [ playerH ] };
+        discard_card_team_with_current_player_with_empty_hand;
+      ];
+    current_team_index = 0;
+  }
