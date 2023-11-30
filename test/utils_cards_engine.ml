@@ -48,3 +48,65 @@ let exemple_deck3 =
     Distance D200;
     Distance D200;
   ]
+
+let generator_remedy_card =
+  let open QCheck in
+  Gen.oneof
+    [
+      Gen.return Drive;
+      Gen.return EndOfSpeedLimit;
+      Gen.return Gas;
+      Gen.return SpareTire;
+      Gen.return Repairs;
+    ]
+
+let generator_hazard_card =
+  let open QCheck in
+  Gen.oneof
+    [
+      Gen.return Stop;
+      Gen.return SpeedLimit;
+      Gen.return OutOfGas;
+      Gen.return FlatTire;
+      Gen.return Accident;
+    ]
+
+let generator_safety_card =
+  let open QCheck in
+  Gen.oneof
+    [
+      Gen.return EmergencyVehicle;
+      Gen.return FuelTruck;
+      Gen.return PunctureProof;
+      Gen.return DrivingAce;
+    ]
+
+let generator_distance_card =
+  let open QCheck in
+  Gen.oneof
+    [
+      Gen.return D25;
+      Gen.return D50;
+      Gen.return D75;
+      Gen.return D100;
+      Gen.return D200;
+    ]
+
+let generator_card =
+  let open QCheck in
+  Gen.oneof
+    [
+      Gen.map (fun s -> Safety s) generator_safety_card;
+      Gen.map (fun r -> Remedy r) generator_remedy_card;
+      Gen.map (fun h -> Hazard h) generator_hazard_card;
+      Gen.map (fun d -> Distance d) generator_distance_card;
+    ]
+
+let arbitrary_card =
+  QCheck.make ~print:(Format.asprintf "%a" pp_card) generator_card
+
+let arbitrary_init_pile =
+  let open QCheck in
+  make
+    ~print:(Format.asprintf "%a" (pp_pile_of_card "Pile"))
+    (generate_initial_pile () |> Gen.shuffle_l)

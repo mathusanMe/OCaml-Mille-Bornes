@@ -255,6 +255,29 @@ let test_add_card_to_deck3 =
            ]
            (add_card_to_deck exemple_deck3 (Remedy EndOfSpeedLimit))))
 
+let test_remove_mem_card_from_deck =
+  let open QCheck in
+  Test.make ~count:1000
+    ~name:
+      "For all card present in deck (when 1 <= length of deck <= 1000), \
+       (remove_card_from_deck deck card) = deck - {card}"
+    (list_of_size (Gen.int_range 1 1000) arbitrary_card)
+    (fun pile ->
+      let to_remove = List.length pile |> Random.int |> List.nth pile in
+      let different_to_remove_list =
+        List.filter (fun card -> not (equal_card card to_remove)) pile
+      in
+      let same_to_remove_list =
+        List.filter (fun card -> equal_card card to_remove) pile
+      in
+      let nb_left = max 0 ((same_to_remove_list |> List.length) - 1) in
+      let expected_deck =
+        different_to_remove_list @ List.init nb_left (fun _ -> to_remove)
+      in
+      equal_deck_of_card
+        (remove_card_from_deck pile to_remove |> sort_card_list)
+        (expected_deck |> sort_card_list))
+
 let test_remove_non_mem_card_from_deck =
   let deck =
     [
@@ -317,6 +340,8 @@ let () =
           test_add_card_to_deck2;
           test_add_card_to_deck3;
         ] );
+      ( "test_remove_mem_card_from_deck",
+        [ QCheck_alcotest.to_alcotest test_remove_mem_card_from_deck ] );
       ( "test_remove_non_mem_card_from_deck",
         [ test_remove_non_mem_card_from_deck ] );
     ]
