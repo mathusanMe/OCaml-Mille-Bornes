@@ -74,7 +74,8 @@ exception Current_player_index_out_of_bound
 (** Raised when the index of the current player in the team is outside the limits of the team list. *)
 
 val get_current_player_from : team -> player
-(** [get_current_player_from t] returns the [t] [player] with the same id as the [current_player_id] in [team]. *)
+(** [get_current_player_from t] returns the [t] [player] with the same id as the [current_player_id] in [team].
+    [raise Current_player_index_out_of_bound] if [current_player_id] is not valid *)
 
 val get_player_struct_from : player -> player_struct
 (** [get_player_struct_from p] returns the structure of [p], whether it's a [Bot] or a classic [player]. *)
@@ -161,4 +162,5 @@ exception Index_of_hand_out_of_bound
 (** Raised when the card index given for the hand is outside its limits. *)
 
 val nth_hand_player : player -> int -> card
-(** [nth_hand_player p i] returns the [card] to position [i] in the [p]'s hand. *)
+(** [nth_hand_player p i] returns the [card] to position [i] in the [p]'s hand.
+    [raise Index_of_hand_out_of_bound] if [i] is not valid. *)
