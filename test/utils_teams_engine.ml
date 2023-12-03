@@ -35,6 +35,25 @@ let team_with_human_computer =
 
 open Mille_bornes.Cards_engine
 
+let team0 =
+  let public_informations =
+    {
+      id = 0;
+      speed_limit_pile = [ Hazard SpeedLimit ];
+      drive_pile = [ Distance D50; Distance D100 ];
+      distance_cards = [ Safety DrivingAce ];
+      safety_area = [];
+      coup_fouree_cards = [];
+      score = 10;
+    }
+  in
+  let player = Human { name = "player"; hand = [] } in
+  {
+    players = [ player ];
+    shared_public_informations = public_informations;
+    current_player_index = -1;
+  }
+
 let team1 =
   let public_informations =
     {
