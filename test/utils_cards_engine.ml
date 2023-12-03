@@ -1,5 +1,43 @@
 open Mille_bornes.Cards_engine
 
+let not_empty_card_list =
+  [
+    Remedy Drive;
+    Hazard Accident;
+    Hazard OutOfGas;
+    Safety EmergencyVehicle;
+    Distance D100;
+    Distance D100;
+    Distance D50;
+    Remedy EndOfSpeedLimit;
+    Remedy Drive;
+    Safety DrivingAce;
+  ]
+
+let deck_different_order =
+  [
+    Remedy EndOfSpeedLimit;
+    Remedy Drive;
+    Distance D100;
+    Hazard Accident;
+    Safety EmergencyVehicle;
+    Distance D100;
+    Safety DrivingAce;
+    Remedy Drive;
+    Distance D50;
+    Hazard OutOfGas;
+  ]
+
+let deck_different_cards =
+  [
+    Remedy SpareTire;
+    Remedy Repairs;
+    Distance D50;
+    Hazard SpeedLimit;
+    Distance D200;
+    Distance D25;
+  ]
+
 let exemple_pp_list1 = [ Distance D200 ]
 
 let exemple_pp_list2 =

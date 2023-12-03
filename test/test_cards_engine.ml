@@ -1,6 +1,79 @@
 open Mille_bornes.Cards_engine
 open Utils_cards_engine
 
+let test_is_empty_true =
+  Alcotest.test_case "test if is_empty returns true with an empty list" `Quick
+    (fun () -> Alcotest.(check bool) "same result" (is_empty []) true)
+
+let test_is_empty_false =
+  Alcotest.test_case "test if is_empty returns false with a non empty list"
+    `Quick (fun () ->
+      Alcotest.(check bool) "same result" (is_empty not_empty_card_list) false)
+
+let test_equal_card_true =
+  Alcotest.test_case "test if equal_card returns true with the same cards"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result"
+        (equal_card (Hazard Accident) (Hazard Accident))
+        true)
+
+let test_equal_card_false1 =
+  Alcotest.test_case
+    "test if equal_card returns false with two diffrent cards of the same type"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result"
+        (equal_card (Hazard Accident) (Hazard OutOfGas))
+        false)
+
+let test_equal_card_false2 =
+  Alcotest.test_case
+    "test if equal_card returns false with two diffrent cards of diffrent types"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result"
+        (equal_card (Hazard Accident) (Distance D75))
+        false)
+
+let test_equal_deck_true =
+  Alcotest.test_case
+    "test if equal_deck_of_cards returns true with two same decks" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same result"
+        (equal_deck_of_card not_empty_card_list not_empty_card_list)
+        true)
+
+let test_equal_deck_false1 =
+  Alcotest.test_case
+    "test if equal_deck_of_cards returns false with a non empty and an empty \
+     card lists"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result"
+        (equal_deck_of_card not_empty_card_list [])
+        false)
+
+let test_equal_deck_false2 =
+  Alcotest.test_case
+    "test if equal_deck_of_cards returns false with two diffrent card lists \
+     having the same elements in different order"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result"
+        (equal_deck_of_card not_empty_card_list deck_different_order)
+        false)
+
+let test_equal_deck_false3 =
+  Alcotest.test_case
+    "test if equal_deck_of_cards returns false with two diffrent card lists"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result"
+        (equal_deck_of_card not_empty_card_list deck_different_cards)
+        false)
+
 let test_pp_deck_of_card1 =
   Alcotest.test_case "test pp_deck_of_card on exemple_pp_deck_of_card1" `Quick
     (fun () ->
@@ -304,6 +377,17 @@ let () =
   let open Alcotest in
   run "Cards_engine"
     [
+      ("is_empty", [ test_is_empty_true; test_is_empty_false ]);
+      ( "equal_card",
+        [ test_equal_card_true; test_equal_card_false1; test_equal_card_false2 ]
+      );
+      ( "equal_deck_of_cards",
+        [
+          test_equal_deck_true;
+          test_equal_deck_false1;
+          test_equal_deck_false2;
+          test_equal_deck_false3;
+        ] );
       ( "pp_deck_of_card",
         [
           test_pp_deck_of_card1;
