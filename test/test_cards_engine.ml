@@ -372,6 +372,19 @@ let test_remove_non_mem_card_from_deck =
       Alcotest.check_raises "Expected Card_not_found" Card_not_found (fun () ->
           ignore (remove_card_from_deck deck to_remove)))
 
+let test_is_empty_on_non_empty =
+  let open QCheck in
+  Test.make ~count:1000
+    ~name:"Forall non-empty card_list, is_empty card_list = false"
+    (list arbitrary_card) (fun card_list ->
+      assume (card_list <> []);
+      not (is_empty card_list))
+
+let test_is_empty_on_empty =
+  let open Alcotest in
+  test_case "is_empty [] = true" `Quick (fun () ->
+      (check bool) "same" true (is_empty []))
+
 let () =
   Random.self_init ();
   let open Alcotest in
@@ -428,4 +441,9 @@ let () =
         [ QCheck_alcotest.to_alcotest test_remove_mem_card_from_deck ] );
       ( "test_remove_non_mem_card_from_deck",
         [ test_remove_non_mem_card_from_deck ] );
+      ( "test is_empty",
+        [
+          QCheck_alcotest.to_alcotest test_is_empty_on_non_empty;
+          test_is_empty_on_empty;
+        ] );
     ]

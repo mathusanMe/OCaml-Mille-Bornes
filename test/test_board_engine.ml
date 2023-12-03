@@ -2,6 +2,7 @@ open Mille_bornes.Board_engine
 open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
 open Utils_board_engine
+open Utils_cards_engine
 
 let test_get_current_team_from_valid =
   Alcotest.test_case "test get_current_team_from doesn't crash" `Quick
@@ -596,6 +597,44 @@ let test_place_SpeedLimit_to_empty_zone =
          is_attacked_by_speed_limit
            (get_current_team_from b).shared_public_informations))
 
+let test_is_draw_pile_empty_on_not_empty =
+  let open QCheck in
+  Test.make ~count:1000
+    ~name:
+      "Forall non-empty draw_pile, when board uses draw_pile, \
+       (is_draw_pile_empty board) = false" (list arbitrary_card) (fun l ->
+      assume (l <> []);
+      let board = { board1 with draw_pile = l } in
+      not (is_draw_pile_empty board))
+
+let test_is_draw_pile_empty_on_empty =
+  Alcotest.test_case
+    "When the board's draw_pile is [], (is_empty_draw_pile board) = true" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (let board = { board1 with draw_pile = [] } in
+         is_draw_pile_empty board))
+
+let test_is_discard_pile_empty_on_non_empty =
+  let open QCheck in
+  Test.make ~count:1000
+    ~name:
+      "Forall non-empty discard_pile, when board uses discard_pile, \
+       (is_discard_pile_empty board) = false" (list arbitrary_card) (fun l ->
+      assume (l <> []);
+      let board = { board1 with discard_pile = l } in
+      not (is_discard_pile_empty board))
+
+let test_is_discard_pile_empty_on_empty =
+  Alcotest.test_case
+    "When the board's discard_pile is [], (is_empty_discard_pile board) = true"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (let board = { board1 with discard_pile = [] } in
+         is_discard_pile_empty board))
+
 let () =
   Random.self_init ();
   let open Alcotest in
@@ -663,5 +702,15 @@ let () =
           test_place_FlatTire_to_empty_zone;
           test_place_Stop_to_empty_zone;
           test_place_SpeedLimit_to_empty_zone;
+        ] );
+      ( "test is_draw_pile_empty",
+        [
+          test_is_draw_pile_empty_on_empty;
+          QCheck_alcotest.to_alcotest test_is_draw_pile_empty_on_not_empty;
+        ] );
+      ( "test is_discard_pile_empty",
+        [
+          test_is_discard_pile_empty_on_empty;
+          QCheck_alcotest.to_alcotest test_is_discard_pile_empty_on_non_empty;
         ] );
     ]
