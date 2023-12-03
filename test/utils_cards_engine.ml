@@ -148,3 +148,17 @@ let arbitrary_init_pile =
   make
     ~print:(Format.asprintf "%a" (pp_pile_of_card "Pile"))
     (generate_initial_pile () |> Gen.shuffle_l)
+
+let generate_hand () =
+  let init_pile_list = generate_initial_pile () in
+  let pos = List.length init_pile_list |> Random.int in
+  let len_allowed = List.length init_pile_list - pos in
+  let len = Random.int (len_allowed + 1) in
+  let init_pile_array = Array.of_list init_pile_list in
+  Array.sub init_pile_array pos len |> Array.to_list
+
+let arbitrary_hand =
+  let open QCheck in
+  make
+    ~print:(Format.asprintf "%a" (pp_pile_of_card "Hand"))
+    (generate_hand () |> Gen.shuffle_l)
