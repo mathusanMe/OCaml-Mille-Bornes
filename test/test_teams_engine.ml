@@ -1,6 +1,7 @@
 open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
 open Utils_teams_engine
+open Utils_cards_engine
 
 let test_same_player =
   Alcotest.test_case "test same_player with different players" `Quick (fun () ->
@@ -1323,6 +1324,28 @@ let test_nth_hand_player_bad_input =
             (let player = Human { name = "Nova"; hand = [] } in
              nth_hand_player player 17)))
 
+let test_is_card_in_player_hand_true =
+  let open QCheck in
+  Test.make ~count:1000
+    ~name:
+      "For all non-empty player hand, for all card in that hand, \
+       (is_card_in_player_hand player card) is true" arbitrary_hand (fun hand ->
+      assume (hand <> []);
+      let ps = { name = "player_name"; hand } in
+      let player = Human ps in
+      List.for_all (fun card -> is_card_in_player_hand player card) hand)
+
+let test_is_card_in_player_hand_false =
+  let open QCheck in
+  Test.make ~count:1000
+    ~name:
+      "For all card, for all hand without card, (is_card_in_player_hand player \
+       card) is false" (pair arbitrary_hand arbitrary_card) (fun (hand, card) ->
+      assume (not (List.mem card hand));
+      let ps = { name = "player_name"; hand } in
+      let player = Human ps in
+      not (is_card_in_player_hand player card))
+
 let () =
   let open Alcotest in
   run "Teams_engine"
@@ -1407,4 +1430,8 @@ let () =
       ("use_remedy_card", [ test_use_remedy_card ]);
       ( "test nth_hand_player",
         [ test_nth_hand_player; test_nth_hand_player_bad_input ] );
+      ( "test_is_card_in_player_hand_true",
+        [ QCheck_alcotest.to_alcotest test_is_card_in_player_hand_true ] );
+      ( "test_is_card_in_player_hand_false",
+        [ QCheck_alcotest.to_alcotest test_is_card_in_player_hand_false ] );
     ]
