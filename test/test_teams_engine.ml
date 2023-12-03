@@ -2,6 +2,40 @@ open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
 open Utils_teams_engine
 
+let test_same_player =
+  Alcotest.test_case "test same_player with different players" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" false
+        (same_player
+           (get_current_player_from team_with_one_computer)
+           (get_current_player_from team_with_one_human)))
+
+let test_same_team =
+  Alcotest.test_case "test same_team with different teams" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" false
+        (same_team team_with_computer_human team_with_human_computer))
+
+let test_replace_struct_in =
+  Alcotest.test_case "test replace_struct_in and same_player" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" false
+        (let p1 = get_current_player_from team_with_one_human in
+         let p1_replaced =
+           replace_player_struct_in p1
+             (get_player_struct_from
+                (get_current_player_from team_with_one_computer))
+         in
+         same_player p1 p1_replaced))
+
+let test_replace_player_in =
+  Alcotest.test_case "test replace_player_in and same_team" `Quick (fun () ->
+      Alcotest.(check bool)
+        "same result" true
+        (let p1 = get_current_player_from team_with_one_computer in
+         let team_1 = team_with_one_human in
+         same_team team_1 (replace_player_in team_1 p1)))
+
 let test_get_names =
   Alcotest.test_case "test get_names on team1 and team6" `Quick (fun () ->
       Alcotest.(check bool)
@@ -1293,6 +1327,9 @@ let () =
   let open Alcotest in
   run "Teams_engine"
     [
+      ( "test same_player and replace_player_struct_in",
+        [ test_same_player; test_replace_struct_in ] );
+      ("test same_team", [ test_same_team; test_replace_player_in ]);
       ("test get_names", [ test_get_names ]);
       ( "test get_current_player_from and set_next_player_from",
         [
