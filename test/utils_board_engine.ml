@@ -443,3 +443,133 @@ let board6 =
       ];
     current_team_index = 0;
   }
+
+let attacker_team =
+  let public_informations =
+    {
+      id = 0;
+      speed_limit_pile = [];
+      drive_pile = [];
+      distance_cards = [];
+      safety_area = [];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ playerH ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
+
+let schumacher = Human { name = "Schumacher"; hand = [] }
+
+let team_schumacher =
+  let public_informations =
+    {
+      id = 0;
+      speed_limit_pile = [];
+      drive_pile = [];
+      distance_cards = [];
+      safety_area = [ Safety EmergencyVehicle ];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ schumacher ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
+
+let board_attack_schumacher =
+  {
+    draw_pile = [];
+    discard_pile = [];
+    teams = [ attacker_team; team_schumacher ];
+    current_team_index = 0;
+  }
+
+let kubica = Human { name = "Kubica"; hand = [] }
+
+let team_gigakub =
+  let public_informations =
+    {
+      id = 0;
+      speed_limit_pile = [];
+      drive_pile = [ Remedy Drive ];
+      distance_cards = [];
+      safety_area = [ Safety DrivingAce ];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ kubica ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
+
+let board_attack_kubica =
+  {
+    draw_pile = [];
+    discard_pile = [];
+    teams = [ attacker_team; team_gigakub ];
+    current_team_index = 0;
+  }
+
+let alonso = Human { name = "Alonso"; hand = [] }
+
+let team_alonso =
+  let public_informations =
+    {
+      id = 0;
+      speed_limit_pile = [];
+      drive_pile = [ Remedy Drive ];
+      distance_cards = [];
+      safety_area = [ Safety PunctureProof ];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ alonso ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
+
+let board_attack_alonso =
+  {
+    draw_pile = [];
+    discard_pile = [];
+    teams = [ attacker_team; team_alonso ];
+    current_team_index = 0;
+  }
+
+let massa = Human { name = "Massa"; hand = [] }
+
+let team_massa =
+  let public_informations =
+    {
+      id = 0;
+      speed_limit_pile = [];
+      drive_pile = [ Remedy Drive ];
+      distance_cards = [];
+      safety_area = [ Safety FuelTruck ];
+      coup_fouree_cards = [];
+      score = 0;
+    }
+  in
+  {
+    players = [ massa ];
+    shared_public_informations = public_informations;
+    current_player_index = 0;
+  }
+
+let board_attack_massa =
+  {
+    draw_pile = [];
+    discard_pile = [];
+    teams = [ attacker_team; team_massa ];
+    current_team_index = 0;
+  }
