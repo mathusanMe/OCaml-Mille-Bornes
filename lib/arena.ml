@@ -139,7 +139,7 @@ let request_strategy_for_bot id num =
     | None -> None
     | Some i -> Some (List.nth strategy_list i))
 
-let rec ask_player_info id num already_created_team =
+let rec ask_player_info id num already_created_team name_first_player =
   let max_name_length = 15 in
   match
     request_answer_with_length
@@ -148,10 +148,16 @@ let rec ask_player_info id num already_created_team =
   with
   | None -> None
   | Some name -> (
-      if does_player_have_this_name_in_team_list name already_created_team then (
+      if
+        does_player_have_this_name_in_team_list name already_created_team
+        ||
+        match name_first_player with
+        | None -> false
+        | Some name1 -> name1 = name
+      then (
         Format.printf
           "This name is already taken by someone else, take another.@;";
-        ask_player_info id num already_created_team)
+        ask_player_info id num already_created_team name_first_player)
       else
         match
           request_yes_or_no
@@ -165,12 +171,12 @@ let rec ask_player_info id num already_created_team =
             | Some strategy -> Some (name, Some strategy)))
 
 let init_team id is_team_of_two already_created_team =
-  match ask_player_info id 1 already_created_team with
+  match ask_player_info id 1 already_created_team None with
   | None -> None
   | Some (name1, None) -> (
       if not is_team_of_two then Some (init_team_with_one_human name1 id)
       else
-        match ask_player_info id 2 already_created_team with
+        match ask_player_info id 2 already_created_team (Some name1) with
         | None -> None
         | Some (name2, None) -> Some (init_team_with_two_human name1 name2 id)
         | Some (name2, Some strategy) ->
@@ -181,7 +187,7 @@ let init_team id is_team_of_two already_created_team =
       if not is_team_of_two then
         Some (init_team_with_one_computer name1 strategy1 id)
       else
-        match ask_player_info id 2 already_created_team with
+        match ask_player_info id 2 already_created_team (Some name1) with
         | None -> None
         | Some (name2, None) ->
             Some
