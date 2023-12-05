@@ -635,6 +635,656 @@ let test_is_discard_pile_empty_on_empty =
         (let board = { board1 with discard_pile = [] } in
          is_discard_pile_empty board))
 
+let test_attack_hazard_stop_to_schumacher_team =
+  Alcotest.test_case
+    "raise Unusable card for hazard Stop to team with safety card Emergency \
+     Vehicle"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board_attack_schumacher attacker_team (Hazard Stop)
+               team_schumacher)))
+
+let test_attack_hazard_accident_to_schumacher_team =
+  Alcotest.test_case
+    "No exception for hazard Accident to team with safety card Emergency \
+     Vehicle"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_schumacher attacker_team (Hazard Accident)
+           team_schumacher
+        = {
+            board_attack_schumacher with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_schumacher with
+                  shared_public_informations =
+                    {
+                      team_schumacher.shared_public_informations with
+                      drive_pile = [ Hazard Accident ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_outofgas_to_schumacher_team =
+  Alcotest.test_case
+    "No exception for hazard OutOfGas to team with safety card Emergency \
+     Vehicle"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_schumacher attacker_team (Hazard OutOfGas)
+           team_schumacher
+        = {
+            board_attack_schumacher with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_schumacher with
+                  shared_public_informations =
+                    {
+                      team_schumacher.shared_public_informations with
+                      drive_pile = [ Hazard OutOfGas ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_flattire_to_schumacher_team =
+  Alcotest.test_case
+    "No exception for hazard FlatTire to team with safety card Emergency \
+     Vehicle"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_schumacher attacker_team (Hazard FlatTire)
+           team_schumacher
+        = {
+            board_attack_schumacher with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_schumacher with
+                  shared_public_informations =
+                    {
+                      team_schumacher.shared_public_informations with
+                      drive_pile = [ Hazard FlatTire ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_speedlimit_to_schumacher_team =
+  Alcotest.test_case
+    "raise Unusable card for hazard SpeedLimit to team with safety card \
+     Emergency Vehicle"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board_attack_schumacher attacker_team
+               (Hazard SpeedLimit) team_schumacher)))
+
+let test_attack_hazard_stop_to_kubica_team =
+  Alcotest.test_case
+    "check if hazard Stop works to team with safety card Driving Ace " `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_kubica attacker_team (Hazard Stop) team_gigakub
+        = {
+            board_attack_kubica with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_gigakub with
+                  shared_public_informations =
+                    {
+                      team_gigakub.shared_public_informations with
+                      drive_pile = [ Hazard Stop; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_speedlimit_to_kubica_team =
+  Alcotest.test_case
+    "check if hazard SpeedLimit works to team with safety card Driving Ace "
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_kubica attacker_team (Hazard SpeedLimit)
+           team_gigakub
+        = {
+            board_attack_kubica with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_gigakub with
+                  shared_public_informations =
+                    {
+                      team_gigakub.shared_public_informations with
+                      speed_limit_pile = [ Hazard SpeedLimit ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_accident_to_kubica_team =
+  Alcotest.test_case
+    "raise Unusable card for hazard Accident to team with safety card Driving \
+     Ace"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board_attack_kubica attacker_team (Hazard Accident)
+               team_gigakub)))
+
+let test_attack_hazard_outofgas_to_kubica_team =
+  Alcotest.test_case
+    "check if hazard OutOfGas works to team with safety card Driving Ace "
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_kubica attacker_team (Hazard OutOfGas)
+           team_gigakub
+        = {
+            board_attack_kubica with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_gigakub with
+                  shared_public_informations =
+                    {
+                      team_gigakub.shared_public_informations with
+                      drive_pile = [ Hazard OutOfGas; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_flattire_to_kubica_team =
+  Alcotest.test_case
+    "check if hazard FlatTire works to team with safety card Driving Ace "
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_kubica attacker_team (Hazard FlatTire)
+           team_gigakub
+        = {
+            board_attack_kubica with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_gigakub with
+                  shared_public_informations =
+                    {
+                      team_gigakub.shared_public_informations with
+                      drive_pile = [ Hazard FlatTire; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_stop_to_alonso_team =
+  Alcotest.test_case
+    "check if hazard Stop works to team with safety card Puncture Proof" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_alonso attacker_team (Hazard Stop) team_alonso
+        = {
+            board_attack_alonso with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_alonso with
+                  shared_public_informations =
+                    {
+                      team_alonso.shared_public_informations with
+                      drive_pile = [ Hazard Stop; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_speedlimit_to_alonso_team =
+  Alcotest.test_case
+    "check if hazard SpeedLimit works to team with safety card Puncture Proof"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_alonso attacker_team (Hazard SpeedLimit)
+           team_alonso
+        = {
+            board_attack_alonso with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_alonso with
+                  shared_public_informations =
+                    {
+                      team_alonso.shared_public_informations with
+                      speed_limit_pile = [ Hazard SpeedLimit ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_accident_to_alonso_team =
+  Alcotest.test_case
+    "check if hazard Accident works to team with safety card Puncture Proof"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_alonso attacker_team (Hazard Accident)
+           team_alonso
+        = {
+            board_attack_alonso with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_alonso with
+                  shared_public_informations =
+                    {
+                      team_alonso.shared_public_informations with
+                      drive_pile = [ Hazard Accident; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_outofgas_to_alonso_team =
+  Alcotest.test_case
+    "check if hazard OutOfGas works to team with safety card Puncture Proof"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_alonso attacker_team (Hazard OutOfGas)
+           team_alonso
+        = {
+            board_attack_alonso with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_alonso with
+                  shared_public_informations =
+                    {
+                      team_alonso.shared_public_informations with
+                      drive_pile = [ Hazard OutOfGas; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_flattire_to_alonso_team =
+  Alcotest.test_case
+    "raise Unusable card for hazard Flattire to team with safety card Puncture \
+     Proof"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board_attack_alonso attacker_team (Hazard FlatTire)
+               team_alonso)))
+
+let test_attack_hazard_stop_to_massa_team =
+  Alcotest.test_case
+    "check if hazard Stop works to team with safety card Fuel truck" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_massa attacker_team (Hazard Stop) team_massa
+        = {
+            board_attack_massa with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_massa with
+                  shared_public_informations =
+                    {
+                      team_massa.shared_public_informations with
+                      drive_pile = [ Hazard Stop; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_speedlimit_to_massa_team =
+  Alcotest.test_case
+    "check if hazard SpeedLimit works to team with safety card Fuel truck"
+    `Quick (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_massa attacker_team (Hazard SpeedLimit)
+           team_massa
+        = {
+            board_attack_massa with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_massa with
+                  shared_public_informations =
+                    {
+                      team_massa.shared_public_informations with
+                      speed_limit_pile = [ Hazard SpeedLimit ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_accident_to_massa_team =
+  Alcotest.test_case
+    "check if hazard Accident works to team with safety card Fuel truck" `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_massa attacker_team (Hazard Accident)
+           team_massa
+        = {
+            board_attack_massa with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard FlatTire;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_massa with
+                  shared_public_informations =
+                    {
+                      team_massa.shared_public_informations with
+                      drive_pile = [ Hazard Accident; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
+let test_attack_hazard_outofgas_to_massa_team =
+  Alcotest.test_case
+    "raise Unusable card for hazard OutOfGas to team with safety card Fuel \
+     truck"
+    `Quick (fun () ->
+      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
+          ignore
+            (place_card board_attack_massa attacker_team (Hazard OutOfGas)
+               team_massa)))
+
+let test_attack_hazard_flattire_to_massa_team =
+  Alcotest.test_case
+    "check if hazard FlatTire works to team with safety card Fuel Truck " `Quick
+    (fun () ->
+      Alcotest.(check bool)
+        "same" true
+        (place_card board_attack_massa attacker_team (Hazard FlatTire)
+           team_massa
+        = {
+            board_attack_massa with
+            teams =
+              [
+                {
+                  attacker_team with
+                  players =
+                    [
+                      Human
+                        {
+                          name = "Attacker";
+                          hand =
+                            [
+                              Hazard Stop;
+                              Hazard SpeedLimit;
+                              Hazard OutOfGas;
+                              Hazard Accident;
+                            ];
+                        };
+                    ];
+                };
+                {
+                  team_massa with
+                  shared_public_informations =
+                    {
+                      team_massa.shared_public_informations with
+                      drive_pile = [ Hazard FlatTire; Remedy Drive ];
+                    };
+                };
+              ];
+          }))
+
 let () =
   Random.self_init ();
   let open Alcotest in
@@ -712,5 +1362,37 @@ let () =
         [
           test_is_discard_pile_empty_on_empty;
           QCheck_alcotest.to_alcotest test_is_discard_pile_empty_on_non_empty;
+        ] );
+      ( "test hazard cards on Schumacher team (safety emergency vehicle)",
+        [
+          test_attack_hazard_stop_to_schumacher_team;
+          test_attack_hazard_speedlimit_to_schumacher_team;
+          test_attack_hazard_accident_to_schumacher_team;
+          test_attack_hazard_outofgas_to_schumacher_team;
+          test_attack_hazard_flattire_to_schumacher_team;
+        ] );
+      ( "test hazard cards on Kubica team (safety driving ace)",
+        [
+          test_attack_hazard_stop_to_kubica_team;
+          test_attack_hazard_speedlimit_to_kubica_team;
+          test_attack_hazard_accident_to_kubica_team;
+          test_attack_hazard_outofgas_to_kubica_team;
+          test_attack_hazard_flattire_to_kubica_team;
+        ] );
+      ( "test hazard cards on Alonso team (safety puncture proof)",
+        [
+          test_attack_hazard_stop_to_alonso_team;
+          test_attack_hazard_speedlimit_to_alonso_team;
+          test_attack_hazard_accident_to_alonso_team;
+          test_attack_hazard_outofgas_to_alonso_team;
+          test_attack_hazard_flattire_to_alonso_team;
+        ] );
+      ( "test hazard cards on Massa team (safety fuel truck)",
+        [
+          test_attack_hazard_stop_to_massa_team;
+          test_attack_hazard_speedlimit_to_massa_team;
+          test_attack_hazard_accident_to_massa_team;
+          test_attack_hazard_outofgas_to_massa_team;
+          test_attack_hazard_flattire_to_massa_team;
         ] );
     ]
