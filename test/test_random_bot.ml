@@ -1,23 +1,9 @@
 open QCheck
 open Mille_bornes.Cards_engine
-open Mille_bornes.Teams_engine
 open Mille_bornes.Random_bot
 open Utils_bot
 
-let random_bot_strategy =
-  {
-    name = "random_bot";
-    choose_card_to_play = random_bot_choose_card_to_play;
-    want_to_peek_discard_pile = random_bot_want_to_peek_discard_pile;
-    want_to_play_coup_fourre = random_bot_want_to_play_coup_fourre;
-  }
-
-let player_gen =
-  Gen.oneof
-    [
-      Gen.map (fun p -> Computer (p, random_bot_strategy)) player_struct_gen;
-      Gen.map (fun p -> Human p) player_struct_gen;
-    ]
+let player_gen = Gen.map (fun p -> (p, random_strategy)) player_struct_gen
 
 let test_random_bot_choose_card_to_play =
   Test.make ~count:200
@@ -25,9 +11,11 @@ let test_random_bot_choose_card_to_play =
     (make
        (Gen.triple player_gen public_informations_gen
           public_informations_list_gen))
-    (fun (player, p_info, p_info_list) ->
+    (fun ((player_struct, _), p_info, p_info_list) ->
       try
-        let _ = random_bot_choose_card_to_play player p_info p_info_list in
+        let _ =
+          random_bot_choose_card_to_play player_struct p_info p_info_list
+        in
         true
       with
       | Empty_deck | Card_not_found -> true
@@ -39,10 +27,11 @@ let test_random_bot_want_to_peek_discard_pile =
     (make
        (Gen.quad player_gen card_gen public_informations_gen
           public_informations_list_gen))
-    (fun (player, card, p_info, p_info_list) ->
+    (fun ((player_struct, _), card, p_info, p_info_list) ->
       try
         let _ =
-          random_bot_want_to_peek_discard_pile player card p_info p_info_list
+          random_bot_want_to_peek_discard_pile player_struct card p_info
+            p_info_list
         in
         true
       with

@@ -1,6 +1,7 @@
 open Mille_bornes.Board_engine
 open Mille_bornes.Cards_engine
 open Mille_bornes.Teams_engine
+open Default_strat
 
 (* Utility Functions for Tests *)
 
@@ -12,11 +13,10 @@ let compare_all_hands_except_player (b1 : board) (b2 : board) (p : player) =
     (fun player new_player -> (player, new_player))
     (flatten_teams b1.teams) (flatten_teams b2.teams)
   |> List.filter (fun (player, new_player) ->
-         same_player player new_player && not (same_player player p))
-  |> List.map (fun (player, new_player) ->
-         (get_player_struct_from player, get_player_struct_from new_player))
+         have_same_id_player player new_player
+         && not (have_same_id_player player p))
   |> List.for_all (fun (player, new_player) ->
-         equal_deck_of_card player.hand new_player.hand)
+         equal_deck_of_card (get_hand_from player) (get_hand_from new_player))
 
 let compare_all_hands_except_two_players (b1 : board) (b2 : board) (p1 : player)
     (p2 : player) =
@@ -24,13 +24,11 @@ let compare_all_hands_except_two_players (b1 : board) (b2 : board) (p1 : player)
     (fun player new_player -> (player, new_player))
     (flatten_teams b1.teams) (flatten_teams b2.teams)
   |> List.filter (fun (player, new_player) ->
-         same_player player new_player
-         && (not (same_player player p1))
-         && not (same_player player p2))
-  |> List.map (fun (player, new_player) ->
-         (get_player_struct_from player, get_player_struct_from new_player))
+         have_same_id_player player new_player
+         && (not (have_same_id_player player p1))
+         && not (have_same_id_player player p2))
   |> List.for_all (fun (player, new_player) ->
-         equal_deck_of_card player.hand new_player.hand)
+         equal_deck_of_card (get_hand_from player) (get_hand_from new_player))
 
 (* Test examples *)
 
@@ -46,8 +44,8 @@ let draw_card_team1 =
       score = 0;
     }
   in
-  let player1 = Human { name = "draw_card_team1_name1"; hand = [] } in
-  let player2 = Human { name = "draw_card_team1_name2"; hand = [] } in
+  let player1 = init_player "draw_card_team1_name1" strat 0 in
+  let player2 = init_player "draw_card_team1_name2" strat 1 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -66,8 +64,8 @@ let draw_card_team2 =
       score = 0;
     }
   in
-  let player1 = Human { name = "draw_card_team2_name1"; hand = [] } in
-  let player2 = Human { name = "draw_card_team2_name2"; hand = [] } in
+  let player1 = init_player "draw_card_team2_name1" strat 2 in
+  let player2 = init_player "draw_card_team2_name2" strat 3 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -86,12 +84,8 @@ let draw_card_team_not_in_board =
       score = 0;
     }
   in
-  let player1 =
-    Human { name = "draw_card_team_not_in_board_name1"; hand = [] }
-  in
-  let player2 =
-    Human { name = "draw_card_team_not_in_board_name2"; hand = [] }
-  in
+  let player1 = init_player "draw_card_team_not_in_board_name1" strat 5 in
+  let player2 = init_player "draw_card_team_not_in_board_name2" strat 6 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -143,10 +137,11 @@ let discard_card_team_with_current_player_with_empty_hand =
     }
   in
   let player1 =
-    Human
-      { name = "discard_card_team2_name1"; hand = [ Safety EmergencyVehicle ] }
+    set_hand_from
+      (init_player "discard_card_team2_name1" strat 7)
+      [ Safety EmergencyVehicle ]
   in
-  let player2 = Human { name = "discard_card_team2_name2"; hand = [] } in
+  let player2 = init_player "discard_card_team2_name2" strat 8 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -167,12 +162,14 @@ let discard_card_team_with_current_player_with_non_empty_hand =
     }
   in
   let player1 =
-    Human
-      { name = "discard_card_team1_name1"; hand = [ Safety EmergencyVehicle ] }
+    set_hand_from
+      (init_player "discard_card_team1_name1" strat 9)
+      [ Safety EmergencyVehicle ]
   in
   let player2 =
-    Human
-      { name = "discard_card_team1_name2"; hand = [ Safety EmergencyVehicle ] }
+    set_hand_from
+      (init_player "discard_card_team1_name2" strat 10)
+      [ Safety EmergencyVehicle ]
   in
   {
     players = [ player1; player2 ];
@@ -193,12 +190,8 @@ let discard_card_team_not_in_board =
       score = 0;
     }
   in
-  let player1 =
-    Human { name = "discard_card_team_not_in_board_name1"; hand = [] }
-  in
-  let player2 =
-    Human { name = "discard_card_team_not_in_board_name2"; hand = [] }
-  in
+  let player1 = init_player "discard_card_team_not_in_board_name1" strat 11 in
+  let player2 = init_player "discard_card_team_not_in_board_name2" strat 12 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -233,8 +226,8 @@ let place_card_team_with_current_player_with_empty_hand =
       score = 0;
     }
   in
-  let player1 = Human { name = "place_card_team1_name1"; hand = [] } in
-  let player2 = Human { name = "place_card_team1_name2"; hand = [] } in
+  let player1 = init_player "place_card_team1_name1" strat 13 in
+  let player2 = init_player "place_card_team1_name2" strat 14 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -254,14 +247,13 @@ let place_card_team_with_current_player_with_non_empty_hand =
     }
   in
   let player1 =
-    Human
-      {
-        name = "place_card_team2_name1";
-        hand =
-          [ Distance D25; Safety EmergencyVehicle; Remedy Gas; Hazard Accident ];
-      }
+    set_hand_from
+      (init_player "place_card_team2_name1" strat 15)
+      [ Distance D25; Safety EmergencyVehicle; Remedy Gas; Hazard Accident ]
   in
-  let player2 = Human { name = "place_card_team2_name2"; hand = [] } in
+
+  let player2 = init_player "place_card_team2_name2" strat 16 in
+
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -280,12 +272,8 @@ let place_card_team_not_in_board =
       score = 0;
     }
   in
-  let player1 =
-    Human { name = "place_card_team_not_in_board_name1"; hand = [] }
-  in
-  let player2 =
-    Human { name = "place_card_team_not_in_board_name2"; hand = [] }
-  in
+  let player1 = init_player "place_card_team_not_in_board_name1" strat 17 in
+  let player2 = init_player "place_card_team_not_in_board_name2" strat 18 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -321,9 +309,11 @@ let place_card_board_with_teams =
   }
 
 let player11 =
-  Human { name = "player_team1_name1"; hand = [ Safety EmergencyVehicle ] }
+  set_hand_from
+    (init_player "player_team1_name1" strat 19)
+    [ Safety EmergencyVehicle ]
 
-let player12 = Human { name = "player_team1_name2"; hand = [] }
+let player12 = init_player "player_team1_name2" strat 20
 
 let team1 =
   let public_informations =
@@ -343,10 +333,10 @@ let team1 =
     current_player_index = 0;
   }
 
-let player21 = Human { name = "player_team2_name1"; hand = [] }
+let player21 = init_player "player_team2_name1" strat 21
 
 let player22 =
-  Human { name = "player_team2_name2"; hand = [ Safety FuelTruck ] }
+  set_hand_from (init_player "player_team2_name2" strat 22) [ Safety FuelTruck ]
 
 let team2 =
   let public_informations =
@@ -374,8 +364,8 @@ let board1 =
     current_team_index = 0;
   }
 
-let player31 = Human { name = "player_team3_name1"; hand = [] }
-let player32 = Human { name = "player_team3_name2"; hand = [] }
+let player31 = init_player "player_team3_name1" strat 23
+let player32 = init_player "player_team3_name2" strat 24
 
 let team3 =
   let public_informations =
@@ -419,18 +409,15 @@ let board4 = { board3 with current_team_index = 3 }
 let board5 = { board3 with current_team_index = -1 }
 
 let playerH =
-  Human
-    {
-      name = "Attacker";
-      hand =
-        [
-          Hazard Stop;
-          Hazard SpeedLimit;
-          Hazard OutOfGas;
-          Hazard FlatTire;
-          Hazard Accident;
-        ];
-    }
+  set_hand_from
+    (init_player "Attacker" strat 25)
+    [
+      Hazard Stop;
+      Hazard SpeedLimit;
+      Hazard OutOfGas;
+      Hazard FlatTire;
+      Hazard Accident;
+    ]
 
 let board6 =
   {
@@ -462,7 +449,7 @@ let attacker_team =
     current_player_index = 0;
   }
 
-let schumacher = Human { name = "Schumacher"; hand = [] }
+let schumacher = init_player "Schumacher" strat 26
 
 let team_schumacher =
   let public_informations =
@@ -490,7 +477,7 @@ let board_attack_schumacher =
     current_team_index = 0;
   }
 
-let kubica = Human { name = "Kubica"; hand = [] }
+let kubica = init_player "Kubica" strat 27
 
 let team_gigakub =
   let public_informations =
@@ -518,7 +505,7 @@ let board_attack_kubica =
     current_team_index = 0;
   }
 
-let alonso = Human { name = "Alonso"; hand = [] }
+let alonso = init_player "Alonso" strat 28
 
 let team_alonso =
   let public_informations =
@@ -546,7 +533,7 @@ let board_attack_alonso =
     current_team_index = 0;
   }
 
-let massa = Human { name = "Massa"; hand = [] }
+let massa = init_player "Massa" strat 29
 
 let team_massa =
   let public_informations =

@@ -6,7 +6,7 @@ let random_boolean () = Random.bool ()
 
 let random_bot_choose_card_to_play (p : player) (p_info : public_informations)
     (p_info_list : public_informations list) =
-  let hand = (get_player_struct_from p).hand in
+  let hand = get_hand_from p in
   if is_empty hand then raise Empty_deck
   else
     let card = List.nth hand (Random.int (List.length hand)) in

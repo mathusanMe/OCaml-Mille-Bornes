@@ -62,9 +62,9 @@ val init_board : unit -> board option
 (** [init_board] initializes the [board] with all [team] created with the terminal
     I/O commands and generated piles. *)
 
-val play_move_player : board -> board option
-(** [play_move_player b] simulates the current [player]'s move on [b], and returns
-    [b] changed. *)
+val play_move_player : int -> board -> board option
+(** [play_move_player t b] simulates the current [player]'s move on [b], and returns
+    [b] changed. You have [t] attempts to successfully play a valid move.*)
 
 val arena : unit -> endplay
 (** [arena] simulates a game for a [player] initialized at the start of the

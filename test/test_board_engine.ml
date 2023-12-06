@@ -1,6 +1,7 @@
 open Mille_bornes.Board_engine
 open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
+open Default_strat
 open Utils_board_engine
 open Utils_cards_engine
 
@@ -72,9 +73,7 @@ let test_draw_initial_hand_to_teams =
            List.fold_left
              (fun acc t ->
                List.fold_left
-                 (fun acc p ->
-                   let p_struct = get_player_struct_from p in
-                   List.length p_struct.hand = 6 && acc)
+                 (fun acc p -> List.length (get_hand_from p) = 6 && acc)
                  true t.players
                && acc)
              true new_board.teams
@@ -100,8 +99,7 @@ let test_draw_card_from_non_empty_draw_pile =
            get_current_team_from draw_card_board_with_draw_pile
          in
          let current_player = get_current_player_from current_team in
-         let current_player_struct = get_player_struct_from current_player in
-         let current_player_hand = current_player_struct.hand in
+         let current_player_hand = get_hand_from current_player in
          let new_board_with_draw_pile =
            draw_card draw_card_board_with_draw_pile current_team false
          in
@@ -115,11 +113,10 @@ let test_draw_card_from_non_empty_draw_pile =
          in
          let new_player =
            List.find
-             (fun player -> same_player player current_player)
+             (fun player -> have_same_id_player player current_player)
              new_team.players
          in
-         let new_player_struct = get_player_struct_from new_player in
-         let new_hand = new_player_struct.hand in
+         let new_hand = get_hand_from new_player in
          List.mem card new_hand
          && List.length new_hand = List.length current_player_hand + 1
          && List.length draw_card_board_with_draw_pile.draw_pile
@@ -156,8 +153,7 @@ let test_draw_card_from_non_empty_discard_pile =
              board_with_empty_draw_pile_and_heavy_discard_pile
          in
          let current_player = get_current_player_from current_team in
-         let current_player_struct = get_player_struct_from current_player in
-         let current_player_hand = current_player_struct.hand in
+         let current_player_hand = get_hand_from current_player in
          let new_board_with_discard_pile =
            draw_card board_with_empty_draw_pile_and_heavy_discard_pile
              current_team true
@@ -173,11 +169,10 @@ let test_draw_card_from_non_empty_discard_pile =
          in
          let new_player =
            List.find
-             (fun player -> same_player player current_player)
+             (fun player -> have_same_id_player player current_player)
              new_team.players
          in
-         let new_player_struct = get_player_struct_from new_player in
-         let new_hand = new_player_struct.hand in
+         let new_hand = get_hand_from new_player in
          List.mem card new_hand
          && List.length new_hand = List.length current_player_hand + 1
          && List.length
@@ -264,8 +259,7 @@ let test_discard_card_from_team_with_current_player_with_card_within_hand =
              discard_card_board_with_team_with_current_player_with_non_empty_hand
          in
          let current_player = get_current_player_from current_team in
-         let current_player_struct = get_player_struct_from current_player in
-         let current_player_hand = current_player_struct.hand in
+         let current_player_hand = get_hand_from current_player in
          let new_board_with_discard_pile =
            discard_card
              discard_card_board_with_team_with_current_player_with_non_empty_hand
@@ -282,11 +276,10 @@ let test_discard_card_from_team_with_current_player_with_card_within_hand =
          in
          let new_player =
            List.find
-             (fun player -> same_player player current_player)
+             (fun player -> have_same_id_player player current_player)
              new_team.players
          in
-         let new_player_struct = get_player_struct_from new_player in
-         let new_hand = new_player_struct.hand in
+         let new_hand = get_hand_from new_player in
          List.length new_hand = List.length current_player_hand - 1
          && (not (List.mem (Safety EmergencyVehicle) new_hand))
          && peek_card_from_pile new_board_with_discard_pile.discard_pile
@@ -399,9 +392,6 @@ let test_place_attack_card_from_team_with_current_player_with_card_within_hand_t
          and team_to = place_card_team_with_current_player_with_empty_hand in
          let current_player_team_from = get_current_player_from team_from
          and current_player_team_to = get_current_player_from team_to in
-         let current_player_team_from_struct =
-           get_player_struct_from current_player_team_from
-         in
          let new_board = place_card board team_from card team_to in
          compare_all_hands_except_two_players board new_board
            current_player_team_from current_player_team_to
@@ -413,15 +403,12 @@ let test_place_attack_card_from_team_with_current_player_with_card_within_hand_t
          in
          let new_player_team_from =
            List.find
-             (fun player -> same_player player current_player_team_from)
+             (fun player -> have_same_id_player player current_player_team_from)
              new_team_from.players
          in
-         let new_player_team_from_struct =
-           get_player_struct_from new_player_team_from
-         in
-         List.length new_player_team_from_struct.hand
-         = List.length current_player_team_from_struct.hand - 1
-         && (not (List.mem card new_player_team_from_struct.hand))
+         List.length (get_hand_from new_player_team_from)
+         = List.length (get_hand_from current_player_team_from) - 1
+         && (not (List.mem card (get_hand_from new_player_team_from)))
          && equal_card
               (peek_card_from_pile
                  new_team_to.shared_public_informations.drive_pile)
@@ -441,20 +428,19 @@ let test_place_defend_card_from_team_with_current_player_with_card_within_hand_t
          let card = Safety EmergencyVehicle in
          let team = place_card_team_with_current_player_with_non_empty_hand in
          let current_player = get_current_player_from team in
-         let current_player_struct = get_player_struct_from current_player in
          let new_board = place_card board team card team in
          compare_all_hands_except_player board new_board current_player
          &&
          let new_team = List.find (fun t -> same_team t team) new_board.teams in
          let new_player =
            List.find
-             (fun player -> same_player player current_player)
+             (fun player -> have_same_id_player player current_player)
              new_team.players
          in
-         let new_player_struct = get_player_struct_from new_player in
-         List.length new_player_struct.hand
-         = List.length current_player_struct.hand - 1
-         && (not (List.mem card new_player_struct.hand))
+         let new_player_hand = get_hand_from new_player in
+         List.length new_player_hand
+         = List.length (get_hand_from current_player) - 1
+         && (not (List.mem card new_player_hand))
          && List.mem card new_team.shared_public_informations.safety_area))
 
 let test_place_distance_card_from_team_with_current_player_with_card_within_hand_to_same_team
@@ -471,55 +457,53 @@ let test_place_distance_card_from_team_with_current_player_with_card_within_hand
          let card = Distance D25 in
          let team = place_card_team_with_current_player_with_non_empty_hand in
          let current_player = get_current_player_from team in
-         let current_player_struct = get_player_struct_from current_player in
          let new_board = place_card board team card team in
          compare_all_hands_except_player board new_board current_player
          &&
          let new_team = List.find (fun t -> same_team t team) new_board.teams in
          let new_player =
            List.find
-             (fun player -> same_player player current_player)
+             (fun player -> have_same_id_player player current_player)
              new_team.players
          in
-         let new_player_struct = get_player_struct_from new_player in
-         List.length new_player_struct.hand
-         = List.length current_player_struct.hand - 1
-         && (not (List.mem card new_player_struct.hand))
+         let new_player_hand = get_hand_from new_player in
+         List.length new_player_hand
+         = List.length (get_hand_from current_player) - 1
+         && (not (List.mem card new_player_hand))
          && List.mem card new_team.shared_public_informations.distance_cards))
 
 let test_place_coup_fouree1 =
   Alcotest.test_case "test place_coup_fouree in simple case" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (place_coup_fouree board1 team1 player11 EmergencyVehicle
-        = {
-            board1 with
-            teams =
-              [
-                {
-                  team1 with
-                  shared_public_informations =
-                    {
-                      team1.shared_public_informations with
-                      score = 200;
-                      coup_fouree_cards = [ Safety EmergencyVehicle ];
-                      drive_pile = [ Remedy Drive ];
-                    };
-                  players =
-                    [
-                      Human
-                        {
-                          name = "player_team1_name1";
-                          hand = [ Distance D200 ];
-                        };
-                      player12;
-                    ];
-                };
-                team2;
-              ];
-            draw_pile = [ Remedy Drive ];
-            current_team_index = 1;
-          }))
+        (have_same_contents_boards
+           (place_coup_fouree board1 team1 player11 EmergencyVehicle)
+           {
+             board1 with
+             teams =
+               [
+                 {
+                   team1 with
+                   shared_public_informations =
+                     {
+                       team1.shared_public_informations with
+                       score = 200;
+                       coup_fouree_cards = [ Safety EmergencyVehicle ];
+                       drive_pile = [ Remedy Drive ];
+                     };
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "player_team1_name1" strat 19)
+                         [ Distance D200 ];
+                       player12;
+                     ];
+                 };
+                 team2;
+               ];
+             draw_pile = [ Remedy Drive ];
+             current_team_index = 1;
+           }))
 
 let test_place_coup_fouree2 =
   Alcotest.test_case "raise Player_not_found" `Quick (fun () ->
@@ -652,39 +636,37 @@ let test_attack_hazard_accident_to_schumacher_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_schumacher attacker_team (Hazard Accident)
-           team_schumacher
-        = {
-            board_attack_schumacher with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_schumacher with
-                  shared_public_informations =
-                    {
-                      team_schumacher.shared_public_informations with
-                      drive_pile = [ Hazard Accident ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_schumacher attacker_team (Hazard Accident)
+              team_schumacher)
+           {
+             board_attack_schumacher with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                         ];
+                     ];
+                 };
+                 {
+                   team_schumacher with
+                   shared_public_informations =
+                     {
+                       team_schumacher.shared_public_informations with
+                       drive_pile = [ Hazard Accident ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_outofgas_to_schumacher_team =
   Alcotest.test_case
@@ -693,39 +675,37 @@ let test_attack_hazard_outofgas_to_schumacher_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_schumacher attacker_team (Hazard OutOfGas)
-           team_schumacher
-        = {
-            board_attack_schumacher with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_schumacher with
-                  shared_public_informations =
-                    {
-                      team_schumacher.shared_public_informations with
-                      drive_pile = [ Hazard OutOfGas ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_schumacher attacker_team (Hazard OutOfGas)
+              team_schumacher)
+           {
+             board_attack_schumacher with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_schumacher with
+                   shared_public_informations =
+                     {
+                       team_schumacher.shared_public_informations with
+                       drive_pile = [ Hazard OutOfGas ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_flattire_to_schumacher_team =
   Alcotest.test_case
@@ -734,39 +714,37 @@ let test_attack_hazard_flattire_to_schumacher_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_schumacher attacker_team (Hazard FlatTire)
-           team_schumacher
-        = {
-            board_attack_schumacher with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_schumacher with
-                  shared_public_informations =
-                    {
-                      team_schumacher.shared_public_informations with
-                      drive_pile = [ Hazard FlatTire ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_schumacher attacker_team (Hazard FlatTire)
+              team_schumacher)
+           {
+             board_attack_schumacher with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_schumacher with
+                   shared_public_informations =
+                     {
+                       team_schumacher.shared_public_informations with
+                       drive_pile = [ Hazard FlatTire ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_speedlimit_to_schumacher_team =
   Alcotest.test_case
@@ -784,38 +762,37 @@ let test_attack_hazard_stop_to_kubica_team =
     (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_kubica attacker_team (Hazard Stop) team_gigakub
-        = {
-            board_attack_kubica with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_gigakub with
-                  shared_public_informations =
-                    {
-                      team_gigakub.shared_public_informations with
-                      drive_pile = [ Hazard Stop; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_kubica attacker_team (Hazard Stop)
+              team_gigakub)
+           {
+             board_attack_kubica with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_gigakub with
+                   shared_public_informations =
+                     {
+                       team_gigakub.shared_public_informations with
+                       drive_pile = [ Hazard Stop; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_speedlimit_to_kubica_team =
   Alcotest.test_case
@@ -823,39 +800,37 @@ let test_attack_hazard_speedlimit_to_kubica_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_kubica attacker_team (Hazard SpeedLimit)
-           team_gigakub
-        = {
-            board_attack_kubica with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_gigakub with
-                  shared_public_informations =
-                    {
-                      team_gigakub.shared_public_informations with
-                      speed_limit_pile = [ Hazard SpeedLimit ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_kubica attacker_team (Hazard SpeedLimit)
+              team_gigakub)
+           {
+             board_attack_kubica with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_gigakub with
+                   shared_public_informations =
+                     {
+                       team_gigakub.shared_public_informations with
+                       speed_limit_pile = [ Hazard SpeedLimit ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_accident_to_kubica_team =
   Alcotest.test_case
@@ -873,39 +848,37 @@ let test_attack_hazard_outofgas_to_kubica_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_kubica attacker_team (Hazard OutOfGas)
-           team_gigakub
-        = {
-            board_attack_kubica with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_gigakub with
-                  shared_public_informations =
-                    {
-                      team_gigakub.shared_public_informations with
-                      drive_pile = [ Hazard OutOfGas; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_kubica attacker_team (Hazard OutOfGas)
+              team_gigakub)
+           {
+             board_attack_kubica with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_gigakub with
+                   shared_public_informations =
+                     {
+                       team_gigakub.shared_public_informations with
+                       drive_pile = [ Hazard OutOfGas; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_flattire_to_kubica_team =
   Alcotest.test_case
@@ -913,39 +886,37 @@ let test_attack_hazard_flattire_to_kubica_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_kubica attacker_team (Hazard FlatTire)
-           team_gigakub
-        = {
-            board_attack_kubica with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_gigakub with
-                  shared_public_informations =
-                    {
-                      team_gigakub.shared_public_informations with
-                      drive_pile = [ Hazard FlatTire; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_kubica attacker_team (Hazard FlatTire)
+              team_gigakub)
+           {
+             board_attack_kubica with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_gigakub with
+                   shared_public_informations =
+                     {
+                       team_gigakub.shared_public_informations with
+                       drive_pile = [ Hazard FlatTire; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_stop_to_alonso_team =
   Alcotest.test_case
@@ -953,38 +924,37 @@ let test_attack_hazard_stop_to_alonso_team =
     (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_alonso attacker_team (Hazard Stop) team_alonso
-        = {
-            board_attack_alonso with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_alonso with
-                  shared_public_informations =
-                    {
-                      team_alonso.shared_public_informations with
-                      drive_pile = [ Hazard Stop; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_alonso attacker_team (Hazard Stop)
+              team_alonso)
+           {
+             board_attack_alonso with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_alonso with
+                   shared_public_informations =
+                     {
+                       team_alonso.shared_public_informations with
+                       drive_pile = [ Hazard Stop; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_speedlimit_to_alonso_team =
   Alcotest.test_case
@@ -992,39 +962,37 @@ let test_attack_hazard_speedlimit_to_alonso_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_alonso attacker_team (Hazard SpeedLimit)
-           team_alonso
-        = {
-            board_attack_alonso with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_alonso with
-                  shared_public_informations =
-                    {
-                      team_alonso.shared_public_informations with
-                      speed_limit_pile = [ Hazard SpeedLimit ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_alonso attacker_team (Hazard SpeedLimit)
+              team_alonso)
+           {
+             board_attack_alonso with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_alonso with
+                   shared_public_informations =
+                     {
+                       team_alonso.shared_public_informations with
+                       speed_limit_pile = [ Hazard SpeedLimit ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_accident_to_alonso_team =
   Alcotest.test_case
@@ -1032,39 +1000,37 @@ let test_attack_hazard_accident_to_alonso_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_alonso attacker_team (Hazard Accident)
-           team_alonso
-        = {
-            board_attack_alonso with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_alonso with
-                  shared_public_informations =
-                    {
-                      team_alonso.shared_public_informations with
-                      drive_pile = [ Hazard Accident; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_alonso attacker_team (Hazard Accident)
+              team_alonso)
+           {
+             board_attack_alonso with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                         ];
+                     ];
+                 };
+                 {
+                   team_alonso with
+                   shared_public_informations =
+                     {
+                       team_alonso.shared_public_informations with
+                       drive_pile = [ Hazard Accident; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_outofgas_to_alonso_team =
   Alcotest.test_case
@@ -1072,39 +1038,37 @@ let test_attack_hazard_outofgas_to_alonso_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_alonso attacker_team (Hazard OutOfGas)
-           team_alonso
-        = {
-            board_attack_alonso with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_alonso with
-                  shared_public_informations =
-                    {
-                      team_alonso.shared_public_informations with
-                      drive_pile = [ Hazard OutOfGas; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_alonso attacker_team (Hazard OutOfGas)
+              team_alonso)
+           {
+             board_attack_alonso with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_alonso with
+                   shared_public_informations =
+                     {
+                       team_alonso.shared_public_informations with
+                       drive_pile = [ Hazard OutOfGas; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_flattire_to_alonso_team =
   Alcotest.test_case
@@ -1122,38 +1086,36 @@ let test_attack_hazard_stop_to_massa_team =
     (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_massa attacker_team (Hazard Stop) team_massa
-        = {
-            board_attack_massa with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_massa with
-                  shared_public_informations =
-                    {
-                      team_massa.shared_public_informations with
-                      drive_pile = [ Hazard Stop; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_massa attacker_team (Hazard Stop) team_massa)
+           {
+             board_attack_massa with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_massa with
+                   shared_public_informations =
+                     {
+                       team_massa.shared_public_informations with
+                       drive_pile = [ Hazard Stop; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_speedlimit_to_massa_team =
   Alcotest.test_case
@@ -1161,39 +1123,37 @@ let test_attack_hazard_speedlimit_to_massa_team =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_massa attacker_team (Hazard SpeedLimit)
-           team_massa
-        = {
-            board_attack_massa with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_massa with
-                  shared_public_informations =
-                    {
-                      team_massa.shared_public_informations with
-                      speed_limit_pile = [ Hazard SpeedLimit ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_massa attacker_team (Hazard SpeedLimit)
+              team_massa)
+           {
+             board_attack_massa with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_massa with
+                   shared_public_informations =
+                     {
+                       team_massa.shared_public_informations with
+                       speed_limit_pile = [ Hazard SpeedLimit ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_accident_to_massa_team =
   Alcotest.test_case
@@ -1201,39 +1161,37 @@ let test_attack_hazard_accident_to_massa_team =
     (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_massa attacker_team (Hazard Accident)
-           team_massa
-        = {
-            board_attack_massa with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard FlatTire;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_massa with
-                  shared_public_informations =
-                    {
-                      team_massa.shared_public_informations with
-                      drive_pile = [ Hazard Accident; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_massa attacker_team (Hazard Accident)
+              team_massa)
+           {
+             board_attack_massa with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard FlatTire;
+                         ];
+                     ];
+                 };
+                 {
+                   team_massa with
+                   shared_public_informations =
+                     {
+                       team_massa.shared_public_informations with
+                       drive_pile = [ Hazard Accident; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let test_attack_hazard_outofgas_to_massa_team =
   Alcotest.test_case
@@ -1251,39 +1209,37 @@ let test_attack_hazard_flattire_to_massa_team =
     (fun () ->
       Alcotest.(check bool)
         "same" true
-        (place_card board_attack_massa attacker_team (Hazard FlatTire)
-           team_massa
-        = {
-            board_attack_massa with
-            teams =
-              [
-                {
-                  attacker_team with
-                  players =
-                    [
-                      Human
-                        {
-                          name = "Attacker";
-                          hand =
-                            [
-                              Hazard Stop;
-                              Hazard SpeedLimit;
-                              Hazard OutOfGas;
-                              Hazard Accident;
-                            ];
-                        };
-                    ];
-                };
-                {
-                  team_massa with
-                  shared_public_informations =
-                    {
-                      team_massa.shared_public_informations with
-                      drive_pile = [ Hazard FlatTire; Remedy Drive ];
-                    };
-                };
-              ];
-          }))
+        (have_same_contents_boards
+           (place_card board_attack_massa attacker_team (Hazard FlatTire)
+              team_massa)
+           {
+             board_attack_massa with
+             teams =
+               [
+                 {
+                   attacker_team with
+                   players =
+                     [
+                       set_hand_from
+                         (init_player "Attacker" strat 25)
+                         [
+                           Hazard Stop;
+                           Hazard SpeedLimit;
+                           Hazard OutOfGas;
+                           Hazard Accident;
+                         ];
+                     ];
+                 };
+                 {
+                   team_massa with
+                   shared_public_informations =
+                     {
+                       team_massa.shared_public_informations with
+                       drive_pile = [ Hazard FlatTire; Remedy Drive ];
+                     };
+                 };
+               ];
+           }))
 
 let () =
   Random.self_init ();

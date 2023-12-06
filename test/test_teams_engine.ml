@@ -1,41 +1,23 @@
 open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
+open Default_strat
 open Utils_teams_engine
 open Utils_cards_engine
 
-let test_same_player =
-  Alcotest.test_case "test same_player with different players" `Quick (fun () ->
+let test_have_same_contents_team =
+  Alcotest.test_case "test have_same_contents_team with different teams" `Quick
+    (fun () ->
       Alcotest.(check bool)
         "same result" false
-        (same_player
-           (get_current_player_from team_with_one_computer)
-           (get_current_player_from team_with_one_human)))
-
-let test_same_team =
-  Alcotest.test_case "test same_team with different teams" `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" false
-        (same_team team_with_computer_human team_with_human_computer))
-
-let test_replace_struct_in =
-  Alcotest.test_case "test replace_struct_in and same_player" `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" false
-        (let p1 = get_current_player_from team_with_one_human in
-         let p1_replaced =
-           replace_player_struct_in p1
-             (get_player_struct_from
-                (get_current_player_from team_with_one_computer))
-         in
-         same_player p1 p1_replaced))
+        (have_same_contents_team team_with_one_player team_with_two_players))
 
 let test_replace_player_in =
   Alcotest.test_case "test replace_player_in and same_team" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (let p1 = get_current_player_from team_with_one_computer in
-         let team_1 = team_with_one_human in
-         same_team team_1 (replace_player_in team_1 p1)))
+        (let p1 = get_current_player_from team_with_one_player in
+         let team_1 = team_with_one_player in
+         have_same_contents_team team_1 (replace_player_in team_1 p1)))
 
 let test_get_names =
   Alcotest.test_case "test get_names on team1 and team6" `Quick (fun () ->
@@ -52,9 +34,8 @@ let test_set_next_player_and_get_current_player1 =
       Alcotest.(check bool)
         "same result" true
         (equal_player
-           (get_current_player_from team_with_one_computer)
-           (get_current_player_from
-              (set_next_player_from team_with_one_computer))))
+           (get_current_player_from team_with_one_player)
+           (get_current_player_from (set_next_player_from team_with_one_player))))
 
 let test_set_next_player_and_get_current_player2 =
   Alcotest.test_case
@@ -68,29 +49,29 @@ let test_set_next_player_and_get_current_player2 =
           Also check that the first player to play and the second players to play are not the same.
           Also check that the second to play players and the third to play players are not the same.*)
         (equal_player
-           (get_current_player_from team_with_computer_human)
+           (get_current_player_from team_with_two_players)
            (get_current_player_from
               (set_next_player_from
-                 (set_next_player_from team_with_computer_human)))
+                 (set_next_player_from team_with_two_players)))
         && equal_player
              (get_current_player_from
-                (set_next_player_from team_with_computer_human))
+                (set_next_player_from team_with_two_players))
              (get_current_player_from
                 (set_next_player_from
                    (set_next_player_from
-                      (set_next_player_from team_with_computer_human))))
+                      (set_next_player_from team_with_two_players))))
         && (not
               (equal_player
-                 (get_current_player_from team_with_computer_human)
+                 (get_current_player_from team_with_two_players)
                  (get_current_player_from
-                    (set_next_player_from team_with_computer_human))))
+                    (set_next_player_from team_with_two_players))))
         && not
              (equal_player
                 (get_current_player_from
-                   (set_next_player_from team_with_computer_human))
+                   (set_next_player_from team_with_two_players))
                 (get_current_player_from
                    (set_next_player_from
-                      (set_next_player_from team_with_computer_human))))))
+                      (set_next_player_from team_with_two_players))))))
 
 let test_set_next_player1 =
   Alcotest.test_case
@@ -99,11 +80,9 @@ let test_set_next_player1 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (team_with_one_human.current_player_index = 0
-        && (set_next_player_from team_with_one_human).current_player_index = 0
-        && team_with_one_computer.current_player_index = 0
-        && (set_next_player_from team_with_one_computer).current_player_index
-           = 0))
+        (team_with_one_player.current_player_index = 0
+        && (set_next_player_from team_with_one_player).current_player_index = 0
+        ))
 
 let test_set_next_player2 =
   Alcotest.test_case
@@ -112,28 +91,24 @@ let test_set_next_player2 =
     `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (team_with_computer_human.current_player_index = 0
-        && (set_next_player_from team_with_computer_human).current_player_index
-           = 1
-        && (set_next_player_from
-              (set_next_player_from team_with_computer_human))
+        (team_with_two_players.current_player_index = 0
+        && (set_next_player_from team_with_two_players).current_player_index = 1
+        && (set_next_player_from (set_next_player_from team_with_two_players))
              .current_player_index = 0
         && (set_next_player_from
               (set_next_player_from
-                 (set_next_player_from team_with_computer_human)))
+                 (set_next_player_from team_with_two_players)))
              .current_player_index = 1))
 
 let test_get_current_player_from =
   Alcotest.test_case "test get_current_player_from" `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        ((get_player_struct_from
-            (get_current_player_from team_with_computer_human))
-           .name = "Computer"
-        && (get_player_struct_from
-              (get_current_player_from
-                 (set_next_player_from team_with_computer_human)))
-             .name = "Mathusan"))
+        (get_name_from (get_current_player_from team_with_two_players) = "Gabin"
+        && get_name_from
+             (get_current_player_from
+                (set_next_player_from team_with_two_players))
+           = "Mathusan"))
 
 let test_get_current_player_from_bad_input =
   Alcotest.test_case "Check if test_get_current_player_from raise an exception"
@@ -141,7 +116,7 @@ let test_get_current_player_from_bad_input =
       Alcotest.check_raises "same result" Current_player_index_out_of_bound
         (fun () ->
           ignore
-            (let player = Human { name = "Nova"; hand = [] } in
+            (let player = init_player "Nova" strat 0 in
              let public_informations =
                {
                  id = 0;
@@ -202,13 +177,13 @@ let test_does_player_have_this_name_in_team_list3 =
              [ team1; team2; team3; team4; team5; team6 ]))
 
 let test_pp_team1 =
-  Alcotest.test_case "test pp_team on team_with_computer_human without hand"
-    `Quick (fun () ->
+  Alcotest.test_case "test pp_team on team_with_two_players without hand" `Quick
+    (fun () ->
       Alcotest.(check string)
         "same result"
         "Name(s) :\n\
-         Computer (computer with strategy strat)\n\
-         Mathusan\n\
+         Gabin (player with strategy strat)\n\
+         Mathusan (player with strategy strat)\n\
          Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : (empty);\n\n\
@@ -219,18 +194,18 @@ let test_pp_team1 =
         \               \n\
          Coup fourree cards : (empty);\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team false false) team_with_computer_human))
+        (Format.asprintf "%a" (pp_team false false) team_with_two_players))
 
 let test_pp_team2 =
-  Alcotest.test_case "test pp_team on team_with_computer_human with hand" `Quick
+  Alcotest.test_case "test pp_team on team_with_two_players with hand" `Quick
     (fun () ->
       Alcotest.(check string)
         "same result"
         "Name(s) with deck :\n\
-         Computer (computer with strategy strat)\n\
+         Gabin (player with strategy strat)\n\
          hand : (empty);\n\
         \       \n\
-         Mathusan\n\
+         Mathusan (player with strategy strat)\n\
          hand : (empty);\n\
         \       \n\
          Score : 0\n\
@@ -243,15 +218,15 @@ let test_pp_team2 =
         \               \n\
          Coup fourree cards : (empty);\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team true false) team_with_computer_human))
+        (Format.asprintf "%a" (pp_team true false) team_with_two_players))
 
 let test_pp_team3 =
-  Alcotest.test_case "test pp_team on team_with_one_human and with hand" `Quick
+  Alcotest.test_case "test pp_team on team_with_one_player and with hand" `Quick
     (fun () ->
       Alcotest.(check string)
         "same result"
         "Name(s) with deck :\n\
-         Thomas\n\
+         Thomas (player with strategy strat)\n\
          hand : (empty);\n\
         \       \n\
          Score : 0\n\
@@ -264,17 +239,17 @@ let test_pp_team3 =
         \               \n\
          Coup fourree cards : (empty);\n\
         \                     \n\n"
-        (Format.asprintf "%a" (pp_team true false) team_with_one_human))
+        (Format.asprintf "%a" (pp_team true false) team_with_one_player))
 
 let test_pp_team4 =
   Alcotest.test_case "test pp_team on team3 with hand" `Quick (fun () ->
       Alcotest.(check string)
         "same result"
         "Name(s) with deck :\n\
-         name1\n\
+         name1 (player with strategy strat)\n\
          hand : (empty);\n\
         \       \n\
-         name2\n\
+         name2 (player with strategy strat)\n\
          hand : (empty);\n\
         \       \n\
          Score : 0\n\
@@ -294,7 +269,7 @@ let test_pp_team5 =
       Alcotest.(check string)
         "same result"
         "Name(s) with deck :\n\
-         Thomas\n\
+         Thomas (player with strategy strat)\n\
          hand : 0. Repairs;\n\
         \       1. Speed limit;\n\
         \       2. Out of gas;\n\
@@ -302,7 +277,7 @@ let test_pp_team5 =
         \       4. 100;\n\
         \       5. 200;\n\
         \       \n\
-         Mathusan\n\
+         Mathusan (player with strategy strat)\n\
          hand : 0. Drive;\n\
         \       1. Gas;\n\
         \       2. 25;\n\
@@ -332,10 +307,10 @@ let test_pp_team_with_hand_of1 =
       Alcotest.(check string)
         "same result"
         "Name(s) with deck of name1 :\n\
-         name1\n\
+         name1 (player with strategy strat)\n\
          hand : (empty);\n\
         \       \n\
-         name2\n\
+         name2 (player with strategy strat)\n\
          Score : 0\n\
          Driving Zone : \n\
          Top of speed limit pile : Speed limit;\n\n\
@@ -356,8 +331,8 @@ let test_pp_team_with_hand_of2 =
       Alcotest.(check string)
         "same result"
         "Name(s) with deck of Mathusan :\n\
-         Thomas\n\
-         Mathusan\n\
+         Thomas (player with strategy strat)\n\
+         Mathusan (player with strategy strat)\n\
          hand : 0. Drive;\n\
         \       1. Gas;\n\
         \       2. 25;\n\
@@ -491,125 +466,37 @@ let public_informations_is_clear public_informations =
   && public_informations.safety_area = []
   && public_informations.coup_fouree_cards = []
 
-let test_init_team_with_one_computer_player =
-  Alcotest.test_case "initialisation of a team of 1 computer player " `Quick
-    (fun () ->
+let test_init_team_with_one_player =
+  Alcotest.test_case "initialisation of a team of 1 player " `Quick (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (List.length team_with_one_computer.players = 1
-        && is_computer (List.nth team_with_one_computer.players 0)
+        (List.length team_with_one_player.players = 1
         &&
-        let player = List.nth team_with_one_computer.players 0 in
-        let player_struct = get_player_struct_from player in
-        player_struct.hand = []
-        && player_struct.name = "Computer"
-        && team_with_one_computer.shared_public_informations.score = 0
-        && team_with_one_computer.current_player_index = 0
+        let player = List.nth team_with_one_player.players 0 in
+        get_hand_from player = []
+        && get_name_from player = "Thomas"
+        && team_with_one_player.shared_public_informations.score = 0
+        && team_with_one_player.current_player_index = 0
         && public_informations_is_clear
-             team_with_one_computer.shared_public_informations))
+             team_with_one_player.shared_public_informations))
 
-let test_init_team_with_one_human_player =
-  Alcotest.test_case "initialisation of a team of 1 human player " `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (List.length team_with_one_human.players = 1
-        && (not (is_computer (List.nth team_with_one_human.players 0)))
-        &&
-        let player = List.nth team_with_one_human.players 0 in
-        let player_struct = get_player_struct_from player in
-        player_struct.hand = []
-        && player_struct.name = "Thomas"
-        && team_with_one_computer.shared_public_informations.score = 0
-        && team_with_one_human.current_player_index = 0
-        && public_informations_is_clear
-             team_with_one_human.shared_public_informations))
-
-let test_init_team_with_two_computer_players =
+let test_init_team_with_two_players =
   Alcotest.test_case "initialisation of a team of 2 computer players " `Quick
     (fun () ->
       Alcotest.(check bool)
         "same result" true
-        (List.length team_with_two_computers.players = 2
-        && is_computer (List.nth team_with_two_computers.players 0)
-        && is_computer (List.nth team_with_two_computers.players 1)
+        (List.length team_with_two_players.players = 2
         &&
-        let player1 = List.nth team_with_two_computers.players 0
-        and player2 = List.nth team_with_two_computers.players 1 in
-        let player1_struct = get_player_struct_from player1
-        and player2_struct = get_player_struct_from player2 in
-        player1_struct.hand = [] && player2_struct.hand = []
-        && player1_struct.name = "Computer1"
-        && player2_struct.name = "Computer2"
-        && team_with_two_computers.shared_public_informations.score = 0
-        && team_with_two_computers.current_player_index = 0
+        let player1 = List.nth team_with_two_players.players 0
+        and player2 = List.nth team_with_two_players.players 1 in
+        get_hand_from player1 = []
+        && get_hand_from player2 = []
+        && get_name_from player1 = "Gabin"
+        && get_name_from player2 = "Mathusan"
+        && team_with_two_players.shared_public_informations.score = 0
+        && team_with_two_players.current_player_index = 0
         && public_informations_is_clear
-             team_with_two_computers.shared_public_informations))
-
-let test_init_team_with_two_human_players =
-  Alcotest.test_case "initialisation of a team of 2 humans players " `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (List.length team_with_two_humans.players = 2
-        && (not (is_computer (List.nth team_with_two_humans.players 0)))
-        && (not (is_computer (List.nth team_with_two_humans.players 1)))
-        &&
-        let player1 = List.nth team_with_two_humans.players 0
-        and player2 = List.nth team_with_two_humans.players 1 in
-        let player1_struct = get_player_struct_from player1
-        and player2_struct = get_player_struct_from player2 in
-        player1_struct.hand = [] && player2_struct.hand = []
-        && player1_struct.name = "Gabin"
-        && player2_struct.name = "Mathusan"
-        && team_with_two_humans.shared_public_informations.score = 0
-        && team_with_two_humans.current_player_index = 0
-        && public_informations_is_clear
-             team_with_two_humans.shared_public_informations))
-
-let test_init_team_with_one_computer_player_and_one_human_player =
-  Alcotest.test_case
-    "initialisation of a team of 1 computer player and 1 human player " `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (List.length team_with_computer_human.players = 2
-        && is_computer (List.nth team_with_computer_human.players 0)
-        && (not (is_computer (List.nth team_with_computer_human.players 1)))
-        &&
-        let player1 = List.nth team_with_computer_human.players 0
-        and player2 = List.nth team_with_computer_human.players 1 in
-        let player1_struct = get_player_struct_from player1
-        and player2_struct = get_player_struct_from player2 in
-        player1_struct.hand = [] && player2_struct.hand = []
-        && player1_struct.name = "Computer"
-        && player2_struct.name = "Mathusan"
-        && team_with_computer_human.shared_public_informations.score = 0
-        && team_with_computer_human.current_player_index = 0
-        && public_informations_is_clear
-             team_with_computer_human.shared_public_informations))
-
-let test_init_team_with_one_human_player_and_one_computer_player =
-  Alcotest.test_case
-    "initialisation of a team of 1 human player and 1 computer player " `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (List.length team_with_human_computer.players = 2
-        && (not (is_computer (List.nth team_with_human_computer.players 0)))
-        && is_computer (List.nth team_with_human_computer.players 1)
-        &&
-        let player1 = List.nth team_with_human_computer.players 0
-        and player2 = List.nth team_with_human_computer.players 1 in
-        let player1_struct = get_player_struct_from player1
-        and player2_struct = get_player_struct_from player2 in
-        player1_struct.hand = [] && player2_struct.hand = []
-        && player1_struct.name = "Gabin"
-        && player2_struct.name = "Computer"
-        && team_with_human_computer.shared_public_informations.score = 0
-        && team_with_human_computer.current_player_index = 0
-        && public_informations_is_clear
-             team_with_human_computer.shared_public_informations))
+             team_with_two_players.shared_public_informations))
 
 let test_has_safety_to_counter_hazard_on_his_hand1 =
   Alcotest.test_case
@@ -734,86 +621,92 @@ let test_use_hazard_card =
         "same result" true
         (let team = use_card team1 (Hazard SpeedLimit) in
          let res1 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 speed_limit_pile = [ Hazard SpeedLimit ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   speed_limit_pile = [ Hazard SpeedLimit ];
+                 };
+             }
+             team
          in
          let team = use_card team (Hazard SpeedLimit) in
          let res2 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                 };
+             }
+             team
          in
          let team = use_card team (Hazard OutOfGas) in
          let res3 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
-                 drive_pile = [ Hazard OutOfGas ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                   drive_pile = [ Hazard OutOfGas ];
+                 };
+             }
+             team
          in
          let team = use_card team (Hazard FlatTire) in
          let res4 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
-                 drive_pile = [ Hazard FlatTire; Hazard OutOfGas ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                   drive_pile = [ Hazard FlatTire; Hazard OutOfGas ];
+                 };
+             }
+             team
          in
          let team = use_card team (Hazard Accident) in
          let res5 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
-                 drive_pile =
-                   [ Hazard Accident; Hazard FlatTire; Hazard OutOfGas ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                   drive_pile =
+                     [ Hazard Accident; Hazard FlatTire; Hazard OutOfGas ];
+                 };
+             }
+             team
          in
          let team = use_card team (Hazard Stop) in
          let res6 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
-                 drive_pile =
-                   [
-                     Hazard Stop;
-                     Hazard Accident;
-                     Hazard FlatTire;
-                     Hazard OutOfGas;
-                   ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   speed_limit_pile = [ Hazard SpeedLimit; Hazard SpeedLimit ];
+                   drive_pile =
+                     [
+                       Hazard Stop;
+                       Hazard Accident;
+                       Hazard FlatTire;
+                       Hazard OutOfGas;
+                     ];
+                 };
+             }
+             team
          in
          res1 && res2 && res3 && res4 && res5 && res6))
 
@@ -897,97 +790,103 @@ let test_use_distance_card =
         "same result" true
         (let team = use_card team5 (Distance D25) in
          let res1 =
-           {
-             team5 with
-             shared_public_informations =
-               {
-                 team5.shared_public_informations with
-                 distance_cards = [ Distance D25 ];
-                 score = 25;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team5 with
+               shared_public_informations =
+                 {
+                   team5.shared_public_informations with
+                   distance_cards = [ Distance D25 ];
+                   score = 25;
+                 };
+             }
+             team
          in
          let team = use_card team (Distance D50) in
          let res2 =
-           {
-             team5 with
-             shared_public_informations =
-               {
-                 team5.shared_public_informations with
-                 distance_cards = [ Distance D25; Distance D50 ];
-                 score = 75;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team5 with
+               shared_public_informations =
+                 {
+                   team5.shared_public_informations with
+                   distance_cards = [ Distance D25; Distance D50 ];
+                   score = 75;
+                 };
+             }
+             team
          in
          let team = use_card team (Distance D75) in
          let res3 =
-           {
-             team5 with
-             shared_public_informations =
-               {
-                 team5.shared_public_informations with
-                 distance_cards = [ Distance D25; Distance D50; Distance D75 ];
-                 score = 150;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team5 with
+               shared_public_informations =
+                 {
+                   team5.shared_public_informations with
+                   distance_cards = [ Distance D25; Distance D50; Distance D75 ];
+                   score = 150;
+                 };
+             }
+             team
          in
          let team = use_card team (Distance D100) in
          let res4 =
-           {
-             team5 with
-             shared_public_informations =
-               {
-                 team5.shared_public_informations with
-                 distance_cards =
-                   [ Distance D25; Distance D50; Distance D75; Distance D100 ];
-                 score = 250;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team5 with
+               shared_public_informations =
+                 {
+                   team5.shared_public_informations with
+                   distance_cards =
+                     [ Distance D25; Distance D50; Distance D75; Distance D100 ];
+                   score = 250;
+                 };
+             }
+             team
          in
          let team = use_card team (Distance D200) in
          let res5 =
-           {
-             team5 with
-             shared_public_informations =
-               {
-                 team5.shared_public_informations with
-                 distance_cards =
-                   [
-                     Distance D25;
-                     Distance D50;
-                     Distance D75;
-                     Distance D100;
-                     Distance D200;
-                   ];
-                 score = 450;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team5 with
+               shared_public_informations =
+                 {
+                   team5.shared_public_informations with
+                   distance_cards =
+                     [
+                       Distance D25;
+                       Distance D50;
+                       Distance D75;
+                       Distance D100;
+                       Distance D200;
+                     ];
+                   score = 450;
+                 };
+             }
+             team
          in
          let team = use_card team (Distance D75) in
          let res6 =
-           {
-             team5 with
-             shared_public_informations =
-               {
-                 team5.shared_public_informations with
-                 distance_cards =
-                   [
-                     Distance D25;
-                     Distance D50;
-                     Distance D75;
-                     Distance D75;
-                     Distance D100;
-                     Distance D200;
-                   ];
-                 score = 525;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team5 with
+               shared_public_informations =
+                 {
+                   team5.shared_public_informations with
+                   distance_cards =
+                     [
+                       Distance D25;
+                       Distance D50;
+                       Distance D75;
+                       Distance D75;
+                       Distance D100;
+                       Distance D200;
+                     ];
+                   score = 525;
+                 };
+             }
+             team
          in
          res1 && res2 && res3 && res4 && res5 && res6))
 
@@ -1025,44 +924,47 @@ let test_use_safety_card =
         "same result" true
         (let team = use_card team1 (Safety FuelTruck) in
          let res1 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 safety_area = [ Safety FuelTruck ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   safety_area = [ Safety FuelTruck ];
+                 };
+             }
+             team
          in
          let team = use_card team (Safety EmergencyVehicle) in
          let res2 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 safety_area = [ Safety EmergencyVehicle; Safety FuelTruck ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   safety_area = [ Safety EmergencyVehicle; Safety FuelTruck ];
+                 };
+             }
+             team
          in
          let team = use_card team (Safety DrivingAce) in
          let res3 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 safety_area =
-                   [
-                     Safety EmergencyVehicle;
-                     Safety FuelTruck;
-                     Safety DrivingAce;
-                   ];
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   safety_area =
+                     [
+                       Safety EmergencyVehicle;
+                       Safety FuelTruck;
+                       Safety DrivingAce;
+                     ];
+                 };
+             }
+             team
          in
          res1 && res2 && res3))
 
@@ -1072,48 +974,51 @@ let test_use_coup_fouree =
         "same result" true
         (let team = use_coup_fouree team1 FuelTruck in
          let res1 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 coup_fouree_cards = [ Safety FuelTruck ];
-                 score = 200;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   coup_fouree_cards = [ Safety FuelTruck ];
+                   score = 200;
+                 };
+             }
+             team
          in
          let team = use_coup_fouree team EmergencyVehicle in
          let res2 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 coup_fouree_cards =
-                   [ Safety EmergencyVehicle; Safety FuelTruck ];
-                 score = 400;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   coup_fouree_cards =
+                     [ Safety EmergencyVehicle; Safety FuelTruck ];
+                   score = 400;
+                 };
+             }
+             team
          in
          let team = use_coup_fouree team DrivingAce in
          let res3 =
-           {
-             team1 with
-             shared_public_informations =
-               {
-                 team.shared_public_informations with
-                 coup_fouree_cards =
-                   [
-                     Safety EmergencyVehicle;
-                     Safety FuelTruck;
-                     Safety DrivingAce;
-                   ];
-                 score = 600;
-               };
-           }
-           = team
+           have_same_contents_team
+             {
+               team1 with
+               shared_public_informations =
+                 {
+                   team.shared_public_informations with
+                   coup_fouree_cards =
+                     [
+                       Safety EmergencyVehicle;
+                       Safety FuelTruck;
+                       Safety DrivingAce;
+                     ];
+                   score = 600;
+                 };
+             }
+             team
          in
          res1 && res2 && res3))
 
@@ -1206,39 +1111,48 @@ let test_use_remedy_card =
          let res1 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit ]
-           && {
-                team with
-                shared_public_informations =
-                  { team.shared_public_informations with speed_limit_pile = [] };
-              }
-              = team1
+           && have_same_contents_team
+                {
+                  team with
+                  shared_public_informations =
+                    {
+                      team.shared_public_informations with
+                      speed_limit_pile = [];
+                    };
+                }
+                team1
          in
          let team = use_card team (Remedy EndOfSpeedLimit) in
          let res2 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
-           && {
-                team with
-                shared_public_informations =
-                  { team.shared_public_informations with speed_limit_pile = [] };
-              }
-              = team1
+           && have_same_contents_team
+                {
+                  team with
+                  shared_public_informations =
+                    {
+                      team.shared_public_informations with
+                      speed_limit_pile = [];
+                    };
+                }
+                team1
          in
          let team = use_card team (Remedy Gas) in
          let res3 =
            team.shared_public_informations.speed_limit_pile
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
            && team.shared_public_informations.drive_pile = [ Remedy Gas ]
-           && {
-                team with
-                shared_public_informations =
-                  {
-                    team.shared_public_informations with
-                    speed_limit_pile = [];
-                    drive_pile = [];
-                  };
-              }
-              = team1
+           && have_same_contents_team
+                {
+                  team with
+                  shared_public_informations =
+                    {
+                      team.shared_public_informations with
+                      speed_limit_pile = [];
+                      drive_pile = [];
+                    };
+                }
+                team1
          in
          let team = use_card team (Remedy SpareTire) in
          let res4 =
@@ -1246,16 +1160,17 @@ let test_use_remedy_card =
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
            && team.shared_public_informations.drive_pile
               = [ Remedy SpareTire; Remedy Gas ]
-           && {
-                team with
-                shared_public_informations =
-                  {
-                    team.shared_public_informations with
-                    speed_limit_pile = [];
-                    drive_pile = [];
-                  };
-              }
-              = team1
+           && have_same_contents_team
+                {
+                  team with
+                  shared_public_informations =
+                    {
+                      team.shared_public_informations with
+                      speed_limit_pile = [];
+                      drive_pile = [];
+                    };
+                }
+                team1
          in
          let team = use_card team (Remedy Repairs) in
          let res5 =
@@ -1263,16 +1178,17 @@ let test_use_remedy_card =
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
            && team.shared_public_informations.drive_pile
               = [ Remedy Repairs; Remedy SpareTire; Remedy Gas ]
-           && {
-                team with
-                shared_public_informations =
-                  {
-                    team.shared_public_informations with
-                    speed_limit_pile = [];
-                    drive_pile = [];
-                  };
-              }
-              = team1
+           && have_same_contents_team
+                {
+                  team with
+                  shared_public_informations =
+                    {
+                      team.shared_public_informations with
+                      speed_limit_pile = [];
+                      drive_pile = [];
+                    };
+                }
+                team1
          in
          let team = use_card team (Remedy Drive) in
          let res6 =
@@ -1280,16 +1196,17 @@ let test_use_remedy_card =
            = [ Remedy EndOfSpeedLimit; Remedy EndOfSpeedLimit ]
            && team.shared_public_informations.drive_pile
               = [ Remedy Drive; Remedy Repairs; Remedy SpareTire; Remedy Gas ]
-           && {
-                team with
-                shared_public_informations =
-                  {
-                    team.shared_public_informations with
-                    speed_limit_pile = [];
-                    drive_pile = [];
-                  };
-              }
-              = team1
+           && have_same_contents_team
+                {
+                  team with
+                  shared_public_informations =
+                    {
+                      team.shared_public_informations with
+                      speed_limit_pile = [];
+                      drive_pile = [];
+                    };
+                }
+                team1
          in
          res1 && res2 && res3 && res4 && res5 && res6))
 
@@ -1298,17 +1215,14 @@ let test_nth_hand_player =
       Alcotest.(check bool)
         "same result" true
         (let player =
-           Human
-             {
-               name = "test";
-               hand =
-                 [
-                   Safety EmergencyVehicle;
-                   Remedy EndOfSpeedLimit;
-                   Hazard OutOfGas;
-                   Distance D200;
-                 ];
-             }
+           set_hand_from
+             (init_player "test" strat 0)
+             [
+               Safety EmergencyVehicle;
+               Remedy EndOfSpeedLimit;
+               Hazard OutOfGas;
+               Distance D200;
+             ]
          in
          nth_hand_player player 0 = Safety EmergencyVehicle
          && nth_hand_player player 1 = Remedy EndOfSpeedLimit
@@ -1321,7 +1235,7 @@ let test_nth_hand_player_bad_input =
       Alcotest.check_raises "same exception" Index_of_hand_out_of_bound
         (fun () ->
           ignore
-            (let player = Human { name = "Nova"; hand = [] } in
+            (let player = init_player "Nova" strat 0 in
              nth_hand_player player 17)))
 
 let test_is_card_in_player_hand_true =
@@ -1331,8 +1245,7 @@ let test_is_card_in_player_hand_true =
       "For all non-empty player hand, for all card in that hand, \
        (is_card_in_player_hand player card) is true" arbitrary_hand (fun hand ->
       assume (hand <> []);
-      let ps = { name = "player_name"; hand } in
-      let player = Human ps in
+      let player = set_hand_from (init_player "player_name" strat 0) hand in
       List.for_all (fun card -> is_card_in_player_hand player card) hand)
 
 let test_is_card_in_player_hand_false =
@@ -1342,17 +1255,15 @@ let test_is_card_in_player_hand_false =
       "For all card, for all hand without card, (is_card_in_player_hand player \
        card) is false" (pair arbitrary_hand arbitrary_card) (fun (hand, card) ->
       assume (not (List.mem card hand));
-      let ps = { name = "player_name"; hand } in
-      let player = Human ps in
+      let player = set_hand_from (init_player "player_name" strat 0) hand in
       not (is_card_in_player_hand player card))
 
 let () =
   let open Alcotest in
   run "Teams_engine"
     [
-      ( "test same_player and replace_player_struct_in",
-        [ test_same_player; test_replace_struct_in ] );
-      ("test same_team", [ test_same_team; test_replace_player_in ]);
+      ( "test have_same_contents_team",
+        [ test_have_same_contents_team; test_replace_player_in ] );
       ("test get_names", [ test_get_names ]);
       ( "test get_current_player_from and set_next_player_from",
         [
@@ -1382,14 +1293,7 @@ let () =
       ("test_pp_public_informations_list", [ test_pp_public_informations_list ]);
       ("test_pp_names_of_team_list", [ test_pp_names_of_team_list ]);
       ( "init teams, players and public_informations function tests",
-        [
-          test_init_team_with_one_computer_player;
-          test_init_team_with_one_human_player;
-          test_init_team_with_two_computer_players;
-          test_init_team_with_two_human_players;
-          test_init_team_with_one_computer_player_and_one_human_player;
-          test_init_team_with_one_human_player_and_one_computer_player;
-        ] );
+        [ test_init_team_with_one_player; test_init_team_with_two_players ] );
       ( "tests has_safety_to_counter_hazard_on_his_hand",
         [
           test_has_safety_to_counter_hazard_on_his_hand1;

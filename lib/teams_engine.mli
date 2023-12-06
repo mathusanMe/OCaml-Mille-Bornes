@@ -1,6 +1,6 @@
 open Cards_engine
 
-type player_struct = { name : string; hand : deck_of_card }
+type player_struct
 (** This type is the structure representation without its [team] information such as [name] and playing [hand]. *)
 
 type public_informations = {
@@ -14,8 +14,8 @@ type public_informations = {
 }
 (** This type represents what can be shared with other players, such as the [id], driving zone cards and [score]. *)
 
-(** This type makes the difference between a [Human] and a [Bot], with a [Bot] that also has a defined game [strategy]. *)
-type player = Computer of (player_struct * strategy) | Human of player_struct
+type player
+(** Contains a [player_struct] and a [strategy] *)
 
 and strategy = {
   name : string;  (** Name of the Computer strategy. *)
@@ -62,6 +62,9 @@ and strategy = {
 }
 (** This type is composed of several functions that allow the [Bot] to produce game actions. *)
 
+val init_player : string -> strategy -> int -> player
+(** [init_player n s i] Initialize a player with his name [n], strategy [s] and id [i] *)
+
 type team = {
   players : player list;
   shared_public_informations : public_informations;
@@ -77,8 +80,23 @@ val get_current_player_from : team -> player
 (** [get_current_player_from t] returns the [t] [player] with the same id as the [current_player_id] in [team].
     [raise Current_player_index_out_of_bound] if [current_player_id] is not valid *)
 
+val set_hand_from : player -> deck_of_card -> player
+(** [set_hand_from p d] returns [p] with the [hand] [d]. *)
+
+val get_hand_from : player -> deck_of_card
+(** [get_hand_from p d] returns [hand] of [player] [p]. *)
+
+val get_name_from : player -> string
+(** [get_name_from p] returns [name] of [player] [p]. *)
+
+val get_strat_from : player -> strategy
+(** [get_name_from p] returns [strategy] of [player] [p]. *)
+
 val get_player_struct_from : player -> player_struct
-(** [get_player_struct_from p] returns the structure of [p], whether it's a [Bot] or a classic [player]. *)
+(** [get_player_struct_from]returns [player_struct] of [player] [p]. *)
+
+val have_same_contents_team : team -> team -> bool
+(** [have_same_contents_team t1 t2] return if team [t1] equals [t2] (only used for testing) *)
 
 val get_names_from : team -> string list
 (** [get_names_from t] returns the names of all players in the [team], within a string list. *)
@@ -86,8 +104,8 @@ val get_names_from : team -> string list
 val set_next_player_from : team -> team
 (** [set_next_player_from t] changes the id to the [player] who will play after the current [player], and loop if the id arrives at the end of the existing [players]. *)
 
-val same_player : player -> player -> bool
-(** [same_player p1 p2] returns true if the 2 [players] have the same name, because in a game, 2 [players] are not allowed to have the same name. *)
+val have_same_id_player : player -> player -> bool
+(** [have_same_id_player p1 p2] returns true if the 2 [players] have the same [id]. *)
 
 val does_player_have_this_name_in_team_list : string -> team list -> bool
 (** [does_player_have_this_name_in_team_list name t_list] returns true if one of the players in the [t_list] has this [name]. *)
@@ -95,11 +113,8 @@ val does_player_have_this_name_in_team_list : string -> team list -> bool
 val same_team : team -> team -> bool
 (** [same_team t1 t2] returns true if the [team] members have the same name, and share the same [public_informations]. *)
 
-val replace_player_struct_in : player -> player_struct -> player
-(** [replace_player_struct_in p p_struct] returns [p] with the new structure [p_struct]. *)
-
 val replace_player_in : team -> player -> team
-(** [replace_player_struct_in t p] returns [t] with the replaced [p], by the function [same_player]. *)
+(** [replace_player_in t p] returns [t] with the replaced [p], by the function [have_same_id_player]. *)
 
 val replace_team_in : team list -> team -> team list
 (** [replace_team_in t_list t] returns [t_list] with the replaced [t], by the function [same_team]. *)
@@ -117,25 +132,16 @@ val pp_public_informations_list :
 
 val pp_names_of_team_list : Format.formatter -> team list -> unit
 
-val init_team_with_one_human : string -> int -> team
-(** [init_team_with_one_human name id] initializes a [team] consisting of one [Human] [player] with his [name] and [team] [id]. *)
+val init_team_with_one_player : string -> strategy -> int -> team
+(** [init_team_with_one_player name id] initializes a [team] consisting of one [player] with his [name], [strategy] and [team] [id]. *)
 
-val init_team_with_one_computer : string -> strategy -> int -> team
-(** [init_team_with_one_computer name s id] initializes a [team] consisting of one [Computer] player with its [name], its [strategy] [s] and its [team] [id]. *)
+exception Invalid_names
+(**Raised when the same name is used several times*)
 
-val init_team_with_two_human : string -> string -> int -> team
-(** [init_team_with_two_human name1 name2 id] initializes a [team] consisting of two [Human] [players] with respectively the names [name1] and [name2], and their shared
-    [team] [id]. *)
-
-val init_team_with_one_human_and_one_computer :
-  string -> bool -> string -> bool -> strategy -> int -> team
-(** [init_team_with_one_human_and_one_computer name1 is_compute1 name2 is_computer2 s id] initializes a [team] of one [Human] and one [Computer],
-    with their order decided by [is_bot1] and [is_bot2], their respective names [name1] and [name2], the [Bot]'s [strategy], and their shared [team] [id]. *)
-
-val init_team_with_two_computer :
+val init_team_with_two_players :
   string -> strategy -> string -> strategy -> int -> team
-(** [init_team_with_two_computer name1 s1 name2 s2 id] initializes a [team] of two [Computer], with their respective names [name1] and [name2], 
-    their respective [strategy] [s1] and [s2], and their shared [team] [id]. *)
+(** [init_team_with_two_players name1 strat1 name2 strat2 id] initializes a [team] consisting of two [players] with respectively the names [name1] and [name2], strategy [stat1] and [strat2], and their shared
+    [team] [id]. Raise Invalid_names if [name1] = [name2] *)
 
 val is_attacked_by_hazard_on_drive_pile : public_informations -> bool
 (** [is_attacked_by_hazard_on_drive_pile pi] checks the top of the drive pile of [pi] and returns true if it contains a [hazard_card]. *)
