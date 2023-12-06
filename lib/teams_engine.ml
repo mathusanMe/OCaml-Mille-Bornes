@@ -1,6 +1,6 @@
 open Cards_engine
 
-type player_struct = { name : string; hand : deck_of_card }
+type player_struct = { id : int; name : string; hand : deck_of_card }
 
 type public_informations = {
   id : int;
@@ -12,7 +12,7 @@ type public_informations = {
   score : int;
 }
 
-type player = Computer of (player_struct * strategy) | Human of player_struct
+type player = player_struct * strategy
 
 and strategy = {
   name : string;
@@ -41,13 +41,11 @@ type team = {
   current_player_index : int;
 }
 
-let init_player_struct (entered_name : string) =
-  { name = entered_name; hand = [] }
+let init_player_struct (entered_name : string) (id : int) =
+  { id; name = entered_name; hand = [] }
 
-let init_human (entered_name : string) = Human (init_player_struct entered_name)
-
-let init_computer (name : string) (strat : strategy) =
-  Computer (init_player_struct name, strat)
+let init_player (entered_name : string) (strat : strategy) (id : int) =
+  (init_player_struct entered_name id, strat)
 
 let init_public_informations (i : int) =
   {
@@ -60,48 +58,24 @@ let init_public_informations (i : int) =
     score = 0;
   }
 
-let init_team_with_one_player (p : player) (id : int) =
+let init_team_with_one_player (name : string) (strat : strategy) (id : int) =
   {
-    players = [ p ];
+    players = [ init_player name strat 0 ];
     shared_public_informations = init_public_informations id;
     current_player_index = 0;
   }
 
-let init_team_with_one_human (name : string) (id : int) =
-  init_team_with_one_player (init_human name) id
+exception Invalid_names
 
-let init_team_with_one_computer (name : string) (strat : strategy) (id : int) =
-  init_team_with_one_player (init_computer name strat) id
-
-let init_team_with_two_players (player1 : player) (player2 : player) (id : int)
-    =
-  {
-    players = [ player1; player2 ];
-    shared_public_informations = init_public_informations id;
-    current_player_index = 0;
-  }
-
-let init_team_with_two_human (name1 : string) (name2 : string) (id : int) =
-  let player1 = init_human name1 in
-  let player2 = init_human name2 in
-  init_team_with_two_players player1 player2 id
-
-let init_team_with_one_human_and_one_computer (name1 : string)
-    (is_computer1 : bool) (name2 : string) (is_computer2 : bool)
-    (strat : strategy) (id : int) =
-  let player1 =
-    if is_computer1 then init_computer name1 strat else init_human name1
-  in
-  let player2 =
-    if is_computer2 then init_computer name2 strat else init_human name2
-  in
-  init_team_with_two_players player1 player2 id
-
-let init_team_with_two_computer (name1 : string) (strat1 : strategy)
+let init_team_with_two_players (name1 : string) (strat1 : strategy)
     (name2 : string) (strat2 : strategy) (id : int) =
-  let player1 = init_computer name1 strat1 in
-  let player2 = init_computer name2 strat2 in
-  init_team_with_two_players player1 player2 id
+  if name1 = name2 then raise Invalid_names
+  else
+    {
+      players = [ init_player name1 strat1 0; init_player name2 strat2 1 ];
+      shared_public_informations = init_public_informations id;
+      current_player_index = 0;
+    }
 
 exception Current_player_index_out_of_bound
 
@@ -112,15 +86,21 @@ let get_current_player_from (t : team) =
   then raise Current_player_index_out_of_bound
   else List.nth t.players t.current_player_index
 
-let get_player_struct_from (p : player) =
-  match p with Human p_struct -> p_struct | Computer (p_struct, _) -> p_struct
+let set_hand_from (p : player) (d : deck_of_card) =
+  match p with p_struct, p_strat -> ({ p_struct with hand = d }, p_strat)
 
-let get_names_from (t : team) =
-  List.map
-    (fun p ->
-      let p_struct = get_player_struct_from p in
-      p_struct.name)
-    t.players
+let get_hand_from (p : player) = match p with p_struct, _ -> p_struct.hand
+let get_name_from (p : player) = match p with p_struct, _ -> p_struct.name
+let get_strat_from (p : player) = match p with _, p_strat -> p_strat
+let get_player_struct_from (p : player) = match p with p_struct, _ -> p_struct
+let get_names_from (t : team) = List.map (fun p -> get_name_from p) t.players
+
+let have_same_contents_team t1 t2 =
+  List.for_all2
+    (fun p1 p2 ->
+      get_player_struct_from p1 = get_player_struct_from p2
+      && (get_strat_from p1).name = (get_strat_from p2).name)
+    t1.players t2.players
 
 let set_next_player_from (t : team) =
   if List.length t.players = 2 then
@@ -131,53 +111,39 @@ let set_next_player_from (t : team) =
     }
   else t
 
-let same_player (p1 : player) (p2 : player) =
-  let e1 = get_player_struct_from p1 in
-  let e2 = get_player_struct_from p2 in
-  e1.name = e2.name
+let have_same_id_player (p1 : player) (p2 : player) =
+  match (p1, p2) with
+  | (p1_struct, _), (p2_struct, _) -> p1_struct.id = p2_struct.id
 
 let does_player_have_this_name_in_team_list name team_list =
   List.exists
-    (fun t ->
-      List.exists
-        (fun p ->
-          let p_struct = get_player_struct_from p in
-          p_struct.name = name)
-        t.players)
+    (fun t -> List.exists (fun p -> get_name_from p = name) t.players)
     team_list
 
 let same_team (t1 : team) (t2 : team) =
-  List.for_all2 same_player t1.players t2.players
+  List.for_all2 have_same_id_player t1.players t2.players
   && t1.shared_public_informations.id = t2.shared_public_informations.id
-
-let replace_player_struct_in (p : player) (p_struct : player_struct) =
-  match p with
-  | Computer (_, strat) -> Computer (p_struct, strat)
-  | Human _ -> Human p_struct
 
 let replace_player_in (t : team) (p : player) =
   {
     t with
-    players = List.map (fun x -> if same_player x p then p else x) t.players;
+    players =
+      List.map (fun x -> if have_same_id_player x p then p else x) t.players;
   }
 
 let replace_team_in (teams : team list) (t : team) =
   List.map (fun x -> if same_team x t then t else x) teams
 
 let is_card_in_player_hand (p : player) (c : card) =
-  let p_struct = get_player_struct_from p in
-  let hand = p_struct.hand in
+  let hand = get_hand_from p in
   List.mem c hand
 
-let pp_player with_hand fmt p =
+let pp_player with_hand fmt (p : player) =
   let pp_hand b hand = if b then pp_deck_of_card "hand" fmt hand in
   match p with
-  | Computer (p_struct, p_strat) ->
-      Format.fprintf fmt "%s (computer with strategy %s)@ " p_struct.name
+  | p_struct, p_strat ->
+      Format.fprintf fmt "%s (player with strategy %s)@ " p_struct.name
         p_strat.name;
-      pp_hand with_hand p_struct.hand
-  | Human p_struct ->
-      Format.fprintf fmt "%s@ " p_struct.name;
       pp_hand with_hand p_struct.hand
 
 let pp_player_list_with_all_hands fmt players =
@@ -195,10 +161,10 @@ let pp_player_list_with_no_hand fmt players =
 let pp_player_list_with_one_player_hand player fmt players =
   let pp_iter fmt =
     List.iter (fun p ->
-        Format.fprintf fmt "%a" (pp_player (same_player p player)) p)
+        Format.fprintf fmt "%a" (pp_player (have_same_id_player p player)) p)
   in
-  Format.fprintf fmt "Name(s) with deck of %s :@ %a"
-    (get_player_struct_from player).name pp_iter players
+  Format.fprintf fmt "Name(s) with deck of %s :@ %a" (get_name_from player)
+    pp_iter players
 
 let pp_public_informations with_entirely_pi fmt dz =
   Format.fprintf fmt "Driving Zone : @ %a@;%a@;%a%a%a"
@@ -243,11 +209,7 @@ let pp_public_informations_list fmt pinfo_list =
 
 let pp_names_of_team_list fmt teams =
   let pp_print_name_team fmt t =
-    List.iter
-      (fun p ->
-        let p_struct = get_player_struct_from p in
-        Format.fprintf fmt "%s;" p_struct.name)
-      t.players
+    List.iter (fun p -> Format.fprintf fmt "%s;" (get_name_from p)) t.players
   in
   let pp_print_team_with_id fmt t i =
     Format.fprintf fmt "Team %d : %a@;" i pp_print_name_team t
@@ -269,11 +231,7 @@ let has_safety_to_counter_hazard_on_public_informations
 
 let has_safety_to_counter_hazard_on_his_hand (p : player) (c : hazard_card) =
   let necessary_safety = get_safety_corresponding_to_the_hazard c in
-  let p_hand =
-    match p with
-    | Computer (p_struct, _) -> p_struct.hand
-    | Human p_struct -> p_struct.hand
-  in
+  let p_hand = match p with p_struct, _ -> p_struct.hand in
   List.exists (fun x -> x = Safety necessary_safety) p_hand
 
 let is_attacked_by_hazard_on_drive_pile (p_info : public_informations) =
@@ -457,7 +415,7 @@ exception Index_of_hand_out_of_bound
 
 let nth_hand_player (p : player) (i : int) =
   match p with
-  | Human p_struct | Computer (p_struct, _) ->
+  | p_struct, _ ->
       if i < 0 || i > List.length p_struct.hand then
         raise Index_of_hand_out_of_bound
       else List.nth p_struct.hand i

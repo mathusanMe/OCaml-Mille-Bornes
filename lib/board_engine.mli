@@ -9,6 +9,9 @@ type board = {
 }
 (** This type represents a board with all the teams on it, and the game decks, i.e. the discard pile and draw pile. *)
 
+val have_same_contents_boards : board -> board -> bool
+(** [have_same_contents_boards b1 b2] return if board [b1] equals [b2] (only used for testing)*)
+
 val find_index : ('a -> bool) -> 'a list -> int option
 (** [find_index a l] returns the index of [a] in [l]. If [a] is not in [l], returns None. *)
 

@@ -1,37 +1,14 @@
 open Mille_bornes.Teams_engine
+open Default_strat
 
 let equal_player (player1 : player) (player2 : player) =
-  match (player1, player2) with
-  | Computer (p_struct1, p_strat1), Computer (p_struct2, p_strat2) ->
-      p_struct1 = p_struct2 && p_strat1.name = p_strat2.name
-  | Human p_struct1, Human p_struct2 -> p_struct1 = p_struct2
-  | _ -> false
+  (get_strat_from player1).name = (get_strat_from player2).name
+  && get_name_from player1 = get_name_from player2
 
-let is_computer = function Computer _ -> true | Human _ -> false
+let team_with_one_player = init_team_with_one_player "Thomas" strat 8
 
-let strat =
-  {
-    name = "strat";
-    choose_card_to_play = (fun _ _ _ -> Some (0, None));
-    want_to_peek_discard_pile = (fun _ _ _ _ -> Some false);
-    want_to_play_coup_fourre = (fun _ _ _ _ -> Some true);
-  }
-
-let team_with_one_computer = init_team_with_one_computer "Computer" strat 7
-let team_with_one_human = init_team_with_one_human "Thomas" 8
-
-let team_with_two_computers =
-  init_team_with_two_computer "Computer1" strat "Computer2" strat 9
-
-let team_with_two_humans = init_team_with_two_human "Gabin" "Mathusan" 10
-
-let team_with_computer_human =
-  init_team_with_one_human_and_one_computer "Computer" true "Mathusan" false
-    strat 11
-
-let team_with_human_computer =
-  init_team_with_one_human_and_one_computer "Gabin" false "Computer" true strat
-    12
+let team_with_two_players =
+  init_team_with_two_players "Gabin" strat "Mathusan" strat 10
 
 open Mille_bornes.Cards_engine
 
@@ -47,7 +24,7 @@ let team0 =
       score = 10;
     }
   in
-  let player = Human { name = "player"; hand = [] } in
+  let player = init_player "player" strat 16 in
   {
     players = [ player ];
     shared_public_informations = public_informations;
@@ -66,8 +43,8 @@ let team1 =
       score = 0;
     }
   in
-  let player1 = Human { name = "name1"; hand = [] } in
-  let player2 = Human { name = "name2"; hand = [] } in
+  let player1 = init_player "name1" strat 0 in
+  let player2 = init_player "name2" strat 1 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -86,8 +63,8 @@ let team2 =
       score = 0;
     }
   in
-  let player1 = Human { name = "name1"; hand = [] } in
-  let player2 = Human { name = "name2"; hand = [] } in
+  let player1 = init_player "name1" strat 2 in
+  let player2 = init_player "name2" strat 3 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -106,8 +83,8 @@ let team3 =
       score = 0;
     }
   in
-  let player1 = Human { name = "name1"; hand = [] } in
-  let player2 = Human { name = "name2"; hand = [] } in
+  let player1 = init_player "name1" strat 4 in
+  let player2 = init_player "name2" strat 5 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -126,8 +103,8 @@ let team4 =
       score = 0;
     }
   in
-  let player1 = Human { name = "name1"; hand = [] } in
-  let player2 = Human { name = "name2"; hand = [] } in
+  let player1 = init_player "name1" strat 6 in
+  let player2 = init_player "name2" strat 7 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -146,8 +123,8 @@ let team5 =
       score = 0;
     }
   in
-  let player1 = Human { name = "name1"; hand = [] } in
-  let player2 = Human { name = "name2"; hand = [] } in
+  let player1 = init_player "name1" strat 8 in
+  let player2 = init_player "name2" strat 9 in
   {
     players = [ player1; player2 ];
     shared_public_informations = public_informations;
@@ -169,34 +146,28 @@ let team6 =
     }
   in
   let player1 =
-    Human
-      {
-        name = "Thomas";
-        hand =
-          [
-            Remedy Repairs;
-            Hazard SpeedLimit;
-            Hazard OutOfGas;
-            Safety DrivingAce;
-            Distance D100;
-            Distance D200;
-          ];
-      }
+    set_hand_from
+      (init_player "Thomas" strat 10)
+      [
+        Remedy Repairs;
+        Hazard SpeedLimit;
+        Hazard OutOfGas;
+        Safety DrivingAce;
+        Distance D100;
+        Distance D200;
+      ]
   in
   let player2 =
-    Human
-      {
-        name = "Mathusan";
-        hand =
-          [
-            Remedy Drive;
-            Remedy Gas;
-            Distance D25;
-            Distance D75;
-            Distance D100;
-            Distance D200;
-          ];
-      }
+    set_hand_from
+      (init_player "Mathusan" strat 11)
+      [
+        Remedy Drive;
+        Remedy Gas;
+        Distance D25;
+        Distance D75;
+        Distance D100;
+        Distance D200;
+      ]
   in
   {
     players = [ player1; player2 ];
@@ -205,32 +176,25 @@ let team6 =
   }
 
 let human1 =
-  Human
-    {
-      name = "Thomas";
-      hand =
-        [
-          Safety EmergencyVehicle;
-          Safety FuelTruck;
-          Safety PunctureProof;
-          Safety DrivingAce;
-        ];
-    }
+  set_hand_from
+    (init_player "Thomas" strat 12)
+    [
+      Safety EmergencyVehicle;
+      Safety FuelTruck;
+      Safety PunctureProof;
+      Safety DrivingAce;
+    ]
 
-let human2 = Human { name = "Thomas"; hand = [] }
+let human2 = init_player "Thomas" strat 13
 
 let computer1 =
-  Computer
-    ( {
-        name = "Computer";
-        hand =
-          [
-            Safety EmergencyVehicle;
-            Safety FuelTruck;
-            Safety PunctureProof;
-            Safety DrivingAce;
-          ];
-      },
-      strat )
+  set_hand_from
+    (init_player "Computer" strat 14)
+    [
+      Safety EmergencyVehicle;
+      Safety FuelTruck;
+      Safety PunctureProof;
+      Safety DrivingAce;
+    ]
 
-let computer2 = Computer ({ name = "Computer"; hand = [] }, strat)
+let computer2 = init_player "Computer" strat 15

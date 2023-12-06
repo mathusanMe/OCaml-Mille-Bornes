@@ -10,6 +10,14 @@ type board = {
 
 exception Current_team_index_out_of_bound
 
+let have_same_contents_boards b1 b2 =
+  b1.draw_pile = b2.draw_pile
+  && b1.discard_pile = b2.discard_pile
+  && b1.current_team_index = b2.current_team_index
+  && List.for_all2
+       (fun t1 t2 -> have_same_contents_team t1 t2)
+       b1.teams b2.teams
+
 let get_current_team_from (b : board) =
   if b.current_team_index < 0 || b.current_team_index >= List.length b.teams
   then raise Current_team_index_out_of_bound
@@ -28,9 +36,7 @@ let switch_current_team_from (b : board) =
 
 let update_hand_for_player_in_team (b : board) (t : team) (p : player)
     (new_hand : deck_of_card) =
-  let player_struct = get_player_struct_from p in
-  let new_player_struct = { player_struct with hand = new_hand } in
-  let new_player = replace_player_struct_in p new_player_struct in
+  let new_player = set_hand_from p new_hand in
   let new_team = replace_player_in t new_player in
   replace_team_in b.teams new_team (* Returns `team list` *)
 
@@ -45,11 +51,8 @@ let draw_initial_hand_to_team team draw_pile =
         List.fold_left
           (fun (pile, p_list) p ->
             let c, new_pile = draw_card_from_pile pile in
-            let p_struct = get_player_struct_from p in
-            let new_p_struct =
-              { p_struct with hand = add_card_to_deck p_struct.hand c }
-            in
-            let new_p = replace_player_struct_in p new_p_struct in
+            let new_hand = add_card_to_deck (get_hand_from p) c in
+            let new_p = set_hand_from p new_hand in
             (new_pile, new_p :: p_list))
           (draw_pile, []) players
       in
@@ -98,8 +101,7 @@ let draw_card (b : board) (t : team) (from_discard_pile : bool) =
   if not (List.mem t b.teams) then raise Team_not_found
   else
     let player = get_current_player_from t in
-    let player_struct = get_player_struct_from player in
-    let new_hand = add_card_to_deck player_struct.hand card in
+    let new_hand = add_card_to_deck (get_hand_from player) card in
     let new_teams = update_hand_for_player_in_team b t player new_hand in
     if from_discard_pile then
       { b with discard_pile = new_pile; teams = new_teams }
@@ -109,11 +111,11 @@ let discard_card (b : board) (t : team) (c : card) =
   if not (List.mem t b.teams) then raise Team_not_found
   else
     let player = get_current_player_from t in
-    let player_struct = get_player_struct_from player in
-    if player_struct.hand = [] then raise Empty_deck
-    else if not (List.mem c player_struct.hand) then raise Card_not_found
+    let player_hand = get_hand_from player in
+    if player_hand = [] then raise Empty_deck
+    else if not (List.mem c player_hand) then raise Card_not_found
     else
-      let new_hand = remove_card_from_deck player_struct.hand c in
+      let new_hand = remove_card_from_deck player_hand c in
       let new_teams = update_hand_for_player_in_team b t player new_hand in
       let new_discard_pile = add_card_to_pile b.discard_pile c in
       { b with discard_pile = new_discard_pile; teams = new_teams }
@@ -124,11 +126,11 @@ let discard_card_from_player (b : board) (t : team) (p : player) (c : card) =
   if not (List.mem t b.teams) then raise Team_not_found
   else if not (List.mem p t.players) then raise Player_not_found
   else
-    let player_struct = get_player_struct_from p in
-    if player_struct.hand = [] then raise Empty_deck
-    else if not (List.mem c player_struct.hand) then raise Card_not_found
+    let player_hand = get_hand_from p in
+    if player_hand = [] then raise Empty_deck
+    else if not (List.mem c player_hand) then raise Card_not_found
     else
-      let new_hand = remove_card_from_deck player_struct.hand c in
+      let new_hand = remove_card_from_deck player_hand c in
       let new_teams = update_hand_for_player_in_team b t p new_hand in
       let new_discard_pile = add_card_to_pile b.discard_pile c in
       { b with discard_pile = new_discard_pile; teams = new_teams }
@@ -141,9 +143,9 @@ let place_card (b : board) (t_from : team) (c : card) (t_to : team) =
   if not teams_found then raise Team_not_found
   else
     let player_from = get_current_player_from t_from in
-    let player_from_struct = get_player_struct_from player_from in
-    if player_from_struct.hand = [] then raise Empty_deck
-    else if not (List.mem c player_from_struct.hand) then raise Card_not_found
+    let player_from_hand = get_hand_from player_from in
+    if player_from_hand = [] then raise Empty_deck
+    else if not (List.mem c player_from_hand) then raise Card_not_found
     else
       match c with
       | (Safety _ | Remedy _ | Distance _) when not (same_team t_from t_to) ->
@@ -154,12 +156,8 @@ let place_card (b : board) (t_from : team) (c : card) (t_to : team) =
           else
             let new_team = use_card t_to c in
             let new_current_player = get_current_player_from new_team in
-            let new_current_player_struct =
-              get_player_struct_from new_current_player
-            in
-            let new_hand =
-              remove_card_from_deck new_current_player_struct.hand c
-            in
+            let new_current_player_hand = get_hand_from new_current_player in
+            let new_hand = remove_card_from_deck new_current_player_hand c in
             let new_teams =
               update_hand_for_player_in_team b new_team new_current_player
                 new_hand
@@ -170,7 +168,7 @@ let place_card (b : board) (t_from : team) (c : card) (t_to : team) =
           if not (is_usable_card t_to.shared_public_informations c) then
             raise Unusable_card
           else
-            let new_hand = remove_card_from_deck player_from_struct.hand c in
+            let new_hand = remove_card_from_deck player_from_hand c in
             let new_teams_from =
               update_hand_for_player_in_team b t_from player_from new_hand
             in
@@ -187,8 +185,7 @@ let find_index f l =
   aux_find_index 0 l
 
 let get_index_of_card_on_hand (c : card) (p : player) =
-  let p_struct = get_player_struct_from p in
-  let hand = p_struct.hand in
+  let hand = get_hand_from p in
   let index = find_index (fun x -> equal_card x c) hand in
   match index with Some i -> i | None -> raise Card_not_found
 
@@ -223,9 +220,9 @@ let place_coup_fouree (b : board) (t_from : team) (player_from : player)
     let player_found = List.mem player_from t_from.players in
     if not player_found then raise Player_not_found
     else
-      let player_from_struct = get_player_struct_from player_from in
-      if player_from_struct.hand = [] then raise Empty_deck
-      else if not (List.mem (Safety safety) player_from_struct.hand) then
+      let player_from_hand = get_hand_from player_from in
+      if player_from_hand = [] then raise Empty_deck
+      else if not (List.mem (Safety safety) player_from_hand) then
         raise Card_not_found
       else if
         not (is_usable_card t_from.shared_public_informations (Safety safety))
@@ -237,10 +234,8 @@ let place_coup_fouree (b : board) (t_from : team) (player_from : player)
         in
         let new_team = use_coup_fouree t_from safety in
         let new_player = player_from in
-        let new_player_struct = get_player_struct_from new_player in
-        let new_hand =
-          remove_card_from_deck new_player_struct.hand (Safety safety)
-        in
+        let new_player_hand = get_hand_from new_player in
+        let new_hand = remove_card_from_deck new_player_hand (Safety safety) in
         let new_draw_pile, new_hand = draw_card_with_hand new_board new_hand in
         let new_teams =
           update_hand_for_player_in_team new_board new_team new_player new_hand

@@ -1,4 +1,5 @@
 open QCheck
+open Default_strat
 open Mille_bornes.Cards_engine
 open Mille_bornes.Teams_engine
 
@@ -53,7 +54,7 @@ let deck_of_card_gen = Gen.list card_gen
 
 let player_struct_gen =
   Gen.map2
-    (fun name hand -> { name; hand })
+    (fun name hand -> set_hand_from (init_player name strat 0) hand)
     Gen.string_printable deck_of_card_gen
 
 let drive_pile_gen =
