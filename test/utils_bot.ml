@@ -54,7 +54,16 @@ let deck_of_card_gen = Gen.list card_gen
 
 let player_struct_gen =
   Gen.map2
-    (fun name hand -> set_hand_from (init_player name strat 0) hand)
+    (fun name hand ->
+      let player_init =
+        List.nth
+          (get_players_from
+             (List.nth
+                (init_teams [ (name, strat); ("Useless", strat) ] false)
+                0))
+          0
+      in
+      set_hand_from player_init hand)
     Gen.string_printable deck_of_card_gen
 
 let drive_pile_gen =
@@ -89,26 +98,38 @@ let safety_area_gen =
 let distance_card_deck_gen =
   Gen.map distance_card_to_card (Gen.list distance_card_gen)
 
+let team_init =
+  List.nth (init_teams [ ("Useless1", strat); ("Useless2", strat) ] false) 0
+
 let public_informations_gen =
   Gen.map
-    (fun ( id,
-           speed_limit_pile,
+    (fun ( speed_limit_pile,
            drive_pile,
            distance_cards,
            safety_area,
-           coup_fouree_cards,
-           score ) ->
-      {
-        id;
-        speed_limit_pile;
-        drive_pile;
-        distance_cards;
-        safety_area;
-        coup_fouree_cards;
-        score;
-      })
+           coup_fouree_cards ) ->
+      let new_team_init =
+        List.fold_left (fun t c -> use_card t c) team_init speed_limit_pile
+      in
+      let new_team_init =
+        List.fold_left (fun t c -> use_card t c) new_team_init drive_pile
+      in
+      let new_team_init =
+        List.fold_left (fun t c -> use_card t c) new_team_init distance_cards
+      in
+      let new_team_init =
+        List.fold_left (fun t c -> use_card t c) new_team_init safety_area
+      in
+      let final_new_team_init =
+        List.fold_left
+          (fun t c ->
+            use_coup_fouree t
+              (match c with Safety c -> c | _ -> EmergencyVehicle))
+          new_team_init coup_fouree_cards
+      in
+      get_public_informations_from final_new_team_init)
     Gen.(
-      tup7 int speed_pile_gen drive_pile_gen distance_card_deck_gen
-        safety_area_gen safety_area_gen int)
+      tup5 speed_pile_gen drive_pile_gen distance_card_deck_gen safety_area_gen
+        safety_area_gen)
 
 let public_informations_list_gen = Gen.list public_informations_gen

@@ -13,7 +13,8 @@ let random_bot_choose_card_to_play (p : player) (p_info : public_informations)
     let index_card = get_index_of_card_on_hand card p in
     match card with
     | Remedy _ | Safety _ | Distance _ ->
-        if is_usable_card p_info card then Some (index_card, Some p_info.id)
+        if is_usable_card p_info card then
+          Some (index_card, Some (get_id_from p_info))
         else Some (index_card, None)
     | Hazard _ ->
         let can_be_attacked =
@@ -26,9 +27,9 @@ let random_bot_choose_card_to_play (p : player) (p_info : public_informations)
           Some
             ( index_card,
               Some
-                (List.nth can_be_attacked
-                   (Random.int (List.length can_be_attacked)))
-                  .id )
+                (get_id_from
+                   (List.nth can_be_attacked
+                      (Random.int (List.length can_be_attacked)))) )
 
 let random_bot_want_to_peek_discard_pile _ _ _ _ = Some (random_boolean ())
 let random_bot_want_to_play_coup_fourre _ _ _ _ = Some (random_boolean ())

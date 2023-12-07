@@ -42,33 +42,15 @@ let update_hand_for_player_in_team (b : board) (t : team) (p : player)
 
 exception Draw_pile_too_small
 
-let draw_initial_hand_to_team team draw_pile =
-  let rec aux_draw_to_team team draw_pile acc =
-    if acc >= 6 then (team, draw_pile)
-    else
-      let players = team.players in
-      let new_draw_pile, new_players =
-        List.fold_left
-          (fun (pile, p_list) p ->
-            let c, new_pile = draw_card_from_pile pile in
-            let new_hand = add_card_to_deck (get_hand_from p) c in
-            let new_p = set_hand_from p new_hand in
-            (new_pile, new_p :: p_list))
-          (draw_pile, []) players
-      in
-      let new_team = { team with players = List.rev new_players } in
-      aux_draw_to_team new_team new_draw_pile (acc + 1)
-  in
-  try aux_draw_to_team team draw_pile 0
-  with Empty_pile -> raise Draw_pile_too_small
-
 let draw_initial_hand_to_teams (b : board) =
   let rec aux_draw_initial_hand_to_teams team_list acc_team_list draw_pile =
     match team_list with
     | [] -> (List.rev acc_team_list, draw_pile)
-    | hd :: tl ->
-        let new_team, new_pile = draw_initial_hand_to_team hd draw_pile in
-        aux_draw_initial_hand_to_teams tl (new_team :: acc_team_list) new_pile
+    | hd :: tl -> (
+        try
+          let new_team, new_pile = draw_initial_hand_to_team hd draw_pile in
+          aux_draw_initial_hand_to_teams tl (new_team :: acc_team_list) new_pile
+        with Empty_pile -> raise Draw_pile_too_small)
   in
   let new_team_list, new_draw_pile =
     aux_draw_initial_hand_to_teams b.teams [] b.draw_pile
@@ -124,7 +106,7 @@ exception Player_not_found
 
 let discard_card_from_player (b : board) (t : team) (p : player) (c : card) =
   if not (List.mem t b.teams) then raise Team_not_found
-  else if not (List.mem p t.players) then raise Player_not_found
+  else if not (List.mem p (get_players_from t)) then raise Player_not_found
   else
     let player_hand = get_hand_from p in
     if player_hand = [] then raise Empty_deck
@@ -151,7 +133,7 @@ let place_card (b : board) (t_from : team) (c : card) (t_to : team) =
       | (Safety _ | Remedy _ | Distance _) when not (same_team t_from t_to) ->
           raise Invalid_move
       | Safety _ | Remedy _ | Distance _ ->
-          if not (is_usable_card t_to.shared_public_informations c) then
+          if not (is_usable_card (get_public_informations_from t_to) c) then
             raise Unusable_card
           else
             let new_team = use_card t_to c in
@@ -165,7 +147,7 @@ let place_card (b : board) (t_from : team) (c : card) (t_to : team) =
             { b with teams = new_teams }
       | Hazard _ when same_team t_from t_to -> raise Invalid_move
       | Hazard _ ->
-          if not (is_usable_card t_to.shared_public_informations c) then
+          if not (is_usable_card (get_public_informations_from t_to) c) then
             raise Unusable_card
           else
             let new_hand = remove_card_from_deck player_from_hand c in
@@ -193,7 +175,8 @@ let set_previous_current_team_from (b : board) (t : team) =
   let new_current_team_index =
     find_index
       (fun x ->
-        x.shared_public_informations.id = t.shared_public_informations.id)
+        x |> get_public_informations_from |> get_id_from
+        = (t |> get_public_informations_from |> get_id_from))
       b.teams
   in
   let previous_new_current_team_index =
@@ -217,7 +200,7 @@ let place_coup_fouree (b : board) (t_from : team) (player_from : player)
   let teams_found = List.mem t_from b.teams in
   if not teams_found then raise Team_not_found
   else
-    let player_found = List.mem player_from t_from.players in
+    let player_found = List.mem player_from (get_players_from t_from) in
     if not player_found then raise Player_not_found
     else
       let player_from_hand = get_hand_from player_from in
@@ -225,7 +208,8 @@ let place_coup_fouree (b : board) (t_from : team) (player_from : player)
       else if not (List.mem (Safety safety) player_from_hand) then
         raise Card_not_found
       else if
-        not (is_usable_card t_from.shared_public_informations (Safety safety))
+        not
+          (is_usable_card (get_public_informations_from t_from) (Safety safety))
       then raise Unusable_card
       else
         let new_board =

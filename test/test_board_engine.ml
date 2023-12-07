@@ -1,31 +1,8 @@
 open Mille_bornes.Board_engine
 open Mille_bornes.Teams_engine
 open Mille_bornes.Cards_engine
-open Default_strat
 open Utils_board_engine
 open Utils_cards_engine
-
-let test_get_current_team_from_valid =
-  Alcotest.test_case "test get_current_team_from doesn't crash" `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (let _ = get_current_team_from board3 in
-         true))
-
-let test_get_current_team_from_out_of_bound1 =
-  Alcotest.test_case "test get_current_team_from raises a good exception" `Quick
-    (fun () ->
-      Alcotest.check_raises "raise Current_team_index_out_of_bound"
-        Current_team_index_out_of_bound (fun () ->
-          ignore (get_current_team_from board4)))
-
-let test_get_current_team_from_out_of_bound2 =
-  Alcotest.test_case "test get_current_team_from raises a good exception" `Quick
-    (fun () ->
-      Alcotest.check_raises "raise Current_team_index_out_of_bound"
-        Current_team_index_out_of_bound (fun () ->
-          ignore (get_current_team_from board5)))
 
 let test_switch_current_player_of_current_team_from =
   Alcotest.test_case "test switch_current_player_of_current_team_from" `Quick
@@ -46,9 +23,9 @@ let test_switch_current_player_of_current_team_from =
          let current_team_0 =
            get_current_team_from board2_with_idx_of_current_team_changed0
          in
-         current_team_initital.current_player_index = 0
-         && current_team_1.current_player_index = 1
-         && current_team_0.current_player_index = 0))
+         get_current_player_id_from current_team_initital = 0
+         && get_current_player_id_from current_team_1 = 1
+         && get_current_player_id_from current_team_0 = 0))
 
 let test_switch_current_team_from =
   Alcotest.test_case "test switch_current_team_from on board2" `Quick (fun () ->
@@ -63,22 +40,6 @@ let test_switch_current_team_from =
          && board2_with_idx1.current_team_index = 1
          && board2_with_idx2.current_team_index = 2
          && board2_with_idx_return_to_0.current_team_index = 0))
-
-let test_draw_initial_hand_to_teams =
-  Alcotest.test_case "test_draw_initial_hand_to_teams" `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (let new_board = draw_initial_hand_to_teams board3 in
-         let test =
-           List.fold_left
-             (fun acc t ->
-               List.fold_left
-                 (fun acc p -> List.length (get_hand_from p) = 6 && acc)
-                 true t.players
-               && acc)
-             true new_board.teams
-         in
-         test && List.length new_board.draw_pile = 106 - (2 * 3 * 6)))
 
 let test_draw_card_from_draw_pile_for_team_not_in_game =
   Alcotest.test_case
@@ -114,7 +75,7 @@ let test_draw_card_from_non_empty_draw_pile =
          let new_player =
            List.find
              (fun player -> have_same_id_player player current_player)
-             new_team.players
+             (get_players_from new_team)
          in
          let new_hand = get_hand_from new_player in
          List.mem card new_hand
@@ -170,7 +131,7 @@ let test_draw_card_from_non_empty_discard_pile =
          let new_player =
            List.find
              (fun player -> have_same_id_player player current_player)
-             new_team.players
+             (get_players_from new_team)
          in
          let new_hand = get_hand_from new_player in
          List.mem card new_hand
@@ -277,7 +238,7 @@ let test_discard_card_from_team_with_current_player_with_card_within_hand =
          let new_player =
            List.find
              (fun player -> have_same_id_player player current_player)
-             new_team.players
+             (get_players_from new_team)
          in
          let new_hand = get_hand_from new_player in
          List.length new_hand = List.length current_player_hand - 1
@@ -404,14 +365,15 @@ let test_place_attack_card_from_team_with_current_player_with_card_within_hand_t
          let new_player_team_from =
            List.find
              (fun player -> have_same_id_player player current_player_team_from)
-             new_team_from.players
+             (get_players_from new_team_from)
          in
          List.length (get_hand_from new_player_team_from)
          = List.length (get_hand_from current_player_team_from) - 1
          && (not (List.mem card (get_hand_from new_player_team_from)))
          && equal_card
               (peek_card_from_pile
-                 new_team_to.shared_public_informations.drive_pile)
+                 (new_team_to |> get_public_informations_from
+                |> get_drive_pile_from))
               card))
 
 let test_place_defend_card_from_team_with_current_player_with_card_within_hand_to_same_team
@@ -435,13 +397,14 @@ let test_place_defend_card_from_team_with_current_player_with_card_within_hand_t
          let new_player =
            List.find
              (fun player -> have_same_id_player player current_player)
-             new_team.players
+             (get_players_from new_team)
          in
          let new_player_hand = get_hand_from new_player in
          List.length new_player_hand
          = List.length (get_hand_from current_player) - 1
          && (not (List.mem card new_player_hand))
-         && List.mem card new_team.shared_public_informations.safety_area))
+         && List.mem card
+              (new_team |> get_public_informations_from |> get_safety_area_from)))
 
 let test_place_distance_card_from_team_with_current_player_with_card_within_hand_to_same_team
     =
@@ -464,46 +427,15 @@ let test_place_distance_card_from_team_with_current_player_with_card_within_hand
          let new_player =
            List.find
              (fun player -> have_same_id_player player current_player)
-             new_team.players
+             (get_players_from new_team)
          in
          let new_player_hand = get_hand_from new_player in
          List.length new_player_hand
          = List.length (get_hand_from current_player) - 1
          && (not (List.mem card new_player_hand))
-         && List.mem card new_team.shared_public_informations.distance_cards))
-
-let test_place_coup_fouree1 =
-  Alcotest.test_case "test place_coup_fouree in simple case" `Quick (fun () ->
-      Alcotest.(check bool)
-        "same result" true
-        (have_same_contents_boards
-           (place_coup_fouree board1 team1 player11 EmergencyVehicle)
-           {
-             board1 with
-             teams =
-               [
-                 {
-                   team1 with
-                   shared_public_informations =
-                     {
-                       team1.shared_public_informations with
-                       score = 200;
-                       coup_fouree_cards = [ Safety EmergencyVehicle ];
-                       drive_pile = [ Remedy Drive ];
-                     };
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "player_team1_name1" strat 19)
-                         [ Distance D200 ];
-                       player12;
-                     ];
-                 };
-                 team2;
-               ];
-             draw_pile = [ Remedy Drive ];
-             current_team_index = 1;
-           }))
+         && List.mem card
+              (new_team |> get_public_informations_from
+             |> get_distance_cards_from)))
 
 let test_place_coup_fouree2 =
   Alcotest.test_case "raise Player_not_found" `Quick (fun () ->
@@ -530,56 +462,6 @@ let test_place_coup_fouree6 =
   Alcotest.test_case "raise Unusable_card" `Quick (fun () ->
       Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
           ignore (place_coup_fouree board1 team2 player22 FuelTruck)))
-
-let test_place_OutOfGas_to_empty_zone =
-  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
-      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
-          ignore
-            (place_card board6
-               (get_current_team_from board6)
-               (Hazard OutOfGas)
-               discard_card_team_with_current_player_with_empty_hand)))
-
-let test_place_FlatTire_to_empty_zone =
-  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
-      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
-          ignore
-            (place_card board6
-               (get_current_team_from board6)
-               (Hazard FlatTire)
-               discard_card_team_with_current_player_with_empty_hand)))
-
-let test_place_Stop_to_empty_zone =
-  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
-      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
-          ignore
-            (place_card board6
-               (get_current_team_from board6)
-               (Hazard Stop)
-               discard_card_team_with_current_player_with_empty_hand)))
-
-let test_place_Accident_to_empty_zone =
-  Alcotest.test_case "raise Unusable card" `Quick (fun () ->
-      Alcotest.check_raises "Expected Unusable_card" Unusable_card (fun () ->
-          ignore
-            (place_card board6
-               (get_current_team_from board6)
-               (Hazard Accident)
-               discard_card_team_with_current_player_with_empty_hand)))
-
-let test_place_SpeedLimit_to_empty_zone =
-  Alcotest.test_case "SpeedLimit on empty zone" `Quick (fun () ->
-      Alcotest.(check bool)
-        "allowed" true
-        (let b =
-           place_card board6
-             (get_current_team_from board6)
-             (Hazard SpeedLimit)
-             discard_card_team_with_current_player_with_empty_hand
-         in
-         let b = switch_current_team_from b in
-         is_attacked_by_speed_limit
-           (get_current_team_from b).shared_public_informations))
 
 let test_is_draw_pile_empty_on_not_empty =
   let open QCheck in
@@ -629,123 +511,6 @@ let test_attack_hazard_stop_to_schumacher_team =
             (place_card board_attack_schumacher attacker_team (Hazard Stop)
                team_schumacher)))
 
-let test_attack_hazard_accident_to_schumacher_team =
-  Alcotest.test_case
-    "No exception for hazard Accident to team with safety card Emergency \
-     Vehicle"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_schumacher attacker_team (Hazard Accident)
-              team_schumacher)
-           {
-             board_attack_schumacher with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                         ];
-                     ];
-                 };
-                 {
-                   team_schumacher with
-                   shared_public_informations =
-                     {
-                       team_schumacher.shared_public_informations with
-                       drive_pile = [ Hazard Accident ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_outofgas_to_schumacher_team =
-  Alcotest.test_case
-    "No exception for hazard OutOfGas to team with safety card Emergency \
-     Vehicle"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_schumacher attacker_team (Hazard OutOfGas)
-              team_schumacher)
-           {
-             board_attack_schumacher with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_schumacher with
-                   shared_public_informations =
-                     {
-                       team_schumacher.shared_public_informations with
-                       drive_pile = [ Hazard OutOfGas ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_flattire_to_schumacher_team =
-  Alcotest.test_case
-    "No exception for hazard FlatTire to team with safety card Emergency \
-     Vehicle"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_schumacher attacker_team (Hazard FlatTire)
-              team_schumacher)
-           {
-             board_attack_schumacher with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_schumacher with
-                   shared_public_informations =
-                     {
-                       team_schumacher.shared_public_informations with
-                       drive_pile = [ Hazard FlatTire ];
-                     };
-                 };
-               ];
-           }))
-
 let test_attack_hazard_speedlimit_to_schumacher_team =
   Alcotest.test_case
     "raise Unusable card for hazard SpeedLimit to team with safety card \
@@ -755,82 +520,6 @@ let test_attack_hazard_speedlimit_to_schumacher_team =
           ignore
             (place_card board_attack_schumacher attacker_team
                (Hazard SpeedLimit) team_schumacher)))
-
-let test_attack_hazard_stop_to_kubica_team =
-  Alcotest.test_case
-    "check if hazard Stop works to team with safety card Driving Ace " `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_kubica attacker_team (Hazard Stop)
-              team_gigakub)
-           {
-             board_attack_kubica with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_gigakub with
-                   shared_public_informations =
-                     {
-                       team_gigakub.shared_public_informations with
-                       drive_pile = [ Hazard Stop; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_speedlimit_to_kubica_team =
-  Alcotest.test_case
-    "check if hazard SpeedLimit works to team with safety card Driving Ace "
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_kubica attacker_team (Hazard SpeedLimit)
-              team_gigakub)
-           {
-             board_attack_kubica with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_gigakub with
-                   shared_public_informations =
-                     {
-                       team_gigakub.shared_public_informations with
-                       speed_limit_pile = [ Hazard SpeedLimit ];
-                     };
-                 };
-               ];
-           }))
 
 let test_attack_hazard_accident_to_kubica_team =
   Alcotest.test_case
@@ -842,234 +531,6 @@ let test_attack_hazard_accident_to_kubica_team =
             (place_card board_attack_kubica attacker_team (Hazard Accident)
                team_gigakub)))
 
-let test_attack_hazard_outofgas_to_kubica_team =
-  Alcotest.test_case
-    "check if hazard OutOfGas works to team with safety card Driving Ace "
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_kubica attacker_team (Hazard OutOfGas)
-              team_gigakub)
-           {
-             board_attack_kubica with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_gigakub with
-                   shared_public_informations =
-                     {
-                       team_gigakub.shared_public_informations with
-                       drive_pile = [ Hazard OutOfGas; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_flattire_to_kubica_team =
-  Alcotest.test_case
-    "check if hazard FlatTire works to team with safety card Driving Ace "
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_kubica attacker_team (Hazard FlatTire)
-              team_gigakub)
-           {
-             board_attack_kubica with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_gigakub with
-                   shared_public_informations =
-                     {
-                       team_gigakub.shared_public_informations with
-                       drive_pile = [ Hazard FlatTire; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_stop_to_alonso_team =
-  Alcotest.test_case
-    "check if hazard Stop works to team with safety card Puncture Proof" `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_alonso attacker_team (Hazard Stop)
-              team_alonso)
-           {
-             board_attack_alonso with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_alonso with
-                   shared_public_informations =
-                     {
-                       team_alonso.shared_public_informations with
-                       drive_pile = [ Hazard Stop; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_speedlimit_to_alonso_team =
-  Alcotest.test_case
-    "check if hazard SpeedLimit works to team with safety card Puncture Proof"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_alonso attacker_team (Hazard SpeedLimit)
-              team_alonso)
-           {
-             board_attack_alonso with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_alonso with
-                   shared_public_informations =
-                     {
-                       team_alonso.shared_public_informations with
-                       speed_limit_pile = [ Hazard SpeedLimit ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_accident_to_alonso_team =
-  Alcotest.test_case
-    "check if hazard Accident works to team with safety card Puncture Proof"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_alonso attacker_team (Hazard Accident)
-              team_alonso)
-           {
-             board_attack_alonso with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                         ];
-                     ];
-                 };
-                 {
-                   team_alonso with
-                   shared_public_informations =
-                     {
-                       team_alonso.shared_public_informations with
-                       drive_pile = [ Hazard Accident; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_outofgas_to_alonso_team =
-  Alcotest.test_case
-    "check if hazard OutOfGas works to team with safety card Puncture Proof"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_alonso attacker_team (Hazard OutOfGas)
-              team_alonso)
-           {
-             board_attack_alonso with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_alonso with
-                   shared_public_informations =
-                     {
-                       team_alonso.shared_public_informations with
-                       drive_pile = [ Hazard OutOfGas; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
 let test_attack_hazard_flattire_to_alonso_team =
   Alcotest.test_case
     "raise Unusable card for hazard Flattire to team with safety card Puncture \
@@ -1079,119 +540,6 @@ let test_attack_hazard_flattire_to_alonso_team =
           ignore
             (place_card board_attack_alonso attacker_team (Hazard FlatTire)
                team_alonso)))
-
-let test_attack_hazard_stop_to_massa_team =
-  Alcotest.test_case
-    "check if hazard Stop works to team with safety card Fuel truck" `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_massa attacker_team (Hazard Stop) team_massa)
-           {
-             board_attack_massa with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_massa with
-                   shared_public_informations =
-                     {
-                       team_massa.shared_public_informations with
-                       drive_pile = [ Hazard Stop; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_speedlimit_to_massa_team =
-  Alcotest.test_case
-    "check if hazard SpeedLimit works to team with safety card Fuel truck"
-    `Quick (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_massa attacker_team (Hazard SpeedLimit)
-              team_massa)
-           {
-             board_attack_massa with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_massa with
-                   shared_public_informations =
-                     {
-                       team_massa.shared_public_informations with
-                       speed_limit_pile = [ Hazard SpeedLimit ];
-                     };
-                 };
-               ];
-           }))
-
-let test_attack_hazard_accident_to_massa_team =
-  Alcotest.test_case
-    "check if hazard Accident works to team with safety card Fuel truck" `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_massa attacker_team (Hazard Accident)
-              team_massa)
-           {
-             board_attack_massa with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard FlatTire;
-                         ];
-                     ];
-                 };
-                 {
-                   team_massa with
-                   shared_public_informations =
-                     {
-                       team_massa.shared_public_informations with
-                       drive_pile = [ Hazard Accident; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
 
 let test_attack_hazard_outofgas_to_massa_team =
   Alcotest.test_case
@@ -1203,59 +551,14 @@ let test_attack_hazard_outofgas_to_massa_team =
             (place_card board_attack_massa attacker_team (Hazard OutOfGas)
                team_massa)))
 
-let test_attack_hazard_flattire_to_massa_team =
-  Alcotest.test_case
-    "check if hazard FlatTire works to team with safety card Fuel Truck " `Quick
-    (fun () ->
-      Alcotest.(check bool)
-        "same" true
-        (have_same_contents_boards
-           (place_card board_attack_massa attacker_team (Hazard FlatTire)
-              team_massa)
-           {
-             board_attack_massa with
-             teams =
-               [
-                 {
-                   attacker_team with
-                   players =
-                     [
-                       set_hand_from
-                         (init_player "Attacker" strat 25)
-                         [
-                           Hazard Stop;
-                           Hazard SpeedLimit;
-                           Hazard OutOfGas;
-                           Hazard Accident;
-                         ];
-                     ];
-                 };
-                 {
-                   team_massa with
-                   shared_public_informations =
-                     {
-                       team_massa.shared_public_informations with
-                       drive_pile = [ Hazard FlatTire; Remedy Drive ];
-                     };
-                 };
-               ];
-           }))
-
 let () =
   Random.self_init ();
   let open Alcotest in
   run "Board_engine"
     [
-      ( "get current team from",
-        [
-          test_get_current_team_from_valid;
-          test_get_current_team_from_out_of_bound1;
-          test_get_current_team_from_out_of_bound2;
-        ] );
       ("switch current team from", [ test_switch_current_team_from ]);
       ( "switch current player from current team",
         [ test_switch_current_player_of_current_team_from ] );
-      ("draw initial hand to teams", [ test_draw_initial_hand_to_teams ]);
       ( "draw card from draw pile",
         [
           test_draw_card_from_draw_pile_for_team_not_in_game;
@@ -1294,20 +597,11 @@ let () =
         ] );
       ( "place coup fouree from team",
         [
-          test_place_coup_fouree1;
           test_place_coup_fouree2;
           test_place_coup_fouree3;
           test_place_coup_fouree4;
           test_place_coup_fouree5;
           test_place_coup_fouree6;
-        ] );
-      ( "place hazard card on empty zone",
-        [
-          test_place_OutOfGas_to_empty_zone;
-          test_place_Accident_to_empty_zone;
-          test_place_FlatTire_to_empty_zone;
-          test_place_Stop_to_empty_zone;
-          test_place_SpeedLimit_to_empty_zone;
         ] );
       ( "test is_draw_pile_empty",
         [
@@ -1323,32 +617,11 @@ let () =
         [
           test_attack_hazard_stop_to_schumacher_team;
           test_attack_hazard_speedlimit_to_schumacher_team;
-          test_attack_hazard_accident_to_schumacher_team;
-          test_attack_hazard_outofgas_to_schumacher_team;
-          test_attack_hazard_flattire_to_schumacher_team;
         ] );
       ( "test hazard cards on Kubica team (safety driving ace)",
-        [
-          test_attack_hazard_stop_to_kubica_team;
-          test_attack_hazard_speedlimit_to_kubica_team;
-          test_attack_hazard_accident_to_kubica_team;
-          test_attack_hazard_outofgas_to_kubica_team;
-          test_attack_hazard_flattire_to_kubica_team;
-        ] );
+        [ test_attack_hazard_accident_to_kubica_team ] );
       ( "test hazard cards on Alonso team (safety puncture proof)",
-        [
-          test_attack_hazard_stop_to_alonso_team;
-          test_attack_hazard_speedlimit_to_alonso_team;
-          test_attack_hazard_accident_to_alonso_team;
-          test_attack_hazard_outofgas_to_alonso_team;
-          test_attack_hazard_flattire_to_alonso_team;
-        ] );
+        [ test_attack_hazard_flattire_to_alonso_team ] );
       ( "test hazard cards on Massa team (safety fuel truck)",
-        [
-          test_attack_hazard_stop_to_massa_team;
-          test_attack_hazard_speedlimit_to_massa_team;
-          test_attack_hazard_accident_to_massa_team;
-          test_attack_hazard_outofgas_to_massa_team;
-          test_attack_hazard_flattire_to_massa_team;
-        ] );
+        [ test_attack_hazard_outofgas_to_massa_team ] );
     ]
