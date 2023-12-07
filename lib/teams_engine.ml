@@ -41,6 +41,68 @@ type team = {
   current_player_index : int;
 }
 
+exception Current_player_index_out_of_bound
+
+let get_current_player_from (t : team) =
+  if
+    t.current_player_index < 0
+    || t.current_player_index >= List.length t.players
+  then raise Current_player_index_out_of_bound
+  else List.nth t.players t.current_player_index
+
+let set_hand_from (p : player) (d : deck_of_card) =
+  match p with p_struct, p_strat -> ({ p_struct with hand = d }, p_strat)
+
+let get_hand_from (p : player) = match p with p_struct, _ -> p_struct.hand
+let get_name_from (p : player) = match p with p_struct, _ -> p_struct.name
+let get_strat_from (p : player) = match p with _, p_strat -> p_strat
+let get_player_struct_from (p : player) = match p with p_struct, _ -> p_struct
+let get_names_from (t : team) = List.map (fun p -> get_name_from p) t.players
+let get_players_from (t : team) = t.players
+let get_public_informations_from (t : team) = t.shared_public_informations
+let get_current_player_id_from (t : team) = t.current_player_index
+let get_id_from (pi : public_informations) = pi.id
+let get_score_from (pi : public_informations) = pi.score
+let get_speed_limit_pile_from (pi : public_informations) = pi.speed_limit_pile
+let get_drive_pile_from (pi : public_informations) = pi.drive_pile
+let get_distance_cards_from (pi : public_informations) = pi.distance_cards
+let get_safety_area_from (pi : public_informations) = pi.safety_area
+let get_coup_fouree_cards_from (pi : public_informations) = pi.coup_fouree_cards
+
+let have_same_contents_team t1 t2 =
+  List.for_all2
+    (fun p1 p2 ->
+      get_player_struct_from p1 = get_player_struct_from p2
+      && (get_strat_from p1).name = (get_strat_from p2).name)
+    t1.players t2.players
+
+let set_next_player_from (t : team) =
+  if List.length t.players = 2 then
+    {
+      players = t.players;
+      shared_public_informations = t.shared_public_informations;
+      current_player_index = 1 - t.current_player_index;
+    }
+  else t
+
+let have_same_id_player (p1 : player) (p2 : player) =
+  match (p1, p2) with
+  | (p1_struct, _), (p2_struct, _) -> p1_struct.id = p2_struct.id
+
+let same_team (t1 : team) (t2 : team) =
+  List.for_all2 have_same_id_player t1.players t2.players
+  && t1.shared_public_informations.id = t2.shared_public_informations.id
+
+let replace_player_in (t : team) (p : player) =
+  {
+    t with
+    players =
+      List.map (fun x -> if have_same_id_player x p then p else x) t.players;
+  }
+
+let replace_team_in (teams : team list) (t : team) =
+  List.map (fun x -> if same_team x t then t else x) teams
+
 let init_player_struct (entered_name : string) (id : int) =
   { id; name = entered_name; hand = [] }
 
@@ -77,62 +139,52 @@ let init_team_with_two_players (name1 : string) (strat1 : strategy)
       current_player_index = 0;
     }
 
-exception Current_player_index_out_of_bound
-
-let get_current_player_from (t : team) =
-  if
-    t.current_player_index < 0
-    || t.current_player_index >= List.length t.players
-  then raise Current_player_index_out_of_bound
-  else List.nth t.players t.current_player_index
-
-let set_hand_from (p : player) (d : deck_of_card) =
-  match p with p_struct, p_strat -> ({ p_struct with hand = d }, p_strat)
-
-let get_hand_from (p : player) = match p with p_struct, _ -> p_struct.hand
-let get_name_from (p : player) = match p with p_struct, _ -> p_struct.name
-let get_strat_from (p : player) = match p with _, p_strat -> p_strat
-let get_player_struct_from (p : player) = match p with p_struct, _ -> p_struct
-let get_names_from (t : team) = List.map (fun p -> get_name_from p) t.players
-
-let have_same_contents_team t1 t2 =
-  List.for_all2
-    (fun p1 p2 ->
-      get_player_struct_from p1 = get_player_struct_from p2
-      && (get_strat_from p1).name = (get_strat_from p2).name)
-    t1.players t2.players
-
-let set_next_player_from (t : team) =
-  if List.length t.players = 2 then
-    {
-      players = t.players;
-      shared_public_informations = t.shared_public_informations;
-      current_player_index = 1 - t.current_player_index;
-    }
-  else t
-
-let have_same_id_player (p1 : player) (p2 : player) =
-  match (p1, p2) with
-  | (p1_struct, _), (p2_struct, _) -> p1_struct.id = p2_struct.id
-
 let does_player_have_this_name_in_team_list name team_list =
   List.exists
     (fun t -> List.exists (fun p -> get_name_from p = name) t.players)
     team_list
 
-let same_team (t1 : team) (t2 : team) =
-  List.for_all2 have_same_id_player t1.players t2.players
-  && t1.shared_public_informations.id = t2.shared_public_informations.id
+exception Not_valid_list_init_teams
+exception Not_valid_names_init_teams
 
-let replace_player_in (t : team) (p : player) =
-  {
-    t with
-    players =
-      List.map (fun x -> if have_same_id_player x p then p else x) t.players;
-  }
+let rec aux_init_teams_one_player names_and_strats teams id =
+  match names_and_strats with
+  | [] -> List.rev teams
+  | (name, strat) :: tl_names_and_strats ->
+      if does_player_have_this_name_in_team_list name teams then
+        raise Not_valid_names_init_teams
+      else
+        aux_init_teams_one_player tl_names_and_strats
+          (init_team_with_one_player name strat id :: teams)
+          (id + 1)
 
-let replace_team_in (teams : team list) (t : team) =
-  List.map (fun x -> if same_team x t then t else x) teams
+let rec aux_init_teams_two_players names_and_strats teams id =
+  match names_and_strats with
+  | [] -> List.rev teams
+  | (name1, strat1) :: (name2, strat2) :: tl_names_and_strats ->
+      if
+        name1 = name2
+        || does_player_have_this_name_in_team_list name1 teams
+        || does_player_have_this_name_in_team_list name2 teams
+      then raise Not_valid_names_init_teams
+      else
+        aux_init_teams_two_players tl_names_and_strats
+          (init_team_with_two_players name1 strat1 name2 strat2 id :: teams)
+          (id + 1)
+  | _ -> raise Not_valid_list_init_teams
+
+let init_teams names_and_strats_list team_of_two =
+  let len_names_and_strats = List.length names_and_strats_list in
+  if
+    (not team_of_two) && (len_names_and_strats <= 1 || len_names_and_strats >= 5)
+  then raise Not_valid_list_init_teams
+  else if
+    team_of_two
+    && (len_names_and_strats <= 3 || len_names_and_strats >= 9
+       || len_names_and_strats mod 2 = 1)
+  then raise Not_valid_list_init_teams
+  else if team_of_two then aux_init_teams_two_players names_and_strats_list [] 0
+  else aux_init_teams_one_player names_and_strats_list [] 0
 
 let is_card_in_player_hand (p : player) (c : card) =
   let hand = get_hand_from p in
@@ -419,3 +471,32 @@ let nth_hand_player (p : player) (i : int) =
       if i < 0 || i > List.length p_struct.hand then
         raise Index_of_hand_out_of_bound
       else List.nth p_struct.hand i
+
+exception Team_already_have_hand
+
+let draw_initial_hand_to_team team pile =
+  let players = get_players_from team in
+  if
+    List.fold_left
+      (fun acc p ->
+        acc || not (List.length (get_player_struct_from p).hand = 0))
+      false players
+  then raise Team_already_have_hand
+  else
+    let rec aux_draw_to_team team pile acc =
+      if acc >= 6 then (team, pile)
+      else
+        let players = get_players_from team in
+        let new_pile, new_players =
+          List.fold_left
+            (fun (pile, p_list) p ->
+              let c, new_pile = draw_card_from_pile pile in
+              let new_hand = add_card_to_deck (get_hand_from p) c in
+              let new_p = set_hand_from p new_hand in
+              (new_pile, new_p :: p_list))
+            (pile, []) players
+        in
+        let new_team = { team with players = List.rev new_players } in
+        aux_draw_to_team new_team new_pile (acc + 1)
+    in
+    aux_draw_to_team team pile 0

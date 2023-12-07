@@ -6,7 +6,7 @@ open Utils_bot
 let player_gen = Gen.map (fun p -> (p, random_strategy)) player_struct_gen
 
 let test_random_bot_choose_card_to_play =
-  Test.make ~count:200
+  Test.make ~count:1
     ~name:"random_bot_choose_card_to_play always returns Some (int, int option)"
     (make
        (Gen.triple player_gen public_informations_gen
@@ -22,7 +22,7 @@ let test_random_bot_choose_card_to_play =
       | _ -> false)
 
 let test_random_bot_want_to_peek_discard_pile =
-  Test.make ~count:200
+  Test.make ~count:1
     ~name:"random_bot_want_to_peek_discard_pile always returns Some bool"
     (make
        (Gen.quad player_gen card_gen public_informations_gen

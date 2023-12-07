@@ -29,8 +29,8 @@ let pp_endplay fmt result =
       Format.fprintf fmt "Give up during initialization of the game@ "
   | Error message -> Format.fprintf fmt "%s" message
 
-let has_win t = t.shared_public_informations.score >= 1000
-let get_strategy_list () = [ random_strategy; sad_strategy ]
+let has_win t = t |> get_public_informations_from |> get_score_from >= 1000
+let get_strategy_list () = [ random_strategy ]
 
 let pp_strategy_list fmt strategy_list =
   List.iteri (fun i s -> Format.fprintf fmt "%d.%s@ " i s.name) strategy_list
@@ -144,7 +144,8 @@ let player_teletype_choose_card_to_play p pi pi_list =
   Format.printf
     "%s of team %d, your score is %d, your hand and your driving zone are :@;\
      %a@ @[<v>%a@]@;"
-    (get_name_from p) pi.id pi.score (pp_deck_of_card "Hand") p_hand
+    (get_name_from p) (get_id_from pi) (get_score_from pi)
+    (pp_deck_of_card "Hand") p_hand
     (pp_public_informations false)
     pi;
   match
@@ -168,14 +169,16 @@ let player_teletype_choose_card_to_play p pi pi_list =
                   (List.length pi_list - 1)
               with
               | None -> None
-              | Some id_pi -> Some (id_card, Some (List.nth pi_list id_pi).id))
-          | _ -> Some (id_card, Some pi.id)))
+              | Some id_pi ->
+                  Some (id_card, Some (get_id_from (List.nth pi_list id_pi))))
+          | _ -> Some (id_card, Some (get_id_from pi))))
 
 let player_teletype_want_to_peek_discard_pile p c pi _ =
   Format.printf
     "%s of team %d, your score is %d, your hand and your driving zone are :@;\
      %a@ @[<v>%a@]@;"
-    (get_name_from p) pi.id pi.score (pp_deck_of_card "Hand") (get_hand_from p)
+    (get_name_from p) (get_id_from pi) (get_score_from pi)
+    (pp_deck_of_card "Hand") (get_hand_from p)
     (pp_public_informations false)
     pi;
   request_yes_or_no
@@ -190,8 +193,8 @@ let player_teletype_want_to_play_coup_fourre p h pi _ =
      your hand and your driving zone are :@;\
      %a\n\
     \      @ @[<v>%a@]@;"
-    (get_name_from p) pi.id pp_card (Hazard h) pi.score (pp_deck_of_card "Hand")
-    (get_hand_from p)
+    (get_name_from p) (get_id_from pi) pp_card (Hazard h) (get_score_from pi)
+    (pp_deck_of_card "Hand") (get_hand_from p)
     (pp_public_informations false)
     pi;
   request_yes_or_no
@@ -215,7 +218,9 @@ let rec ask_player_info id num already_created_team name_first_player =
   | None -> None
   | Some name -> (
       if
-        does_player_have_this_name_in_team_list name already_created_team
+        List.exists
+          (fun (name_to_verify, _) -> name = name_to_verify)
+          already_created_team
         ||
         match name_first_player with
         | None -> false
@@ -236,86 +241,102 @@ let rec ask_player_info id num already_created_team name_first_player =
             | None -> None
             | Some strategy -> Some (name, Some strategy)))
 
-let init_team id is_team_of_two already_created_team =
+let ask_team_info id is_team_of_two already_created_team =
   match ask_player_info id 1 already_created_team None with
   | None -> None
   | Some (name1, None) -> (
-      if not is_team_of_two then
-        Some (init_team_with_one_player name1 human_strat id)
+      if not is_team_of_two then Some (Some (name1, human_strat), None)
       else
         match ask_player_info id 2 already_created_team (Some name1) with
         | None -> None
         | Some (name2, None) ->
-            Some
-              (init_team_with_two_players name1 human_strat name2 human_strat id)
+            Some (Some (name1, human_strat), Some (name2, human_strat))
         | Some (name2, Some strategy) ->
-            Some
-              (init_team_with_two_players name1 human_strat name2 strategy id))
+            Some (Some (name1, human_strat), Some (name2, strategy)))
   | Some (name1, Some strategy1) -> (
-      if not is_team_of_two then
-        Some (init_team_with_one_player name1 strategy1 id)
+      if not is_team_of_two then Some (Some (name1, strategy1), None)
       else
         match ask_player_info id 2 already_created_team (Some name1) with
         | None -> None
         | Some (name2, None) ->
-            Some
-              (init_team_with_two_players name1 strategy1 name2 human_strat id)
+            Some (Some (name1, strategy1), Some (name2, human_strat))
         | Some (name2, Some strategy2) ->
-            Some (init_team_with_two_players name1 strategy1 name2 strategy2 id)
-      )
+            Some (Some (name1, strategy1), Some (name2, strategy2)))
 
-let init_teams () =
+let ask_teams_info () =
   match request_number_of_player () with
   | None -> None
   | Some (nb_player, is_team_of_two) -> (
-      let rec aux_init_teams acc_team acc_id =
-        if acc_id >= nb_player then Some (List.rev acc_team)
+      let rec aux_ask_teams_info acc_t_info acc_id =
+        if acc_id >= nb_player then Some (List.rev acc_t_info)
         else
-          let new_team =
+          let team_info =
             if is_team_of_two then
-              init_team (acc_id / 2) is_team_of_two acc_team
-            else init_team acc_id is_team_of_two acc_team
+              ask_team_info (acc_id / 2) is_team_of_two acc_t_info
+            else ask_team_info acc_id is_team_of_two acc_t_info
           in
-          match new_team with
+          match team_info with
           | None -> None
-          | Some t ->
-              if is_team_of_two then aux_init_teams (t :: acc_team) (acc_id + 2)
-              else aux_init_teams (t :: acc_team) (acc_id + 1)
+          | Some (None, _) -> None
+          | Some (Some t_info1, None) ->
+              if is_team_of_two then None
+              else aux_ask_teams_info (t_info1 :: acc_t_info) (acc_id + 1)
+          | Some (Some t_info1, Some t_info2) ->
+              if not is_team_of_two then None
+              else
+                aux_ask_teams_info
+                  (t_info2 :: t_info1 :: acc_t_info)
+                  (acc_id + 2)
       in
-      match aux_init_teams [] 0 with
+      match aux_ask_teams_info [] 0 with
       | None -> None
-      | Some team_list ->
-          Format.printf "Team created : %a@;" pp_names_of_team_list team_list;
-          Some team_list)
+      | Some team_infos_list ->
+          Format.printf "Teams created : %a@;"
+            (fun fmt infos ->
+              List.iteri
+                (fun i (name, _) ->
+                  if is_team_of_two && i mod 2 = 1 then
+                    Format.fprintf fmt "%s;@ " name
+                  else if is_team_of_two then
+                    Format.fprintf fmt "Team %d : %s;" (i / 2) name
+                  else Format.fprintf fmt "Team %d : %s;@ " i name)
+                infos)
+            team_infos_list;
+          Some (team_infos_list, is_team_of_two))
 
-let init_board () =
-  match init_teams () with
+let init_board teams_of_board =
+  match
+    request_id
+      "Which of the id teams has the youngest player (or which team should \
+       start)?"
+      (List.length teams_of_board - 1)
+  with
   | None -> None
-  | Some teams_of_board -> (
-      match
-        request_id
-          "Which of the id teams has the youngest player (or which team should \
-           start)?"
-          (List.length teams_of_board - 1)
-      with
-      | None -> None
-      | Some id ->
-          let board =
-            {
-              draw_pile = generate_initial_pile () |> shuffle_pile;
-              discard_pile = [];
-              teams = teams_of_board;
-              current_team_index = id;
-            }
-          in
-          Some (draw_initial_hand_to_teams board))
+  | Some id ->
+      let board =
+        {
+          draw_pile = generate_initial_pile () |> shuffle_pile;
+          discard_pile = [];
+          teams = teams_of_board;
+          current_team_index = id;
+        }
+      in
+      Some (draw_initial_hand_to_teams board)
+
+let init_game () =
+  let teams_info = ask_teams_info () in
+  match teams_info with
+  | None -> None
+  | Some (infos, is_team_of_two) ->
+      let teams = init_teams infos is_team_of_two in
+      init_board teams
 
 let get_list_of_other_public_information_than (p_info : public_informations)
     (b : board) =
   List.rev
     (List.fold_left
        (fun acc t ->
-         let t_p_info = t.shared_public_informations in
+         let t_p_info = get_public_informations_from t in
          if p_info = t_p_info then acc else t_p_info :: acc)
        [] b.teams)
 
@@ -326,9 +347,10 @@ exception Invalid_id_public_information
 let play_move (current_player : player) (current_team : team) (b : board) =
   try
     (get_strat_from current_player).choose_card_to_play current_player
-      current_team.shared_public_informations
+      (get_public_informations_from current_team)
       (get_list_of_other_public_information_than
-         current_team.shared_public_informations b)
+         (get_public_informations_from current_team)
+         b)
   with _ -> raise Invalid_play
 
 exception Discard_card_error
@@ -336,7 +358,8 @@ exception Place_card_error
 (*The game is broken*)
 
 let try_get_team_corresponding_public_information (id : int) (l : team list) =
-  try List.find (fun t -> t.shared_public_informations.id = id) l
+  try
+    List.find (fun t -> t |> get_public_informations_from |> get_id_from = id) l
   with Not_found ->
     let () = Format.printf "Target public information is not valid.@ " in
     raise Invalid_id_public_information
@@ -366,7 +389,7 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
       Some
         (List.find
            (fun p -> has_safety_to_counter_hazard_on_his_hand p hazard)
-           target_team.players)
+           (get_players_from target_team))
     with Not_found -> None
   in
   match player_have_counter with
@@ -376,9 +399,10 @@ let try_use_coup_fouree (previous_board_befor_place_hazard_card : board)
       match
         try
           (get_strat_from player_have_counter).want_to_play_coup_fourre
-            player_have_counter hazard target_team.shared_public_informations
+            player_have_counter hazard
+            (get_public_informations_from target_team)
             (get_list_of_other_public_information_than
-               target_team.shared_public_informations
+               (get_public_informations_from target_team)
                previous_board_befor_place_hazard_card)
         with _ -> raise Invalid_play
       with
@@ -453,8 +477,8 @@ let try_place_card (b : board) (current_team : team) (current_player : player)
     | Distance _ ->
         let new_current_team = get_current_team_from new_board in
         Format.printf "and the team %d is now at %d distance.@ "
-          new_current_team.shared_public_informations.id
-          new_current_team.shared_public_informations.score
+          (new_current_team |> get_public_informations_from |> get_id_from)
+          (new_current_team |> get_public_informations_from |> get_id_from)
     | _ -> ()
   in
   match card_used with
@@ -537,17 +561,19 @@ let get_result_to_peek_inside_discard_pile board =
     let current_player = get_current_player_from current_team in
     let other_public_informations =
       get_list_of_other_public_information_than
-        current_team.shared_public_informations board
+        (get_public_informations_from current_team)
+        board
     in
 
     try
       (get_strat_from current_player).want_to_peek_discard_pile current_player
-        last_discard_card current_team.shared_public_informations
+        last_discard_card
+        (get_public_informations_from current_team)
         other_public_informations
     with _ -> raise Invalid_play
 
 let arena () =
-  match init_board () with
+  match init_game () with
   | None -> GiveUpInit
   | Some board -> (
       let rec round board =

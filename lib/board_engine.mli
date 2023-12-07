@@ -38,7 +38,8 @@ exception Draw_pile_too_small
 (** Raised when a draw pile is too small to distribute a deck to all [player] on a [board]. *)
 
 val draw_initial_hand_to_teams : board -> board
-(** [draw_initial_hand_to_teams b] gives each [player] in every [team] on the [board] six [card] in their hand draw from the [draw_pile] of [b]. *)
+(** [draw_initial_hand_to_teams b] gives each [player] in every [team] on the [board] six [card] in their hand draw from the [draw_pile] of [b].
+    [raise Draw_pile_too_small] if the draw pile of board is too small. *)
 
 val draw_card : board -> team -> bool -> board
 (** [draw_card b t from_discard_pile] draws a [card] from a pile depending on [from_discard_pile] and adds it to the hand of

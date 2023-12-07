@@ -55,12 +55,9 @@ val player_teletype_want_to_play_coup_fourre :
 
 val pp_strategy_list : Format.formatter -> strategy list -> unit
 
-val init_teams : unit -> team list option
-(** [init_teams] initializes all [team] of the [board] with the terminal I/O commands. *)
-
-val init_board : unit -> board option
-(** [init_board] initializes the [board] with all [team] created with the terminal
-    I/O commands and generated piles. *)
+val ask_teams_info :
+  unit -> ((string * Teams_engine.strategy) list * bool) option
+(** [ask_teams_info] initializes all name and strategy, and if the teams contains 1 or 2 players, to start a party with the terminal I/O commands. *)
 
 val play_move_player : int -> board -> board option
 (** [play_move_player t b] simulates the current [player]'s move on [b], and returns

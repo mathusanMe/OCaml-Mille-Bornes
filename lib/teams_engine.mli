@@ -3,15 +3,7 @@ open Cards_engine
 type player_struct
 (** This type is the structure representation without its [team] information such as [name] and playing [hand]. *)
 
-type public_informations = {
-  id : int;
-  speed_limit_pile : pile_of_card;
-  drive_pile : pile_of_card;
-  distance_cards : deck_of_card;
-  safety_area : deck_of_card;
-  coup_fouree_cards : deck_of_card;
-  score : int;
-}
+type public_informations
 (** This type represents what can be shared with other players, such as the [id], driving zone cards and [score]. *)
 
 type player
@@ -62,14 +54,7 @@ and strategy = {
 }
 (** This type is composed of several functions that allow the [Bot] to produce game actions. *)
 
-val init_player : string -> strategy -> int -> player
-(** [init_player n s i] Initialize a player with his name [n], strategy [s] and id [i] *)
-
-type team = {
-  players : player list;
-  shared_public_informations : public_informations;
-  current_player_index : int;
-}
+type team
 (** The [team] type is a representation of a game member, with 1 or 2 players in this implementation,
     its [public_informations] that they share between players, and the id of the [player] who must play the round. *)
 
@@ -100,6 +85,36 @@ val have_same_contents_team : team -> team -> bool
 
 val get_names_from : team -> string list
 (** [get_names_from t] returns the names of all players in the [team], within a string list. *)
+
+val get_players_from : team -> player list
+(** [get_players_from t] returns the players list of [t]. *)
+
+val get_public_informations_from : team -> public_informations
+(** [get_public_informations_from t] returns public informations of [t]. *)
+
+val get_current_player_id_from : team -> int
+(** [get_current_player_id_from t] returns the current player id of [t]. *)
+
+val get_id_from : public_informations -> int
+(** [get_id_from pi] returns the id of [pi]. *)
+
+val get_score_from : public_informations -> int
+(** [get_score_from pi] returns the score of [pi]. *)
+
+val get_speed_limit_pile_from : public_informations -> pile_of_card
+(** [get_speed_limit_pile_from pi] returns the speed limit pile of the public information. *)
+
+val get_drive_pile_from : public_informations -> pile_of_card
+(** [get_drive_pile_from pi] returns the drive pile of the public information. *)
+
+val get_distance_cards_from : public_informations -> deck_of_card
+(** [get_distance_cards_from pi] returns the distance cards of the public information. *)
+
+val get_safety_area_from : public_informations -> deck_of_card
+(** [get_safety_area_from pi] returns the safety area of the public information. *)
+
+val get_coup_fouree_cards_from : public_informations -> deck_of_card
+(** [get_coup_fouree_cards_from pi] returns the coup fourre cards of the public information. *)
 
 val set_next_player_from : team -> team
 (** [set_next_player_from t] changes the id to the [player] who will play after the current [player], and loop if the id arrives at the end of the existing [players]. *)
@@ -132,16 +147,19 @@ val pp_public_informations_list :
 
 val pp_names_of_team_list : Format.formatter -> team list -> unit
 
-val init_team_with_one_player : string -> strategy -> int -> team
-(** [init_team_with_one_player name id] initializes a [team] consisting of one [player] with his [name], [strategy] and [team] [id]. *)
-
 exception Invalid_names
-(**Raised when the same name is used several times*)
+(** Raised when the same name is used several times*)
 
-val init_team_with_two_players :
-  string -> strategy -> string -> strategy -> int -> team
-(** [init_team_with_two_players name1 strat1 name2 strat2 id] initializes a [team] consisting of two [players] with respectively the names [name1] and [name2], strategy [stat1] and [strat2], and their shared
-    [team] [id]. Raise Invalid_names if [name1] = [name2] *)
+exception Not_valid_list_init_teams
+(** Raised when a player give wrong name list and strat list to initialize a list of team. *)
+
+exception Not_valid_names_init_teams
+(** Raised when a player give a name list with similar names. *)
+
+val init_teams : (string * strategy) list -> bool -> team list
+(** [init_teams names strats teams_of_two] return a valid list of teams.
+    [raise Not_valid_names_init_teams] if two names of [names] are similar.
+    [raise Not_valid_list_init_teams] if lists don't have the same length, and if their length is not valid considering [teams_of_two]. *)
 
 val is_attacked_by_hazard_on_drive_pile : public_informations -> bool
 (** [is_attacked_by_hazard_on_drive_pile pi] checks the top of the drive pile of [pi] and returns true if it contains a [hazard_card]. *)
@@ -170,3 +188,10 @@ exception Index_of_hand_out_of_bound
 val nth_hand_player : player -> int -> card
 (** [nth_hand_player p i] returns the [card] to position [i] in the [p]'s hand.
     [raise Index_of_hand_out_of_bound] if [i] is not valid. *)
+
+exception Team_already_have_hand
+(** Raised if a user try to give an initial hand to a team who has already a hand. *)
+
+val draw_initial_hand_to_team : team -> pile_of_card -> team * pile_of_card
+(** [draw_initial_hand_to_team t p] gives each [player] in [t] six [card] in their hand draw from [pile].
+    [raise Emtpy_pile] if the pile is too small. *)
