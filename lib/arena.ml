@@ -2,7 +2,6 @@ open Teams_engine
 open Board_engine
 open Cards_engine
 open Random_bot
-open Sad_bot
 
 type endplay =
   | Equality
